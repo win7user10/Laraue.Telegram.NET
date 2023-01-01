@@ -1,0 +1,60 @@
+using Laraue.Telegram.NET.Authentication.Services;
+using Microsoft.AspNetCore.Identity;
+
+namespace Laraue.Telegram.NET.Authentication.Utils;
+
+public class RegistrationHelper
+{
+    public static readonly Dictionary<string, string> MappingIdentityErrorDescriber = new()
+    {
+        [nameof(IdentityErrorDescriber.PasswordTooShort)] = nameof(LoginData.Password),
+        [nameof(IdentityErrorDescriber.PasswordMismatch)] = nameof(LoginData.Password),
+        [nameof(IdentityErrorDescriber.PasswordRequiresDigit)] = nameof(LoginData.Password),
+        [nameof(IdentityErrorDescriber.PasswordRequiresLower)] = nameof(LoginData.Password),
+        [nameof(IdentityErrorDescriber.PasswordRequiresUpper)] = nameof(LoginData.Password),
+        [nameof(IdentityErrorDescriber.PasswordRequiresNonAlphanumeric)] = nameof(LoginData.Password),
+        [nameof(IdentityErrorDescriber.PasswordRequiresUniqueChars)] = nameof(LoginData.Password),
+        [nameof(IdentityErrorDescriber.DuplicateUserName)] = nameof(LoginData.Username),
+        [nameof(IdentityErrorDescriber.InvalidUserName)] = nameof(LoginData.Username),
+    };
+
+    public static string GenerateRandomPassword(PasswordOptions opts)
+    {
+        var randomChars = new[] 
+        {
+            "ABCDEFGHJKLMNOPQRSTUVWXYZ",
+            "abcdefghijkmnopqrstuvwxyz",
+            "0123456789",
+            "!@$?_-"
+        };
+
+        var rand = new Random(Environment.TickCount);
+        var chars = new List<char>();
+
+        if (opts.RequireUppercase)
+            chars.Insert(rand.Next(0, chars.Count), 
+                randomChars[0][rand.Next(0, randomChars[0].Length)]);
+
+        if (opts.RequireLowercase)
+            chars.Insert(rand.Next(0, chars.Count), 
+                randomChars[1][rand.Next(0, randomChars[1].Length)]);
+
+        if (opts.RequireDigit)
+            chars.Insert(rand.Next(0, chars.Count), 
+                randomChars[2][rand.Next(0, randomChars[2].Length)]);
+
+        if (opts.RequireNonAlphanumeric)
+            chars.Insert(rand.Next(0, chars.Count), 
+                randomChars[3][rand.Next(0, randomChars[3].Length)]);
+
+        for (var i = chars.Count; i < opts.RequiredLength
+                                  || chars.Distinct().Count() < opts.RequiredUniqueChars; i++)
+        {
+            var rcs = randomChars[rand.Next(0, randomChars.Length)];
+            chars.Insert(rand.Next(0, chars.Count), 
+                rcs[rand.Next(0, rcs.Length)]);
+        }
+
+        return new string(chars.ToArray());
+    }
+}
