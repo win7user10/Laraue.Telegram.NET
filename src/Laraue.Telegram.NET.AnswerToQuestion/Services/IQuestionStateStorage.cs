@@ -6,7 +6,7 @@
 public interface IQuestionStateStorage
 {
     /// <summary>
-    /// Return <see cref="IQuestionResponseAwaiter"/> type if any question should be answered by a user.
+    /// Return <see cref="IAnswerAwaiter"/> type if any question should be answered by a user.
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
@@ -18,7 +18,7 @@ public interface IQuestionStateStorage
     /// <param name="userId"></param>
     /// <typeparam name="TResponseAwaiter"></typeparam>
     /// <returns></returns>
-    Task SetAsync<TResponseAwaiter>(string userId) where TResponseAwaiter : IQuestionResponseAwaiter;
+    Task SetAsync<TResponseAwaiter>(string userId) where TResponseAwaiter : IAnswerAwaiter;
     
     /// <summary>
     /// Sets that routing for user is executing with standard routing rules.

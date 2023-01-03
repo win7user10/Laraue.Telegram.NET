@@ -31,7 +31,7 @@ public static class ServiceCollectionExtensions
     {
         var responseAwaiters = (awaiterAssemblies ?? new []{ Assembly.GetCallingAssembly() })
             .SelectMany(x => x.GetTypes())
-            .Where(x => x is { IsClass: true, IsAbstract: false } && x.IsAssignableTo(typeof(IQuestionResponseAwaiter)));
+            .Where(x => x is { IsClass: true, IsAbstract: false } && x.IsAssignableTo(typeof(IAnswerAwaiter)));
 
         foreach (var responseAwaiter in responseAwaiters)
         {

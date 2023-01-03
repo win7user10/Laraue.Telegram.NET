@@ -1,6 +1,6 @@
 ﻿namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
 
-public interface IQuestionResponseAwaiter
+public interface IAnswerAwaiter
 {
     /// <summary>
     /// Try execute response awaiter if it is suitable for the execution.

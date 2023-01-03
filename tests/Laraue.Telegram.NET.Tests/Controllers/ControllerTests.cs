@@ -162,19 +162,20 @@ public class ControllerTests
         }
     }
 
-    private sealed class MessageResponseAwaiter : BaseQuestionResponseAwaiter
+    private sealed class MessageResponseAwaiter : BaseAnswerAwaiter<MessageResponseAwaiterModel>
     {
-        protected override bool TryValidate(Update update, [NotNullWhen(false)] out string? errorMessage)
+        protected override void Validate(Update update, AnswerResult<MessageResponseAwaiterModel> answerResult)
         {
-            errorMessage = null;
-            return true;
+            answerResult.SetResult(new MessageResponseAwaiterModel("awaited"));
         }
 
-        protected override Task<object?> ExecuteRouteAsync(TelegramRequestContext telegramRequestContext)
+        protected override Task<object?> ExecuteRouteAsync(MessageResponseAwaiterModel model)
         {
-            return Task.FromResult((object?) "awaited");
+            return Task.FromResult((object?)model.Message);
         }
     }
+
+    private sealed record MessageResponseAwaiterModel(string Message);
 
     private class InMemoryQuestionStateStorage : IQuestionStateStorage
     {
@@ -188,7 +189,7 @@ public class ControllerTests
         }
 
         public Task SetAsync<TResponseAwaiter>(string userId)
-            where TResponseAwaiter : IQuestionResponseAwaiter
+            where TResponseAwaiter : IAnswerAwaiter
         {
             _awaitersMap[userId] = typeof(TResponseAwaiter);
             

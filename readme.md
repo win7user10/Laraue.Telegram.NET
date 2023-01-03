@@ -1,6 +1,6 @@
 # Laraue.Telegram.NET
 
-This library contatins infrastructure code for fast telegram bots building.
+This library contatins infrastructure code for fast telegram bots building. The library use _Telegram.Bot_ package inside to communicate with Telegram.
 
 ## Laraue.Telegram.NET.Core
 
@@ -25,8 +25,8 @@ public class SettingsController : TelegramController
         });
     }
 ```
-Here _TelegramMessageRoute_ means that if the message with text "/settings" will be send by the telegram user, this method will be executed.
-
+Here _TelegramMessageRoute_ means that if the message with text "/settings" will be send by the telegram user, this method will be executed. Only message update will be handled in this case.
+To process callback queries can be used attribute _TelegramCallbackRouteAttribute_, any another request type can be handled by the attribute inherited from _TelegramBaseRouteAttribute_.
 ### Middleware
 The package has the opportunity to extend request pipeline by adding custom middlewares. The example is the next
 ```csharp
@@ -62,7 +62,7 @@ Adding middleware to the request pipeline
 ```csharp
 services.AddTelegramMiddleware<LogExceptionsMiddleware>();
 ```
-**Note** - middlewares are executes in the order they were added.
+**Note** - middlewares executes in the order they were added.
 
 ## Laraue.Telegram.NET.Authentication
 
@@ -95,4 +95,50 @@ and should be registered in this order.
 services.AddTelegramCore(new TelegramBotClientOptions(builder.Configuration["Telegram:Token"]!))
     .AddAnswerToQuestionFunctionality<QuestionStateStorage>()
     .AddTelegramAuthentication<User>()
+```
+Then the response awaiter can be implemented
+```csharp
+public class UpdateAgeResponseAwaiter : BaseAnswerAwaiter<uint>
+{
+    protected override void Validate(Update update, AnswerResult<TModel> answerResult)
+    {
+        if (uint.TryParse(update.Message!.Text, out var age))
+        {
+            answerResult.SetModel(age);
+        }
+        else
+        {
+            answerResult.SetError("Age should be a positive number");
+        }
+    }
+    
+    protected abstract Task<object?> ExecuteRouteAsync(uint age)
+    {
+        // Do something with the data.
+    }
+}
+```
+There is a short example of awaiter using
+```csharp
+public class TestController : TelegramController
+{
+    private readonly IQuestionStateStorage _questionState;
+    private readonly ITelegramBotClient _telegramClient;
+
+    public TestController(IQuestionStateStorage questionState, ITelegramBotClient telegramClient)
+    {
+        _questionStorage = questionState;
+        _telegramClient = telegramClient;
+    }
+
+    [TelegramMessageRoute("/start")]
+    public async Task HandleStart(TelegramRequestContext context)
+    {
+        await _client.SendTextMessageAsync(
+            context.UserId!,
+            "What is your age?");
+            
+        await _questionState.SetAsync<UpdateAgeResponseAwaiter>(context.UserId);
+    }
+}
 ```

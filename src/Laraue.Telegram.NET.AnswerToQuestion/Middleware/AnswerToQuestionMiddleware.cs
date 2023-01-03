@@ -40,7 +40,7 @@ public class AnswerToQuestionMiddleware : ITelegramMiddleware
             return await _next.InvokeAsync(ct);
         }
         
-        var responseAwaiter = (_serviceProvider.GetRequiredService(responseAwaiterType) as IQuestionResponseAwaiter)!;
+        var responseAwaiter = (_serviceProvider.GetRequiredService(responseAwaiterType) as IAnswerAwaiter)!;
         var result = await responseAwaiter.ExecuteAsync(_serviceProvider);
         
         await _questionStateStorage.ResetAsync(_requestContext.UserId);
