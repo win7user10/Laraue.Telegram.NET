@@ -4,6 +4,8 @@ This library contatins infrastructure code for fast telegram bots building. The 
 
 ## Laraue.Telegram.NET.Core
 
+[![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Core)](https://www.nuget.org/packages/Laraue.Telegram.NET.Core)
+
 The main idea of this library is to register all possible telegram routes inheriting from the class _TelegramController_.
 ```csharp
 public class SettingsController : TelegramController
@@ -66,6 +68,8 @@ services.AddTelegramMiddleware<LogExceptionsMiddleware>();
 
 ## Laraue.Telegram.NET.Authentication
 
+[![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Authentication)](https://www.nuget.org/packages/Laraue.Telegram.NET.Authentication)
+
 This library helps to integrate ASP.NET.Identity with the telegram request context.
 To use it the model of user can be defined
 ```csharp
@@ -82,9 +86,11 @@ services.AddTelegramCore(new TelegramBotClientOptions(builder.Configuration["Tel
 
 ## Laraue.Telegram.NET.AnswerToQuestion
 
+[![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.AnswerToQuestion)](https://www.nuget.org/packages/Laraue.Telegram.NET.AnswerToQuestion)
+
 This library allow to create an answer functionality. It is suitable for cases when something has been asked from the user and 
 next messages should be a response for this question. To use it should be implemented how to store Type that should be used to answer
-for question. 
+for question.
 ```csharp
 public class QuestionStateStorage : IQuestionStateStorage
 {}
