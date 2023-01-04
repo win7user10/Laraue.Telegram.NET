@@ -1,7 +1,6 @@
 ﻿using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Abstractions.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
-using Telegram.Bot.Types;
 
 namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
 
@@ -20,7 +19,7 @@ public abstract class BaseAnswerAwaiter<TModel> : IAnswerAwaiter
         var telegramRequestContext = serviceProvider.GetRequiredService<TelegramRequestContext>();
         var answerResult = new AnswerResult<TModel>();
 
-        Validate(telegramRequestContext.Update, answerResult);
+        Validate(telegramRequestContext, answerResult);
         if (answerResult.Error is not null)
         {
             throw new BadTelegramRequestException(answerResult.Error);
@@ -31,7 +30,7 @@ public abstract class BaseAnswerAwaiter<TModel> : IAnswerAwaiter
             throw new InvalidOperationException("Model should be bind if validation finished successfully.");
         }
 
-        return await ExecuteRouteAsync(answerResult.Model);
+        return await ExecuteRouteAsync(telegramRequestContext, answerResult.Model);
     }
 
     /// <summary>
@@ -39,14 +38,15 @@ public abstract class BaseAnswerAwaiter<TModel> : IAnswerAwaiter
     /// If any error occured, <see cref="AnswerResult{TResult}"/> should has an error.
     /// If errors are not occured <see cref="AnswerResult{TResult}.Model"/> in the results should be bind.
     /// </summary>
-    /// <param name="update"></param>
-    /// <param name="answerResult"></param>
-    protected abstract void Validate(Update update, AnswerResult<TModel> answerResult);
+    /// <param name="requestContext">Current telegram request context.</param>
+    /// <param name="answerResult">Validation result.</param>
+    protected abstract void Validate(TelegramRequestContext requestContext, AnswerResult<TModel> answerResult);
     
     /// <summary>
     /// Execute the awaiter body if validation has been passed successfully.
     /// </summary>
-    /// <param name="model"></param>
+    /// <param name="requestContext">Current telegram request context.</param>
+    /// <param name="model">Validated model.</param>
     /// <returns></returns>
-    protected abstract Task<object?> ExecuteRouteAsync(TModel model);
+    protected abstract Task<object?> ExecuteRouteAsync(TelegramRequestContext requestContext, TModel model);
 }

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text;
+﻿using System.Text;
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.AnswerToQuestion.Extensions;
 using Laraue.Telegram.NET.AnswerToQuestion.Services;
@@ -164,12 +163,12 @@ public class ControllerTests
 
     private sealed class MessageResponseAwaiter : BaseAnswerAwaiter<MessageResponseAwaiterModel>
     {
-        protected override void Validate(Update update, AnswerResult<MessageResponseAwaiterModel> answerResult)
+        protected override void Validate(TelegramRequestContext requestContext, AnswerResult<MessageResponseAwaiterModel> answerResult)
         {
             answerResult.SetResult(new MessageResponseAwaiterModel("awaited"));
         }
 
-        protected override Task<object?> ExecuteRouteAsync(MessageResponseAwaiterModel model)
+        protected override Task<object?> ExecuteRouteAsync(TelegramRequestContext requestContext, MessageResponseAwaiterModel model)
         {
             return Task.FromResult((object?)model.Message);
         }
