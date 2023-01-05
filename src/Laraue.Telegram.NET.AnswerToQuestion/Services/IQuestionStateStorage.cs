@@ -10,7 +10,7 @@ public interface IQuestionStateStorage
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    Task<Type?> TryGetAsync(string userId);
+    Task<IAnswerAwaiter?> TryGetAsync(string userId);
     
     /// <summary>
     /// Sets that user should answer the question on the next request.

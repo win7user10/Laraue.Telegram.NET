@@ -7,6 +7,15 @@ This library contatins infrastructure code for fast telegram bots building. The 
 [![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Core)](https://www.nuget.org/packages/Laraue.Telegram.NET.Core)
 
 The main idea of this library is to register all possible telegram routes inheriting from the class _TelegramController_.
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddTelegramCore(new TelegramBotClientOptions(builder.Configuration["Telegram:Token"]!));
+var app = builder.Build();
+app.MapTelegramRequests(builder.Configuration["Telegram:WebhookUrl"]!);
+app.Run();
+```
+Controller example
 ```csharp
 public class SettingsController : TelegramController
 {
@@ -29,6 +38,7 @@ public class SettingsController : TelegramController
 ```
 Here _TelegramMessageRoute_ means that if the message with text "/settings" will be send by the telegram user, this method will be executed. Only message update will be handled in this case.
 To process callback queries can be used attribute _TelegramCallbackRouteAttribute_, any another request type can be handled by the attribute inherited from _TelegramBaseRouteAttribute_.
+
 ### Middleware
 The package has the opportunity to extend request pipeline by adding custom middlewares. The example is the next
 ```csharp

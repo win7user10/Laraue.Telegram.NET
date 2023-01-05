@@ -14,6 +14,8 @@ namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
 /// <typeparam name="TModel">Type of data that required to execute the request.</typeparam>
 public abstract class BaseAnswerAwaiter<TModel> : IAnswerAwaiter
 {
+    public abstract string Id { get; }
+
     public async Task<object?> ExecuteAsync(IServiceProvider serviceProvider)
     {
         var telegramRequestContext = serviceProvider.GetRequiredService<TelegramRequestContext>();

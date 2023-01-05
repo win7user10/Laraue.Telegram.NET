@@ -163,6 +163,8 @@ public class ControllerTests
 
     private sealed class MessageResponseAwaiter : BaseAnswerAwaiter<MessageResponseAwaiterModel>
     {
+        public override string Id => "MessageResponseAwaiter";
+        
         protected override void Validate(TelegramRequestContext requestContext, AnswerResult<MessageResponseAwaiterModel> answerResult)
         {
             answerResult.SetResult(new MessageResponseAwaiterModel("awaited"));
@@ -176,28 +178,32 @@ public class ControllerTests
 
     private sealed record MessageResponseAwaiterModel(string Message);
 
-    private class InMemoryQuestionStateStorage : IQuestionStateStorage
+    private class InMemoryQuestionStateStorage : BaseQuestionStateStorage
     {
-        private readonly Dictionary<string, Type> _awaitersMap = new ();
+        private readonly Dictionary<string, string> _awaiterStorage = new ();
 
-        public Task<Type?> TryGetAsync(string userId)
+        public InMemoryQuestionStateStorage(IEnumerable<IAnswerAwaiter> awaiters, IServiceProvider serviceProvider)
+            : base(awaiters, serviceProvider)
         {
-            _awaitersMap.TryGetValue(userId, out var awaiterType);
-
-            return Task.FromResult(awaiterType);
         }
 
-        public Task SetAsync<TResponseAwaiter>(string userId)
-            where TResponseAwaiter : IAnswerAwaiter
+        protected override Task<string?> TryGetStringIdentifierFromStorageAsync(string userId)
         {
-            _awaitersMap[userId] = typeof(TResponseAwaiter);
+            _awaiterStorage.TryGetValue(userId, out var value);
+
+            return Task.FromResult(value);
+        }
+
+        protected override Task SetStringIdentifierToStorageAsync(string userId, string id)
+        {
+            _awaiterStorage[userId] = id;
             
             return Task.CompletedTask;
         }
 
-        public Task ResetAsync(string userId)
+        public override Task ResetAsync(string userId)
         {
-            _awaitersMap.Remove(userId);
+            _awaiterStorage.Remove(userId);
             
             return Task.CompletedTask;
         }

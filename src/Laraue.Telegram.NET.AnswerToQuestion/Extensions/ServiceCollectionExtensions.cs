@@ -36,6 +36,7 @@ public static class ServiceCollectionExtensions
         foreach (var responseAwaiter in responseAwaiters)
         {
             serviceCollection.AddScoped(responseAwaiter);
+            serviceCollection.AddScoped(typeof(IAnswerAwaiter), responseAwaiter);
         }
         
         serviceCollection.AddTelegramMiddleware<AnswerToQuestionMiddleware>()

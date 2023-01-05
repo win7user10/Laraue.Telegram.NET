@@ -33,14 +33,13 @@ public class AnswerToQuestionMiddleware : ITelegramMiddleware
                 $" Ensure {typeof(AuthTelegramMiddleware)} has been registered");
         }
         
-        var responseAwaiterType = await _questionStateStorage.TryGetAsync(_requestContext.UserId!);
+        var responseAwaiter = await _questionStateStorage.TryGetAsync(_requestContext.UserId!);
 
-        if (responseAwaiterType is null)
+        if (responseAwaiter is null)
         {
             return await _next.InvokeAsync(ct);
         }
         
-        var responseAwaiter = (_serviceProvider.GetRequiredService(responseAwaiterType) as IAnswerAwaiter)!;
         var result = await responseAwaiter.ExecuteAsync(_serviceProvider);
         
         await _questionStateStorage.ResetAsync(_requestContext.UserId);
