@@ -1,4 +1,5 @@
-﻿using Telegram.Bot.Types;
+﻿using System.Text.RegularExpressions;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace Laraue.Telegram.NET.Core.Routing.Attributes;
@@ -19,17 +20,23 @@ public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttr
     /// <summary>
     /// Pattern of path which will be tried to match.
     /// </summary>
-    public string PathPattern { get; } // TODO - Replace to regex and rewrite is match
+    public Regex PathPattern { get; }
 
     protected TelegramBaseRouteWithPathAttribute(UpdateType updateType, string pathPattern)
     {
         UpdateType = updateType;
-        PathPattern = pathPattern;
+        PathPattern = RouteRegexCreator.ForRoute(pathPattern);
     }
 
     public override bool IsMatch(Update update)
     {
-        return update.Type == UpdateType && GetPathFromUpdate(update) == PathPattern;
+        if (update.Type != UpdateType)
+        {
+            return false;
+        }
+
+        var pathFromUpdate = GetPathFromUpdate(update);
+        return pathFromUpdate is not null && PathPattern.IsMatch(pathFromUpdate);
     }
 
     /// <summary>

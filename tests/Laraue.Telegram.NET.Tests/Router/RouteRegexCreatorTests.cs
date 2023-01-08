@@ -6,25 +6,25 @@ namespace Laraue.Telegram.NET.Tests.Router;
 public class RouteRegexCreatorTests
 {
     [Theory]
-    [InlineData("groups/12", "12")]
-    [InlineData("groups/abc", "abc")]
-    public void SuitableRoute_ShouldBeMatched(string routeToTest, string exceptedParameterValue)
+    [InlineData("groups/*", "groups/12")]
+    [InlineData("groups/*", "groups/abc/asd")]
+    [InlineData("groups/*", "groups/")]
+    [InlineData("/start", "/start")]
+    public void SuitableRoute_ShouldBeMatched(string pathPattern, string route)
     {
-        var regex = RouteRegexCreator.ForRoute("groups/{id}");
-
-        Assert.Matches(regex, routeToTest);
-        var res = regex.Match(routeToTest);
+        var regex = RouteRegexCreator.ForRoute(pathPattern);
         
-        Assert.Equal(exceptedParameterValue, res.Groups[1].Value);
+        Assert.Matches(regex, route);
     }
     
     [Theory]
-    [InlineData("groups/12")]
-    [InlineData("groups/abc")]
-    public void UnsuitableRoute_ShouldNotBeMatched(string routeToTest)
+    [InlineData("groups/*", "group/")]
+    [InlineData("/start", "/start1")]
+    [InlineData("/start", "/star")]
+    public void SuitableRoute_ShouldNotBeMatched(string pathPattern, string route)
     {
-        var regex = RouteRegexCreator.ForRoute("s/{id}");
-
-        Assert.DoesNotMatch(regex, routeToTest);
+        var regex = RouteRegexCreator.ForRoute(pathPattern);
+        
+        Assert.DoesNotMatch(regex, route);
     }
 }
