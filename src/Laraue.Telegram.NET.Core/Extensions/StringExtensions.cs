@@ -1,16 +1,18 @@
-﻿namespace Laraue.Telegram.NET.Core.Extensions;
+﻿using Laraue.Telegram.NET.Core.Request;
+
+namespace Laraue.Telegram.NET.Core.Extensions;
 
 public static class StringExtensions
 {
     /// <summary>
-    /// Get full query string, e.g. hostname://path?param1=value1 and return all
+    /// Get full query string, e.g. path?param1=value1 and return all
     /// query params as a dictionary.
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static IDictionary<string, string?> ParseQueryParts(this string? source)
+    public static RequestParameters ParseQueryParts(this string? source)
     {
-        var result = new Dictionary<string, string?>();
+        var result = new RequestParameters();
         
         if (source is null)
         {

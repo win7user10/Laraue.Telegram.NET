@@ -63,7 +63,7 @@ public static class ServiceCollectionExtensions
         var controllerTypes = controllerAssemblies
             .SelectMany(x => x.GetTypes())
             .Where(x => x is { IsClass: true, IsAbstract: false } && x.IsSubclassOf(typeof(TelegramController)));
-
+        
         foreach (var controllerType in controllerTypes)
         {
             serviceCollection.AddScoped(controllerType);
