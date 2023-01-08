@@ -1,6 +1,7 @@
 # Laraue.Telegram.NET
 
-This library contatins infrastructure code for fast telegram bots building. The library use _Telegram.Bot_ package inside to communicate with Telegram.
+This library contains infrastructure code for fast telegram bots building. The library use _Telegram.Bot_ package inside to communicate with Telegram.
+This repo https://github.com/win7user10/Laraue.Apps.LearnLanguage contains full example of using this library.
 
 ## Laraue.Telegram.NET.Core
 
