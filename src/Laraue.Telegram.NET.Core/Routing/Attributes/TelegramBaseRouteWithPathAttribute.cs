@@ -22,12 +22,18 @@ public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttr
     /// </summary>
     public Regex PathPattern { get; }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="TelegramBaseRouteWithPathAttribute"/>.
+    /// </summary>
+    /// <param name="updateType"></param>
+    /// <param name="pathPattern"></param>
     protected TelegramBaseRouteWithPathAttribute(UpdateType updateType, string pathPattern)
     {
         UpdateType = updateType;
         PathPattern = RouteRegexCreator.ForRoute(pathPattern);
     }
 
+    /// <inheritdoc />
     public override bool IsMatch(Update update)
     {
         if (update.Type != UpdateType)

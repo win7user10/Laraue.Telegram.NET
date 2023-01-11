@@ -10,7 +10,7 @@ public sealed class TelegramRequestContext
     /// <summary>
     /// Telegram message associated with the current request.
     /// </summary>
-    public Update Update { get; set; }
+    public Update Update { get; set; } = default!;
 
     /// <summary>
     /// Dictionary with parameters for pipeline customization.

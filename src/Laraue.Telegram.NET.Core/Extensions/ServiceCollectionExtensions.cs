@@ -8,6 +8,9 @@ using Telegram.Bot;
 
 namespace Laraue.Telegram.NET.Core.Extensions;
 
+/// <summary>
+/// Extensions to add Telegram.NET core to the container.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>

@@ -2,6 +2,9 @@
 
 namespace Laraue.Telegram.NET.Core.Extensions;
 
+/// <summary>
+/// Extensions to work work with strings.
+/// </summary>
 public static class StringExtensions
 {
     /// <summary>

@@ -21,6 +21,11 @@ public abstract class BaseQuestionStateStorage : IQuestionStateStorage
         return _awaiters.FirstOrDefault(x => x.Id == id);
     }
 
+    /// <summary>
+    /// Describes how to retrieve a string identifier of the current question to the storage.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     protected abstract Task<string?> TryGetStringIdentifierFromStorageAsync(string userId);
 
     /// <inheritdoc />
@@ -31,6 +36,12 @@ public abstract class BaseQuestionStateStorage : IQuestionStateStorage
         return SetStringIdentifierToStorageAsync(userId, awaiter.Id);
     }
     
+    /// <summary>
+    /// Describes how to save a string identifier of the current question to the storage.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="id"></param>
+    /// <returns></returns>
     protected abstract Task SetStringIdentifierToStorageAsync(string userId, string id);
 
     /// <inheritdoc />

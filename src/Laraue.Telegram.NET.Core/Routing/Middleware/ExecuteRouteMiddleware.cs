@@ -6,11 +6,13 @@ internal sealed class ExecuteRouteMiddleware : ITelegramMiddleware
 {
     private readonly IEnumerable<IRoute> _routes;
     private readonly IServiceProvider _serviceProvider;
+    private readonly TelegramRequestContext _requestContext;
 
-    public ExecuteRouteMiddleware(IEnumerable<IRoute> routes, IServiceProvider serviceProvider)
+    public ExecuteRouteMiddleware(IEnumerable<IRoute> routes, IServiceProvider serviceProvider, TelegramRequestContext requestContext)
     {
         _routes = routes;
         _serviceProvider = serviceProvider;
+        _requestContext = requestContext;
     }
 
     public async Task<object?> InvokeAsync(CancellationToken ct = default)
@@ -24,6 +26,8 @@ internal sealed class ExecuteRouteMiddleware : ITelegramMiddleware
                 continue;
             }
 
+            _requestContext.ExecutedRoute = route;
+            
             return result.ExecutionResult;
         }
 

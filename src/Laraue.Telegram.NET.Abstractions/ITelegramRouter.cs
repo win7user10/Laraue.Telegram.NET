@@ -2,6 +2,9 @@
 
 namespace Laraue.Telegram.NET.Abstractions;
 
+/// <summary>
+/// The class that run routing logic in the Laraue.Telegram.Core package.
+/// </summary>
 public interface ITelegramRouter
 {
     /// <summary>

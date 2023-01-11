@@ -2,14 +2,15 @@
 
 namespace Laraue.Telegram.NET.Core.Request;
 
+/// <summary>
+/// Contains parameters dictionary where each parameter can
+/// be retrieved and deserialized into the necessary type. 
+/// </summary>
 public class RequestParameters : Dictionary<string, string?>
 {
-    public RequestParameters(IDictionary<string, string?> source)
-        : base(source, StringComparer.OrdinalIgnoreCase)
-    { 
-    }
-    
-    public RequestParameters() : base(StringComparer.OrdinalIgnoreCase)
+    /// <inheritdoc />
+    public RequestParameters()
+        : base(StringComparer.OrdinalIgnoreCase)
     { 
     }
     

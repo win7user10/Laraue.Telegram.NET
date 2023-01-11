@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Laraue.Telegram.NET.AnswerToQuestion.Middleware;
 
+/// <summary>
+/// Middleware to support answer to the question functionality.
+/// </summary>
 public class AnswerToQuestionMiddleware : ITelegramMiddleware
 {
     private readonly ITelegramMiddleware _next;
@@ -24,6 +27,7 @@ public class AnswerToQuestionMiddleware : ITelegramMiddleware
         _serviceProvider = serviceProvider;
     }
     
+    /// <inheritdoc />
     public async Task<object?> InvokeAsync(CancellationToken ct = default)
     {
         if (_requestContext.UserId is null)

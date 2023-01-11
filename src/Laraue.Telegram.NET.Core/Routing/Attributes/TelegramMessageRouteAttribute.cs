@@ -9,11 +9,16 @@ namespace Laraue.Telegram.NET.Core.Routing.Attributes;
 [AttributeUsage(AttributeTargets.Method)]
 public class TelegramMessageRouteAttribute : TelegramBaseRouteWithPathAttribute
 {
+    /// <summary>
+    /// This route will be matched when the message text is matching to the passed pattern.
+    /// </summary>
+    /// <param name="pathPattern"></param>
     public TelegramMessageRouteAttribute(string pathPattern)
         : base(UpdateType.Message, pathPattern)
     {
     }
 
+    /// <inheritdoc />
     protected override string? GetPathFromUpdate(Update update)
     {
         return update.Message?.Text;

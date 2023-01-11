@@ -2,6 +2,9 @@
 
 namespace Laraue.Telegram.NET.Core.Routing.Middleware;
 
+/// <summary>
+/// Contains all middleware types in the request pipeline.
+/// </summary>
 public sealed class MiddlewareList
 {
     private readonly Dictionary<byte, IList<Type>> _middlewareTypes = new ();
@@ -31,6 +34,9 @@ public sealed class MiddlewareList
         _middlewareTypes[index].Add(middlewareType);
     }
 
+    /// <summary>
+    /// All middleware types in order they are executes.
+    /// </summary>
     public IEnumerable<Type> Items
     {
         get

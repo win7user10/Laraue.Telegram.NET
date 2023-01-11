@@ -9,6 +9,7 @@ using Telegram.Bot.Types;
 
 namespace Laraue.Telegram.NET.Core.Routing;
 
+/// <inheritdoc />
 public sealed class TelegramRouter : ITelegramRouter
 {
     private readonly MiddlewareList _middlewareList;
@@ -16,6 +17,14 @@ public sealed class TelegramRouter : ITelegramRouter
     private readonly TelegramRequestContext _telegramRequestContext;
     private readonly ILogger<TelegramRouter> _logger;
 
+    
+    /// <summary>
+    /// Initializes a new instance of <see cref="TelegramRouter"/>.
+    /// </summary>
+    /// <param name="serviceProvider"></param>
+    /// <param name="telegramRequestContext"></param>
+    /// <param name="middlewareList"></param>
+    /// <param name="logger"></param>
     public TelegramRouter(
         IServiceProvider serviceProvider,
         TelegramRequestContext telegramRequestContext,
@@ -27,7 +36,8 @@ public sealed class TelegramRouter : ITelegramRouter
         _telegramRequestContext = telegramRequestContext;
         _logger = logger;
     }
-
+    
+    /// <inheritdoc />
     public async Task<object?> RouteAsync(Update update, CancellationToken cancellationToken = default)
     {
         var sw = new Stopwatch();

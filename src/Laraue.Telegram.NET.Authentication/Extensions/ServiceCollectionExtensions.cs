@@ -8,6 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Laraue.Telegram.NET.Authentication.Extensions;
 
+/// <summary>
+/// Extensions to add Authentication functionality to the container.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>

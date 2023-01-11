@@ -2,6 +2,9 @@
 
 namespace Laraue.Telegram.NET.Core.Extensions;
 
+/// <summary>
+/// Extensions to work with telegram <see cref="Update"/>.
+/// </summary>
 public static class UpdateExtensions
 {
     /// <summary>

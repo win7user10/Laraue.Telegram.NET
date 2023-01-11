@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Laraue.Telegram.NET.AnswerToQuestion.Extensions;
 
+/// <summary>
+/// Extensions to add AnswerToQuestion functionality to the container.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
