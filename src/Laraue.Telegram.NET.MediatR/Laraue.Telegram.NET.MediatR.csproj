@@ -10,6 +10,7 @@
     <Authors>Belyanskiy Ilya</Authors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>Telegram, MediatR</PackageTags>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

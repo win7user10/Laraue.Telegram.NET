@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types.Enums;
 
 namespace Laraue.Telegram.NET.MediatR;
@@ -26,27 +27,42 @@ public abstract class BaseEditMessageCommandHandler<TCommand, TData> : IRequestH
     where TCommand : BaseEditMessageCommand<TData>
 {
     private readonly ITelegramBotClient _client;
-    private readonly ILogger<TCommand> _logger;
 
-    protected BaseEditMessageCommandHandler(ITelegramBotClient client, ILogger<TCommand> logger)
+    /// <summary>
+    /// Initialize a new instance of <see cref="BaseEditMessageCommandHandler{TCommand,TData}"/>.
+    /// </summary>
+    /// <param name="client"></param>
+    protected BaseEditMessageCommandHandler(ITelegramBotClient client)
     {
         _client = client;
-        _logger = logger;
     }
 
+    /// <summary>
+    /// Edit telegram message with the passed command.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<Unit> Handle(TCommand request, CancellationToken cancellationToken)
     {
         var messageBuilder = new TelegramMessageBuilder();
         
         HandleInternal(request, messageBuilder);
-        
-        await _client.EditMessageTextAsync(
-            request.ChatId,
-            request.MessageId,
-            messageBuilder.Text,
-            ParseMode.Html,
-            replyMarkup: messageBuilder.InlineKeyboard,
-            cancellationToken: cancellationToken);
+
+        try
+        {
+            await _client.EditMessageTextAsync(
+                request.ChatId,
+                request.MessageId,
+                messageBuilder.Text,
+                ParseMode.Html,
+                replyMarkup: messageBuilder.InlineKeyboard,
+                cancellationToken: cancellationToken);
+        }
+        catch (ApiRequestException)
+        {
+            // Source does not modified.
+        }
 
         try
         {
@@ -54,13 +70,18 @@ public abstract class BaseEditMessageCommandHandler<TCommand, TData> : IRequestH
                 request.CallbackQueryId,
                 cancellationToken: cancellationToken);
         }
-        catch (Exception e)
+        catch (ApiRequestException)
         {
-            _logger.LogWarning(e, "Error while answering to the callback query.");
+            // Callback query is expired.
         }
         
         return Unit.Value;
     }
     
+    /// <summary>
+    /// Build telegram message using the passed command.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="telegramMessageBuilder"></param>
     protected abstract void HandleInternal(TCommand request, TelegramMessageBuilder telegramMessageBuilder);
 }

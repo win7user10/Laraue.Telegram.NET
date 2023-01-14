@@ -1,6 +1,6 @@
 # Laraue.Telegram.NET
 
-This library contains infrastructure code for fast telegram bots building. The library use _Telegram.Bot_ package inside to communicate with Telegram.
+This library contains infrastructure code for fast telegram bots building. The library use https://github.com/TelegramBots/Telegram.Bot package inside to communicate with Telegram.
 This repo https://github.com/win7user10/Laraue.Apps.LearnLanguage contains full example of using this library.
 
 ## Laraue.Telegram.NET.Core
@@ -9,14 +9,6 @@ This repo https://github.com/win7user10/Laraue.Apps.LearnLanguage contains full 
 
 The main idea of this library is to register all possible telegram routes inheriting from the class _TelegramController_.
 
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddTelegramCore(new TelegramBotClientOptions(builder.Configuration["Telegram:Token"]!));
-var app = builder.Build();
-app.MapTelegramRequests(builder.Configuration["Telegram:WebhookUrl"]!);
-app.Run();
-```
-Controller example
 ```csharp
 public class SettingsController : TelegramController
 {
@@ -37,8 +29,25 @@ public class SettingsController : TelegramController
         });
     }
 ```
+
 Here _TelegramMessageRoute_ means that if the message with text "/settings" will be send by the telegram user, this method will be executed. Only message update will be handled in this case.
 To process callback queries can be used attribute _TelegramCallbackRouteAttribute_, any another request type can be handled by the attribute inherited from _TelegramBaseRouteAttribute_.
+
+To start using this and other controllers the library should be added with the following way
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddTelegramCore(new TelegramBotClientOptions("5118263652:AAHiPDQ8kVcbs2WZWG4Z..."));
+var app = builder.Build();
+app.MapTelegramRequests("/api/telegram");
+app.Run();
+```
+
+The token in the TelegramBotClientOptions can be taken via @BotFather bot in the Telegram.
+_MapTelegramRequests_ method setup the address which will listen callbacks from the telegram.
+This address should be set also on the telegram side by calling the next url:
+```
+https://api.telegram.org/bot5118263652:AAHiPDQ8kVcbs2WZWG4Z.../setWebhook?url=https://your.host/api/telegram
+```
 
 ### Middleware
 The package has the opportunity to extend request pipeline by adding custom middlewares. The example is the next
@@ -93,7 +102,13 @@ services.AddTelegramCore(new TelegramBotClientOptions(builder.Configuration["Tel
     .AddTelegramAuthentication<User>()
     .AddEntityFrameworkStores<CianCrawlerDbContext>()
 ```
+
 **Note** - AddTelegramAuthentication returns _Microsoft.AspNetCore.Identity.IdentityBuilder_, use it to configure identity options.
+
+After the registration the _TelegramRequestContext_ class will also have the filled UserId.
+The logic is next: from the received telegram message telegram identifier of the user that send the message is retrieved.
+Then this identifier maps to the identifier in the database. Then this identifier sets to the request context.
+
 
 ## Laraue.Telegram.NET.AnswerToQuestion
 
@@ -103,8 +118,23 @@ This library allow to create an answer functionality. It is suitable for cases w
 next messages should be a response for this question. To use it should be implemented how to store Type that should be used to answer
 for question.
 ```csharp
-public class QuestionStateStorage : IQuestionStateStorage
-{}
+public class QuestionStateStorage : BaseQuestionStateStorage
+{
+    protected override Task<string?> TryGetStringIdentifierFromStorageAsync(string userId)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task SetStringIdentifierToStorageAsync(string userId, string id)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override Task ResetAsync(string userId)
+    {
+        throw new NotImplementedException();
+    }
+}
 ```
 Add the functionality to container. AnswerToQuestionFunctionality is depending from Laraue.Telegram.NET.Core and Laraue.Telegram.NET.Authentication packages
 and should be registered in this order.
