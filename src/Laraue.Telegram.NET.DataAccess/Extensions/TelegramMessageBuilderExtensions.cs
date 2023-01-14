@@ -4,10 +4,22 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Laraue.Telegram.NET.DataAccess.Extensions;
 
+/// <summary>
+/// Extensions to build pagination functionality in the telegram views.
+/// </summary>
 public static class TelegramMessageBuilderExtensions
 {
     private const string PageParameterName = "p";
     
+    /// <summary>
+    /// Get the paginated result and format it to the string message.
+    /// Each item will represent one row in the message.
+    /// </summary>
+    /// <param name="messageBuilder"></param>
+    /// <param name="result"></param>
+    /// <param name="formatRow"></param>
+    /// <typeparam name="TData"></typeparam>
+    /// <returns></returns>
     public static TelegramMessageBuilder AppendDataRows<TData>(
         this TelegramMessageBuilder messageBuilder,
         IPaginatedResult<TData> result,
@@ -22,10 +34,18 @@ public static class TelegramMessageBuilderExtensions
         return messageBuilder;
     }
     
+    /// <summary>
+    /// Add buttons to move forward and back in the pagination telegram view.
+    /// </summary>
+    /// <param name="messageBuilder"></param>
+    /// <param name="result"></param>
+    /// <param name="route"></param>
+    /// <typeparam name="TData"></typeparam>
+    /// <returns></returns>
     public static TelegramMessageBuilder AddControlButtons<TData>(
         this TelegramMessageBuilder messageBuilder,
         IPaginatedResult<TData> result,
-        string route)
+        RoutePathBuilder route)
         where TData : class
     {
         if (result is {HasPreviousPage: false, HasNextPage: false})
@@ -37,14 +57,14 @@ public static class TelegramMessageBuilderExtensions
         if (result.HasPreviousPage)
         {
             rowButtons.Add(InlineKeyboardButton.WithCallbackData(
-                "Previous ⬅",
-                $"{route}?{PageParameterName}={result.Page - 1}"));
+                "Previous ⬅", 
+                route.WithQueryParameter(PageParameterName, result.Page - 1)));
         }
         if (result.HasNextPage)
         {
             rowButtons.Add(InlineKeyboardButton.WithCallbackData(
                 "Next ➡",
-                $"{route}?{PageParameterName}={result.Page + 1}"));
+                route.WithQueryParameter(PageParameterName, result.Page + 1)));
         }
 
         messageBuilder.AddInlineKeyboardButtons(rowButtons);
@@ -52,6 +72,14 @@ public static class TelegramMessageBuilderExtensions
         return messageBuilder;
     }
 
+    /// <summary>
+    /// Add inline button for each item in pagination result.
+    /// </summary>
+    /// <param name="messageBuilder"></param>
+    /// <param name="result"></param>
+    /// <param name="getButton"></param>
+    /// <typeparam name="TData"></typeparam>
+    /// <returns></returns>
     public static TelegramMessageBuilder AddInlineKeyboardButtons<TData>(
         this TelegramMessageBuilder messageBuilder,
         IPaginatedResult<TData> result,
