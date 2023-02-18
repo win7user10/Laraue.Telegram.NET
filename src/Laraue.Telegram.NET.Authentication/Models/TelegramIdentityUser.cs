@@ -11,4 +11,9 @@ public class TelegramIdentityUser : IdentityUser
     /// Telegram identifier.
     /// </summary>
     public long? TelegramId { get; init; }
+
+    /// <summary>
+    /// When the user first time wrote to the telegram bot (in UTC).
+    /// </summary>
+    public DateTime CreatedAt { get; init; } = DateTime.MinValue.ToUniversalTime();
 }

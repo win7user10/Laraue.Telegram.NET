@@ -85,6 +85,7 @@ public class UserService<T> : IUserService where T : TelegramIdentityUser, new()
             {
                 UserName = userName,
                 TelegramId = telegramData.Id,
+                CreatedAt = DateTime.UtcNow,
             }, password);
         
         if (!result.Succeeded)
