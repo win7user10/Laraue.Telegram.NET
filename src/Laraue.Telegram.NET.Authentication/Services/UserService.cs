@@ -7,20 +7,22 @@ using Microsoft.Extensions.Options;
 
 namespace Laraue.Telegram.NET.Authentication.Services;
 
-public class UserService<T> : IUserService where T : TelegramIdentityUser, new()
+public class UserService<TUser, TKey> : IUserService<TKey>
+    where TUser : TelegramIdentityUser<TKey>, new()
+    where TKey : IEquatable<TKey>
 {
-    private readonly UserManager<T> _userManager;
+    private readonly UserManager<TUser> _userManager;
     private readonly IdentityOptions _identityOptions;
 
     public UserService(
-        UserManager<T> userManager,
+        UserManager<TUser> userManager,
         IOptions<IdentityOptions> identityOptions)
     {
         _userManager = userManager;
         _identityOptions = identityOptions.Value;
     }
 
-    public async Task<LoginResponse> LoginAsync(LoginData loginData)
+    public async Task<LoginResponse<TKey>> LoginAsync(LoginData loginData)
     {
         var(login, password) = loginData;
         var user = await _userManager.FindByNameAsync(login);
@@ -44,13 +46,16 @@ public class UserService<T> : IUserService where T : TelegramIdentityUser, new()
             });
         }
 
-        return new LoginResponse(user.Id);
+        return new LoginResponse<TKey>(user.Id);
     }
 
-    public async Task<LoginResponse> RegisterAsync(LoginData loginData)
+    public async Task<LoginResponse<TKey>> RegisterAsync(LoginData loginData)
     {
         var (login, password) = loginData;
-        var result = await _userManager.CreateAsync(new T { UserName = login }, password);
+        var result = await _userManager.CreateAsync(
+            new TUser { UserName = login,},
+            password);
+        
         if (result.Succeeded)
         {
             return await LoginAsync(loginData);
@@ -69,23 +74,22 @@ public class UserService<T> : IUserService where T : TelegramIdentityUser, new()
 
     }
 
-    public async Task<LoginResponse> LoginOrRegisterAsync(TelegramData telegramData)
+    public async Task<LoginResponse<TKey>> LoginOrRegisterAsync(TelegramData telegramData)
     {
         var userName = $"tg_{telegramData.Username}";
         var user = await _userManager.FindByNameAsync(userName);
 
         if (user is not null)
         {
-            return new LoginResponse(user.Id);
+            return new LoginResponse<TKey>(user.Id);
         }
 
         var password = RegistrationHelper.GenerateRandomPassword(_identityOptions.Password);
         var result = await _userManager.CreateAsync(
-            new T
+            new TUser
             {
                 UserName = userName,
-                TelegramId = telegramData.Id,
-                CreatedAt = DateTime.UtcNow,
+                TelegramId = telegramData.Id
             }, password);
         
         if (!result.Succeeded)
@@ -95,6 +99,6 @@ public class UserService<T> : IUserService where T : TelegramIdentityUser, new()
         
         user = await _userManager.FindByNameAsync(userName);
         
-        return new LoginResponse(user.Id);
+        return new LoginResponse<TKey>(user.Id);
     }
 }

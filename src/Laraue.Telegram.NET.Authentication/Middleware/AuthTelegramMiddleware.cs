@@ -7,21 +7,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Laraue.Telegram.NET.Authentication.Middleware;
 
-public class AuthTelegramMiddleware : ITelegramMiddleware
+public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
+    where TKey : IEquatable<TKey>
 {
     private readonly ITelegramMiddleware _next;
-    private readonly IUserService _userService;
-    private readonly TelegramRequestContext _telegramRequestContext;
-    private readonly ILogger<AuthTelegramMiddleware> _logger;
+    private readonly IUserService<TKey> _userService;
+    private readonly TelegramRequestContext<TKey> _telegramRequestContext;
+    private readonly ILogger<AuthTelegramMiddleware<TKey>> _logger;
 
-    private static readonly ConcurrentDictionary<long, string> UserIdTelegramIdMap = new ();
+    private static readonly ConcurrentDictionary<long, TKey> UserIdTelegramIdMap = new ();
     private static readonly KeyedSemaphoreSlim<long> Semaphore = new (1, 1);
 
     public AuthTelegramMiddleware(
         ITelegramMiddleware next,
-        IUserService userService,
-        TelegramRequestContext telegramRequestContext,
-        ILogger<AuthTelegramMiddleware> logger)
+        IUserService<TKey> userService,
+        TelegramRequestContext<TKey> telegramRequestContext,
+        ILogger<AuthTelegramMiddleware<TKey>> logger)
     {
         _next = next;
         _userService = userService;

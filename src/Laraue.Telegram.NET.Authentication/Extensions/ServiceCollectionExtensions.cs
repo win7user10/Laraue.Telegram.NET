@@ -1,3 +1,4 @@
+using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Authentication.Middleware;
 using Laraue.Telegram.NET.Authentication.Models;
 using Laraue.Telegram.NET.Authentication.Services;
@@ -18,12 +19,14 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="serviceCollection"></param>
     /// <typeparam name="TUser"></typeparam>
+    /// <typeparam name="TKey"></typeparam>
     /// <returns></returns>
-    public static IdentityBuilder AddTelegramAuthentication<TUser>(
+    public static IdentityBuilder AddTelegramAuthentication<TUser, TKey>(
         this IServiceCollection serviceCollection)
-        where TUser : TelegramIdentityUser, new()
+        where TUser : TelegramIdentityUser<TKey>, new()
+        where TKey : IEquatable<TKey>
     {
-        serviceCollection.AddTelegramMiddleware<AuthTelegramMiddleware>();
+        serviceCollection.AddTelegramMiddleware<AuthTelegramMiddleware<TKey>>();
         
         serviceCollection.AddAuthentication(options =>
         {
@@ -31,8 +34,12 @@ public static class ServiceCollectionExtensions
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         });
-
-        serviceCollection.AddScoped<IUserService, UserService<TUser>>();
+        
+        serviceCollection.AddScoped<TelegramRequestContext<TKey>>();
+        serviceCollection.AddScoped<TelegramRequestContext>(
+            sp => sp.GetRequiredService<TelegramRequestContext<TKey>>());
+        
+        serviceCollection.AddScoped<IUserService<TKey>, UserService<TUser, TKey>>();
         
         return serviceCollection.AddIdentity<TUser, IdentityRole>(opt =>
         {

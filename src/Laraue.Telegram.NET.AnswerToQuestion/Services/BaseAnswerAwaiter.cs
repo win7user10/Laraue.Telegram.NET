@@ -1,5 +1,6 @@
 ﻿using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Abstractions.Exceptions;
+using Laraue.Telegram.NET.Authentication.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
@@ -12,13 +13,17 @@ namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
 /// 4. Process the request if data is valid. 
 /// </summary>
 /// <typeparam name="TModel">Type of data that required to execute the request.</typeparam>
-public abstract class BaseAnswerAwaiter<TModel> : IAnswerAwaiter
+public abstract class BaseAnswerAwaiter<TUserKey, TModel> : IAnswerAwaiter
+    where TUserKey : IEquatable<TUserKey>
 {
+    /// <inheritdoc />
     public abstract string Id { get; }
 
     public async Task<object?> ExecuteAsync(IServiceProvider serviceProvider)
     {
-        var telegramRequestContext = serviceProvider.GetRequiredService<TelegramRequestContext>();
+        var telegramRequestContext = serviceProvider
+            .GetRequiredService<TelegramRequestContext<TUserKey>>();
+        
         var answerResult = new AnswerResult<TModel>();
 
         Validate(telegramRequestContext, answerResult);
@@ -42,7 +47,9 @@ public abstract class BaseAnswerAwaiter<TModel> : IAnswerAwaiter
     /// </summary>
     /// <param name="requestContext">Current telegram request context.</param>
     /// <param name="answerResult">Validation result.</param>
-    protected abstract void Validate(TelegramRequestContext requestContext, AnswerResult<TModel> answerResult);
+    protected abstract void Validate(
+        TelegramRequestContext<TUserKey> requestContext,
+        AnswerResult<TModel> answerResult);
     
     /// <summary>
     /// Execute the awaiter body if validation has been passed successfully.
@@ -50,5 +57,7 @@ public abstract class BaseAnswerAwaiter<TModel> : IAnswerAwaiter
     /// <param name="requestContext">Current telegram request context.</param>
     /// <param name="model">Validated model.</param>
     /// <returns></returns>
-    protected abstract Task<object?> ExecuteRouteAsync(TelegramRequestContext requestContext, TModel model);
+    protected abstract Task<object?> ExecuteRouteAsync(
+        TelegramRequestContext<TUserKey> requestContext,
+        TModel model);
 }

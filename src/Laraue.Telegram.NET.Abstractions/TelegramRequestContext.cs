@@ -5,7 +5,7 @@ namespace Laraue.Telegram.NET.Abstractions;
 /// <summary>
 /// Data connected with the current telegram request.
 /// </summary>
-public sealed class TelegramRequestContext
+public class TelegramRequestContext
 {
     /// <summary>
     /// Telegram message associated with the current request.
@@ -21,9 +21,4 @@ public sealed class TelegramRequestContext
     /// Contains route that was executed in the current request.
     /// </summary>
     public IRoute? ExecutedRoute { get; set; }
-    
-    /// <summary>
-    /// Current user id identifier.
-    /// </summary>
-    public string? UserId { get; set; }
 }

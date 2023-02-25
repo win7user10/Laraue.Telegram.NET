@@ -26,11 +26,12 @@ public static class ServiceCollectionExtensions
     /// <param name="awaiterAssemblies"></param>
     /// <typeparam name="TQuestionStateStorage"></typeparam>
     /// <returns></returns>
-    public static IServiceCollection AddAnswerToQuestionFunctionality<TQuestionStateStorage>(
+    public static IServiceCollection AddAnswerToQuestionFunctionality<TQuestionStateStorage, TUserKey>(
         this IServiceCollection serviceCollection,
         ServiceLifetime storageLifetime = ServiceLifetime.Scoped,
         IEnumerable<Assembly>? awaiterAssemblies = null)
-        where TQuestionStateStorage : class, IQuestionStateStorage
+        where TQuestionStateStorage : class, IQuestionStateStorage<TUserKey>
+        where TUserKey : IEquatable<TUserKey>
     {
         var responseAwaiters = (awaiterAssemblies ?? new []{ Assembly.GetCallingAssembly() })
             .SelectMany(x => x.GetTypes())
@@ -42,8 +43,11 @@ public static class ServiceCollectionExtensions
             serviceCollection.AddScoped(typeof(IAnswerAwaiter), responseAwaiter);
         }
         
-        serviceCollection.AddTelegramMiddleware<AnswerToQuestionMiddleware>()
-            .Add(new ServiceDescriptor(typeof(IQuestionStateStorage), typeof(TQuestionStateStorage), storageLifetime));
+        serviceCollection.AddTelegramMiddleware<AnswerToQuestionMiddleware<TUserKey>>()
+            .Add(new ServiceDescriptor(
+                typeof(IQuestionStateStorage<TUserKey>),
+                typeof(TQuestionStateStorage),
+                storageLifetime));
 
         return serviceCollection;
     }
