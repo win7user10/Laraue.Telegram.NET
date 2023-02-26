@@ -55,6 +55,8 @@ public static class ServiceCollectionExtensions
         });
         
         serviceCollection.AddScoped<TTelegramRequestContext>();
+        serviceCollection.AddScoped<TelegramRequestContext<TKey>>(
+            sp => sp.GetRequiredService<TTelegramRequestContext>());
         serviceCollection.AddScoped<TelegramRequestContext>(
             sp => sp.GetRequiredService<TTelegramRequestContext>());
         
