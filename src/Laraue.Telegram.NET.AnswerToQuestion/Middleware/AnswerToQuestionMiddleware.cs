@@ -1,6 +1,7 @@
 ﻿using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.AnswerToQuestion.Services;
 using Laraue.Telegram.NET.Authentication.Middleware;
+using Laraue.Telegram.NET.Authentication.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Laraue.Telegram.NET.AnswerToQuestion.Middleware;
@@ -8,17 +9,18 @@ namespace Laraue.Telegram.NET.AnswerToQuestion.Middleware;
 /// <summary>
 /// Middleware to support answer to the question functionality.
 /// </summary>
-public class AnswerToQuestionMiddleware : ITelegramMiddleware
+public class AnswerToQuestionMiddleware<TKey> : ITelegramMiddleware
+    where TKey : IEquatable<TKey>
 {
     private readonly ITelegramMiddleware _next;
-    private readonly IQuestionStateStorage _questionStateStorage;
-    private readonly TelegramRequestContext _requestContext;
+    private readonly IQuestionStateStorage<TKey> _questionStateStorage;
+    private readonly TelegramRequestContext<TKey> _requestContext;
     private readonly IServiceProvider _serviceProvider;
 
     public AnswerToQuestionMiddleware(
         ITelegramMiddleware next,
-        IQuestionStateStorage questionStateStorage,
-        TelegramRequestContext requestContext,
+        IQuestionStateStorage<TKey> questionStateStorage,
+        TelegramRequestContext<TKey> requestContext,
         IServiceProvider serviceProvider)
     {
         _next = next;
@@ -30,13 +32,6 @@ public class AnswerToQuestionMiddleware : ITelegramMiddleware
     /// <inheritdoc />
     public async Task<object?> InvokeAsync(CancellationToken ct = default)
     {
-        if (_requestContext.UserId is null)
-        {
-            throw new InvalidOperationException(
-                $"User information is not available." +
-                $" Ensure {typeof(AuthTelegramMiddleware)} has been registered");
-        }
-        
         var responseAwaiter = await _questionStateStorage.TryGetAsync(_requestContext.UserId!);
 
         if (responseAwaiter is null)

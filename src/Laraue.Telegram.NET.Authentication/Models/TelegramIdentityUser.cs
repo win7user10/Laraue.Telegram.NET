@@ -5,7 +5,11 @@ namespace Laraue.Telegram.NET.Authentication.Models;
 /// <summary>
 /// Model for user that can be registered from telegram.
 /// </summary>
-public class TelegramIdentityUser : IdentityUser
+public class TelegramIdentityUser : TelegramIdentityUser<string>
+{
+}
+
+public class TelegramIdentityUser<TKey> : IdentityUser<TKey> where TKey : IEquatable<TKey>
 {
     /// <summary>
     /// Telegram identifier.

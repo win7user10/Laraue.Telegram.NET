@@ -25,11 +25,9 @@ internal sealed class Route : IRoute
 
     private async ValueTask<RouteExecutionResult> ExecuteAsync(IServiceProvider serviceProvider)
     {
-        var telegramRequestContext = serviceProvider.GetRequiredService<TelegramRequestContext>();
-        
         var result = _controllerMethod.Invoke(
             serviceProvider.GetRequiredService(_controllerMethod.DeclaringType!),
-            GetRouteParameters(telegramRequestContext, _controllerMethod));
+            GetRouteParameters(serviceProvider, _controllerMethod));
 
         if (result is null)
         {
@@ -52,7 +50,9 @@ internal sealed class Route : IRoute
         return new RouteExecutionResult(true, result);
     }
     
-    private static object[] GetRouteParameters(TelegramRequestContext requestContext, MethodBase methodInfo)
+    private static object[] GetRouteParameters(
+        IServiceProvider serviceProvider,
+        MethodBase methodInfo)
     {
         var methodParameters = methodInfo.GetParameters();
         var parameters = new object[methodParameters.Length];
@@ -60,16 +60,7 @@ internal sealed class Route : IRoute
         for (var i = 0; i < methodParameters.Length; i++)
         {
             var methodParameter = methodParameters[i];
-            if (methodParameter.ParameterType == typeof(TelegramRequestContext))
-            {
-                parameters[i] = requestContext;
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"Unable to resolve parameter of type {methodParameter.ParameterType}." +
-                    $" Only {typeof(TelegramRequestContext)} is available.");
-            }
+            parameters[i] = serviceProvider.GetRequiredService(methodParameter.ParameterType);
         }
 
         return parameters;

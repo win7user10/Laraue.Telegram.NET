@@ -27,9 +27,12 @@ public class ControllerTests
             .ConfigureServices((c, s) =>
             {
                 s.AddTelegramCore(new TelegramBotClientOptions("a"))
-                    .AddAnswerToQuestionFunctionality<InMemoryQuestionStateStorage>(ServiceLifetime.Singleton)
-                    .AddTelegramMiddleware<AuthTelegramMiddleware>()
-                    .AddScoped<IUserService, MockedUserService>();
+                    .AddScoped<TelegramRequestContext<string>>()
+                    .AddScoped<TelegramRequestContext>(
+                        sp => sp.GetRequiredService<TelegramRequestContext<string>>())
+                    .AddAnswerToQuestionFunctionality<InMemoryQuestionStateStorage, string>(ServiceLifetime.Singleton)
+                    .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
+                    .AddScoped<IUserService<string>, MockedUserService>();
             })
             .Configure(a => a.MapTelegramRequests("/test"));
         
@@ -133,27 +136,27 @@ public class ControllerTests
 
     public class TestTelegramController : TelegramController
     {
-        private readonly IQuestionStateStorage _responseAwaiterStorage;
+        private readonly IQuestionStateStorage<string> _responseAwaiterStorage;
 
-        public TestTelegramController(IQuestionStateStorage responseAwaiterStorage)
+        public TestTelegramController(IQuestionStateStorage<string> responseAwaiterStorage)
         {
             _responseAwaiterStorage = responseAwaiterStorage;
         }
 
         [TelegramMessageRoute("message")]
-        public Task<string?> ExecuteMessageAsync(TelegramRequestContext requestContext)
+        public Task<string?> ExecuteMessageAsync(TelegramRequestContext<string> requestContext)
         {
             return Task.FromResult(requestContext.Update.Message!.Text);
         }
         
         [TelegramCallbackRoute("callback")]
-        public Task<string?> ExecuteCallbackAsync(TelegramRequestContext requestContext)
+        public Task<string?> ExecuteCallbackAsync(TelegramRequestContext<string> requestContext)
         {
             return Task.FromResult(requestContext.Update.CallbackQuery!.Data);
         }
         
         [TelegramMessageRoute("awaitResponse")]
-        public async Task<string?> ExecuteMessageWithResponseAwaiterAsync(TelegramRequestContext requestContext)
+        public async Task<string?> ExecuteMessageWithResponseAwaiterAsync(TelegramRequestContext<string> requestContext)
         {
             await _responseAwaiterStorage.SetAsync<MessageResponseAwaiter>(requestContext.UserId!);
             
@@ -161,16 +164,16 @@ public class ControllerTests
         }
     }
 
-    private sealed class MessageResponseAwaiter : BaseAnswerAwaiter<MessageResponseAwaiterModel>
+    private sealed class MessageResponseAwaiter : BaseAnswerAwaiter<string, MessageResponseAwaiterModel>
     {
         public override string Id => "MessageResponseAwaiter";
         
-        protected override void Validate(TelegramRequestContext requestContext, AnswerResult<MessageResponseAwaiterModel> answerResult)
+        protected override void Validate(TelegramRequestContext<string> requestContext, AnswerResult<MessageResponseAwaiterModel> answerResult)
         {
             answerResult.SetResult(new MessageResponseAwaiterModel("awaited"));
         }
 
-        protected override Task<object?> ExecuteRouteAsync(TelegramRequestContext requestContext, MessageResponseAwaiterModel model)
+        protected override Task<object?> ExecuteRouteAsync(TelegramRequestContext<string> requestContext, MessageResponseAwaiterModel model)
         {
             return Task.FromResult((object?)model.Message);
         }
@@ -178,7 +181,7 @@ public class ControllerTests
 
     private sealed record MessageResponseAwaiterModel(string Message);
 
-    private class InMemoryQuestionStateStorage : BaseQuestionStateStorage
+    private class InMemoryQuestionStateStorage : BaseQuestionStateStorage<string>
     {
         private readonly Dictionary<string, string> _awaiterStorage = new ();
 
@@ -209,21 +212,21 @@ public class ControllerTests
         }
     }
 
-    public sealed class MockedUserService : IUserService
+    public sealed class MockedUserService : IUserService<string>
     {
-        public Task<LoginResponse> LoginAsync(LoginData loginData)
+        public Task<LoginResponse<string>> LoginAsync(LoginData loginData)
         {
             throw new NotImplementedException();
         }
 
-        public Task<LoginResponse> RegisterAsync(LoginData loginData)
+        public Task<LoginResponse<string>> RegisterAsync(LoginData loginData)
         {
             throw new NotImplementedException();
         }
 
-        public Task<LoginResponse> LoginOrRegisterAsync(TelegramData loginData)
+        public Task<LoginResponse<string>> LoginOrRegisterAsync(TelegramData loginData)
         {
-            return Task.FromResult(new LoginResponse("123"));
+            return Task.FromResult(new LoginResponse<string>("123"));
         }
     }
 }
