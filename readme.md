@@ -25,7 +25,6 @@ public class SettingsController : TelegramController
         return _mediator.Send(new SendSettingsCommand
         {
             Data = requestContext.Update.Message!,
-            UserId = requestContext.UserId,
         });
     }
 ```
@@ -91,24 +90,58 @@ services.AddTelegramMiddleware<LogExceptionsMiddleware>();
 [![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Authentication)](https://www.nuget.org/packages/Laraue.Telegram.NET.Authentication)
 
 This library helps to integrate ASP.NET.Identity with the telegram request context.
-To use it the model of user can be defined
+To use it the model of user can be defined (example for the user with id of _Guid_ type)
 ```csharp
-public class User : TelegramIdentityUser
+public class User : TelegramIdentityUser<Guid>
 {}
+
 ```
-Register Auth functionality in the container
+Register Auth functionality in the container. Here is the using of ```User``` model with _Guid_ as identifier.
 ```csharp
 services.AddTelegramCore(new TelegramBotClientOptions(builder.Configuration["Telegram:Token"]!))
-    .AddTelegramAuthentication<User>()
+    .AddTelegramAuthentication<User, Guid>()
     .AddEntityFrameworkStores<CianCrawlerDbContext>()
 ```
 
-**Note** - AddTelegramAuthentication returns _Microsoft.AspNetCore.Identity.IdentityBuilder_, use it to configure identity options.
+After that in each telegram controller method can be retrieved ```TelegramRequestContext<Guid>``` which contains information 
+about the user made the request.
 
-After the registration the _TelegramRequestContext_ class will also have the filled UserId.
-The logic is next: from the received telegram message telegram identifier of the user that send the message is retrieved.
+```csharp
+public class UserController : TelegramController
+{
+    [TelegramMessageRoute("/me")]
+    public void PrintMyId(TelegramRequestContext<Guid> requestContext)
+    {
+        Console.WriteLine(requestContext.UserId);
+    }
+```
+
+To simplify injecting custom request context class can be created and added to the container.
+```csharp
+public sealed class RequestContext : TelegramRequestContext<Guid>
+{}
+```
+
+```csharp
+services.AddTelegramAuthentication<User, Guid, RequestContext>()
+```
+
+Now the class ```RequestContext``` can be injected without defining request generic type in the each request.
+
+```csharp
+public class UserController : TelegramController
+{
+    [TelegramMessageRoute("/also-me")]
+    public void PrintMyId(RequestContext requestContext)
+    {
+        Console.WriteLine(requestContext.UserId);
+    }
+```
+
+**Note** - ```AddTelegramAuthentication()``` returns ```Microsoft.AspNetCore.Identity.IdentityBuilder```, use it to configure identity options.
+
+The logic of retrieving user id field is next: from the received telegram message telegram identifier of the user that send the message takes.
 Then this identifier maps to the identifier in the database. Then this identifier sets to the request context.
-
 
 ## Laraue.Telegram.NET.AnswerToQuestion
 
