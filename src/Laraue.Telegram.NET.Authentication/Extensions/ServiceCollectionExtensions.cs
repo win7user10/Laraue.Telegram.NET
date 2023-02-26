@@ -15,7 +15,8 @@ namespace Laraue.Telegram.NET.Authentication.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Add authentication middleware to the container and configure identity.
+    /// Add authentication middleware with <see cref="TelegramRequestContext{TKey}"/>
+    /// to the container and configure identity.
     /// </summary>
     /// <param name="serviceCollection"></param>
     /// <typeparam name="TUser"></typeparam>
@@ -26,6 +27,24 @@ public static class ServiceCollectionExtensions
         where TUser : TelegramIdentityUser<TKey>, new()
         where TKey : IEquatable<TKey>
     {
+        return serviceCollection.AddTelegramAuthentication<TUser, TKey, TelegramRequestContext<TKey>>();
+    }
+
+    /// <summary>
+    /// Add authentication middleware and the passed <see cref="TTelegramRequestContext"/>
+    /// to the container and configure identity.
+    /// </summary>
+    /// <param name="serviceCollection"></param>
+    /// <typeparam name="TUser"></typeparam>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TTelegramRequestContext"></typeparam>
+    /// <returns></returns>
+    public static IdentityBuilder AddTelegramAuthentication<TUser, TKey, TTelegramRequestContext>(
+        this IServiceCollection serviceCollection)
+        where TUser : TelegramIdentityUser<TKey>, new()
+        where TKey : IEquatable<TKey>
+        where TTelegramRequestContext : TelegramRequestContext<TKey>
+    {
         serviceCollection.AddTelegramMiddleware<AuthTelegramMiddleware<TKey>>();
         
         serviceCollection.AddAuthentication(options =>
@@ -35,20 +54,21 @@ public static class ServiceCollectionExtensions
             options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         });
         
-        serviceCollection.AddScoped<TelegramRequestContext<TKey>>();
+        serviceCollection.AddScoped<TTelegramRequestContext>();
         serviceCollection.AddScoped<TelegramRequestContext>(
-            sp => sp.GetRequiredService<TelegramRequestContext<TKey>>());
+            sp => sp.GetRequiredService<TTelegramRequestContext>());
         
         serviceCollection.AddScoped<IUserService<TKey>, UserService<TUser, TKey>>();
         
-        return serviceCollection.AddIdentity<TUser, IdentityRole>(opt =>
-        {
-            opt.Password.RequireDigit = false;
-            opt.Password.RequiredLength = 1;
-            opt.Password.RequireLowercase = false;
-            opt.Password.RequireUppercase = false;
-            opt.Password.RequireNonAlphanumeric = false;
-            opt.Password.RequiredUniqueChars = 1;
-        });
+        return serviceCollection.AddIdentity<TUser, IdentityRole<TKey>>(
+            opt =>
+            {
+                opt.Password.RequireDigit = false;
+                opt.Password.RequiredLength = 1;
+                opt.Password.RequireLowercase = false;
+                opt.Password.RequireUppercase = false;
+                opt.Password.RequireNonAlphanumeric = false;
+                opt.Password.RequiredUniqueChars = 1;
+            });
     }
 }

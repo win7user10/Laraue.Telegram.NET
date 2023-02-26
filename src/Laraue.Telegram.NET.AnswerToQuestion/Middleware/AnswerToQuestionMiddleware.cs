@@ -32,13 +32,6 @@ public class AnswerToQuestionMiddleware<TKey> : ITelegramMiddleware
     /// <inheritdoc />
     public async Task<object?> InvokeAsync(CancellationToken ct = default)
     {
-        if (_requestContext.UserId is null)
-        {
-            throw new InvalidOperationException(
-                $"User information is not available." +
-                $" Ensure {typeof(AuthTelegramMiddleware<TKey>)} has been registered");
-        }
-        
         var responseAwaiter = await _questionStateStorage.TryGetAsync(_requestContext.UserId!);
 
         if (responseAwaiter is null)
