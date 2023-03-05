@@ -214,16 +214,6 @@ public class ControllerTests
 
     public sealed class MockedUserService : IUserService<string>
     {
-        public Task<LoginResponse<string>> LoginAsync(LoginData loginData)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<LoginResponse<string>> RegisterAsync(LoginData loginData)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<LoginResponse<string>> LoginOrRegisterAsync(TelegramData loginData)
         {
             return Task.FromResult(new LoginResponse<string>("123"));

@@ -21,59 +21,7 @@ public class UserService<TUser, TKey> : IUserService<TKey>
         _userManager = userManager;
         _identityOptions = identityOptions.Value;
     }
-
-    public async Task<LoginResponse<TKey>> LoginAsync(LoginData loginData)
-    {
-        var(login, password) = loginData;
-        var user = await _userManager.FindByNameAsync(login);
-        
-        if (user is null)
-        {
-            throw new UnauthorizedRequestException(new Dictionary<string, string[]>
-            {
-                [nameof(loginData.Username)] = new []{"User is missing"},
-            });
-        }
-
-        if (!await _userManager.CheckPasswordAsync(user, password))
-        {
-            throw new UnauthorizedRequestException(new Dictionary<string, string[]>
-            {
-                [nameof(loginData.Password)] = new []
-                {
-                    "The password is not correct"
-                },
-            });
-        }
-
-        return new LoginResponse<TKey>(user.Id);
-    }
-
-    public async Task<LoginResponse<TKey>> RegisterAsync(LoginData loginData)
-    {
-        var (login, password) = loginData;
-        var result = await _userManager.CreateAsync(
-            new TUser { UserName = login,},
-            password);
-        
-        if (result.Succeeded)
-        {
-            return await LoginAsync(loginData);
-        }
-        
-        var errorStringsMap = result.Errors
-            .Select(x => new
-            {
-                x.Description,
-                Field = RegistrationHelper.MappingIdentityErrorDescriber[x.Code]
-            })
-            .GroupBy(arg => arg.Field, arg => arg.Description)
-            .ToDictionary(x => x.Key, x => x.ToArray());
-            
-        throw new BadRequestException(errorStringsMap);
-
-    }
-
+    
     public async Task<LoginResponse<TKey>> LoginOrRegisterAsync(TelegramData telegramData)
     {
         var userName = $"tg_{telegramData.Username}";
@@ -84,13 +32,13 @@ public class UserService<TUser, TKey> : IUserService<TKey>
             return new LoginResponse<TKey>(user.Id);
         }
 
-        var password = RegistrationHelper.GenerateRandomPassword(_identityOptions.Password);
-        var result = await _userManager.CreateAsync(
-            new TUser
-            {
-                UserName = userName,
-                TelegramId = telegramData.Id
-            }, password);
+        var password = RegistrationHelper.GenerateRandomPassword(
+            _identityOptions.Password);
+        
+        var result = await CreateUserInternalAsync(
+            userName,
+            telegramData.Id,
+            password);
         
         if (!result.Succeeded)
         {
@@ -100,5 +48,16 @@ public class UserService<TUser, TKey> : IUserService<TKey>
         user = await _userManager.FindByNameAsync(userName);
         
         return new LoginResponse<TKey>(user.Id);
+    }
+
+    private Task<IdentityResult> CreateUserInternalAsync(string userName, long? telegramId, string password)
+    {
+        return _userManager.CreateAsync(
+            new TUser
+            {
+                UserName = userName,
+                TelegramId = telegramId,
+                CreatedAt = DateTime.UtcNow,
+            }, password);
     }
 }

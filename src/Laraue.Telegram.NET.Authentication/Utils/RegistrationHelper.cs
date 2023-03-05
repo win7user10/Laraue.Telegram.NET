@@ -5,19 +5,6 @@ namespace Laraue.Telegram.NET.Authentication.Utils;
 
 public class RegistrationHelper
 {
-    public static readonly Dictionary<string, string> MappingIdentityErrorDescriber = new()
-    {
-        [nameof(IdentityErrorDescriber.PasswordTooShort)] = nameof(LoginData.Password),
-        [nameof(IdentityErrorDescriber.PasswordMismatch)] = nameof(LoginData.Password),
-        [nameof(IdentityErrorDescriber.PasswordRequiresDigit)] = nameof(LoginData.Password),
-        [nameof(IdentityErrorDescriber.PasswordRequiresLower)] = nameof(LoginData.Password),
-        [nameof(IdentityErrorDescriber.PasswordRequiresUpper)] = nameof(LoginData.Password),
-        [nameof(IdentityErrorDescriber.PasswordRequiresNonAlphanumeric)] = nameof(LoginData.Password),
-        [nameof(IdentityErrorDescriber.PasswordRequiresUniqueChars)] = nameof(LoginData.Password),
-        [nameof(IdentityErrorDescriber.DuplicateUserName)] = nameof(LoginData.Username),
-        [nameof(IdentityErrorDescriber.InvalidUserName)] = nameof(LoginData.Username),
-    };
-
     public static string GenerateRandomPassword(PasswordOptions opts)
     {
         var randomChars = new[] 
