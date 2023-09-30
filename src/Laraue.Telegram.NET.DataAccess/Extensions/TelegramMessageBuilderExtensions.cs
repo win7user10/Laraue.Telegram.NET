@@ -40,17 +40,19 @@ public static class TelegramMessageBuilderExtensions
     /// <param name="messageBuilder"></param>
     /// <param name="result"></param>
     /// <param name="route"></param>
+    /// <param name="fallbackButtons"></param>
     /// <typeparam name="TData"></typeparam>
     /// <returns></returns>
-    public static bool AddControlButtons<TData>(
+    public static TelegramMessageBuilder AddControlButtons<TData>(
         this TelegramMessageBuilder messageBuilder,
         IPaginatedResult<TData> result,
-        RoutePathBuilder route)
+        RoutePathBuilder route,
+        ControlButtons? fallbackButtons = null)
         where TData : class
     {
         if (result is {HasPreviousPage: false, HasNextPage: false})
         {
-            return false;
+            return messageBuilder;
         }
 
         var rowButtons = new List<InlineKeyboardButton>();
@@ -60,16 +62,23 @@ public static class TelegramMessageBuilderExtensions
                 "Previous ⬅", 
                 route.WithQueryParameter(PageParameterName, result.Page - 1)));
         }
+        else if (fallbackButtons?.PreviousButton is not null)
+        {
+            rowButtons.Add(fallbackButtons.PreviousButton);
+        }
+        
         if (result.HasNextPage)
         {
             rowButtons.Add(InlineKeyboardButton.WithCallbackData(
                 "Next ➡",
                 route.WithQueryParameter(PageParameterName, result.Page + 1)));
         }
+        else if (fallbackButtons?.NextButton is not null)
+        {
+            rowButtons.Add(fallbackButtons.NextButton);
+        }
 
-        messageBuilder.AddInlineKeyboardButtons(rowButtons);
-
-        return true;
+        return messageBuilder.AddInlineKeyboardButtons(rowButtons);
     }
 
     /// <summary>
