@@ -16,7 +16,7 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     private readonly ILogger<AuthTelegramMiddleware<TKey>> _logger;
 
     private static readonly ConcurrentDictionary<long, TKey> UserIdTelegramIdMap = new ();
-    private static readonly KeyedSemaphoreSlim<long> Semaphore = new (1, 1);
+    private static readonly KeyedSemaphoreSlim<long> Semaphore = new (1);
 
     public AuthTelegramMiddleware(
         ITelegramMiddleware next,

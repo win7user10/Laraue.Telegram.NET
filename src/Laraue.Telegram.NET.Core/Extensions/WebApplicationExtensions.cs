@@ -38,6 +38,10 @@ public static class WebApplicationExtensions
             var body = await sr.ReadToEndAsync();
             
             var update = JsonConvert.DeserializeObject<Update>(body);
+            if (update is null)
+            {
+                return;
+            }
 
             var routeResult = await _telegramRouter.RouteAsync(update);
 

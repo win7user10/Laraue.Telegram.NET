@@ -43,7 +43,7 @@ public abstract class BaseEditMessageCommandHandler<TCommand, TData> : IRequestH
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<Unit> Handle(TCommand request, CancellationToken cancellationToken)
+    public async Task Handle(TCommand request, CancellationToken cancellationToken)
     {
         var messageBuilder = new TelegramMessageBuilder();
         
@@ -74,8 +74,6 @@ public abstract class BaseEditMessageCommandHandler<TCommand, TData> : IRequestH
         {
             // Callback query is expired.
         }
-        
-        return Unit.Value;
     }
     
     /// <summary>

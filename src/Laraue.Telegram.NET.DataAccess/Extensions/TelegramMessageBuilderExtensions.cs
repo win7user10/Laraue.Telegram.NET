@@ -42,7 +42,7 @@ public static class TelegramMessageBuilderExtensions
     /// <param name="route"></param>
     /// <typeparam name="TData"></typeparam>
     /// <returns></returns>
-    public static TelegramMessageBuilder AddControlButtons<TData>(
+    public static bool AddControlButtons<TData>(
         this TelegramMessageBuilder messageBuilder,
         IPaginatedResult<TData> result,
         RoutePathBuilder route)
@@ -50,7 +50,7 @@ public static class TelegramMessageBuilderExtensions
     {
         if (result is {HasPreviousPage: false, HasNextPage: false})
         {
-            return messageBuilder;
+            return false;
         }
 
         var rowButtons = new List<InlineKeyboardButton>();
@@ -69,7 +69,7 @@ public static class TelegramMessageBuilderExtensions
 
         messageBuilder.AddInlineKeyboardButtons(rowButtons);
 
-        return messageBuilder;
+        return true;
     }
 
     /// <summary>
