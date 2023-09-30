@@ -50,11 +50,6 @@ public static class TelegramMessageBuilderExtensions
         ControlButtons? fallbackButtons = null)
         where TData : class
     {
-        if (result is {HasPreviousPage: false, HasNextPage: false})
-        {
-            return messageBuilder;
-        }
-
         var rowButtons = new List<InlineKeyboardButton>();
         if (result.HasPreviousPage)
         {
@@ -78,7 +73,12 @@ public static class TelegramMessageBuilderExtensions
             rowButtons.Add(fallbackButtons.NextButton);
         }
 
-        return messageBuilder.AddInlineKeyboardButtons(rowButtons);
+        if (rowButtons.Any())
+        {
+            messageBuilder.AddInlineKeyboardButtons(rowButtons);
+        }
+
+        return messageBuilder;
     }
 
     /// <summary>
