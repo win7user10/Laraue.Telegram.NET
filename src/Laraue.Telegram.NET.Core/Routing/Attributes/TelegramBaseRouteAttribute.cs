@@ -1,4 +1,6 @@
-﻿using Telegram.Bot.Types;
+﻿using System.Diagnostics.CodeAnalysis;
+using Laraue.Telegram.NET.Abstractions.Request;
+using Telegram.Bot.Types;
 
 namespace Laraue.Telegram.NET.Core.Routing.Attributes;
 
@@ -12,6 +14,7 @@ public abstract class TelegramBaseRouteAttribute : Attribute
     /// This method should return does 
     /// </summary>
     /// <param name="update"></param>
+    /// <param name="requestParameters"></param>
     /// <returns></returns>
-    public abstract bool IsMatch(Update update);
+    public abstract bool TryMatch(Update update, [NotNullWhen(true)] out RequestParameters? requestParameters);
 }

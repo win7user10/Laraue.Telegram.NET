@@ -1,4 +1,7 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+using Laraue.Telegram.NET.Abstractions.Request;
+using Laraue.Telegram.NET.Core.Extensions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -12,6 +15,8 @@ namespace Laraue.Telegram.NET.Core.Routing.Attributes;
 [AttributeUsage(AttributeTargets.Method)]
 public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttribute
 {
+    private readonly string _pathPattern;
+
     /// <summary>
     /// Telegram update type.
     /// </summary>
@@ -29,20 +34,41 @@ public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttr
     /// <param name="pathPattern"></param>
     protected TelegramBaseRouteWithPathAttribute(UpdateType updateType, string pathPattern)
     {
+        _pathPattern = pathPattern;
         UpdateType = updateType;
         PathPattern = RouteRegexCreator.ForRoute(pathPattern);
     }
 
     /// <inheritdoc />
-    public override bool IsMatch(Update update)
+    public override bool TryMatch(Update update, [NotNullWhen(true)] out RequestParameters? requestParameters)
     {
+        requestParameters = null;
+        
         if (update.Type != UpdateType)
         {
             return false;
         }
 
         var pathFromUpdate = GetPathFromUpdate(update);
-        return pathFromUpdate is not null && PathPattern.IsMatch(pathFromUpdate);
+        if (pathFromUpdate is null)
+        {
+            return false;
+        }
+        
+        var match = PathPattern.Match(pathFromUpdate);
+        if (!match.Success)
+        {
+            return false;
+        }
+        
+        var queryParameters = pathFromUpdate.ParseQueryParts();
+        var pathParameters = match.Groups
+            .Cast<Group>()
+            .Where(x => !int.TryParse(x.Name, out _))
+            .ToDictionary(x => x.Name, x => (string?) x.Value);
+
+        requestParameters = new RequestParameters(pathParameters, queryParameters);
+        return true;
     }
 
     /// <summary>

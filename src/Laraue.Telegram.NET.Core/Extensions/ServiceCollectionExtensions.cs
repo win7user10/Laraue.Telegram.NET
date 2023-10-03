@@ -83,7 +83,7 @@ public static class ServiceCollectionExtensions
                     continue;
                 }
                 
-                serviceCollection.AddSingleton<IRoute>(new Route(routeAttribute.IsMatch, methodInfo));
+                serviceCollection.AddSingleton<IRoute>(new Route(routeAttribute.TryMatch, methodInfo));
             }
         }
     }

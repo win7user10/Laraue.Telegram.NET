@@ -1,6 +1,4 @@
-﻿using Laraue.Telegram.NET.Core.Request;
-
-namespace Laraue.Telegram.NET.Core.Extensions;
+﻿namespace Laraue.Telegram.NET.Core.Extensions;
 
 /// <summary>
 /// Extensions to work work with strings.
@@ -13,9 +11,9 @@ public static class StringExtensions
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static RequestParameters ParseQueryParts(this string? source)
+    public static IDictionary<string, string?> ParseQueryParts(this string? source)
     {
-        var result = new RequestParameters();
+        var result = new Dictionary<string, string?>();
         
         if (source is null)
         {

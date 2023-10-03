@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Laraue.Telegram.NET.Abstractions;
+using Laraue.Telegram.NET.Abstractions.Request;
 using Laraue.Telegram.NET.AnswerToQuestion.Extensions;
 using Laraue.Telegram.NET.AnswerToQuestion.Services;
 using Laraue.Telegram.NET.Authentication.Middleware;
@@ -79,7 +80,7 @@ public class ControllerTests
     }
     
     [Fact]
-    public async Task CallbackRoute_ShouldResponseCorrectlyAsync()
+    public async Task CallbackRoute_ShouldParsePathParametersCorrectlyAsync()
     {
         var result = await SendRequestAsync(new Update
         {
@@ -92,13 +93,13 @@ public class ControllerTests
                     Id = 123,
                     IsBot = false,
                 },
-                Data = "callback",
+                Data = "callback/12?name=Alex",
                 Id = "123",
                 ChatInstance = "123",
             },
         });
         
-        Assert.Equal("callback", result);
+        Assert.Equal("Alex12Alex", result);
     }
     
     [Fact]
@@ -149,10 +150,10 @@ public class ControllerTests
             return Task.FromResult(requestContext.Update.Message!.Text);
         }
         
-        [TelegramCallbackRoute("callback")]
-        public Task<string?> ExecuteCallbackAsync(TelegramRequestContext<string> requestContext)
+        [TelegramCallbackRoute("callback/{id}")]
+        public Task<string> ExecuteCallbackAsync([FromPath] int id, [FromQuery] string? name, [FromQuery] QueryParameters queryParameters)
         {
-            return Task.FromResult(requestContext.Update.CallbackQuery!.Data);
+            return Task.FromResult($"{name}{id}{queryParameters.Name}");
         }
         
         [TelegramMessageRoute("awaitResponse")]
@@ -162,6 +163,11 @@ public class ControllerTests
             
             return requestContext.Update.Message!.Text;
         }
+    }
+
+    public sealed class QueryParameters
+    {
+        public string Name { get; init; }
     }
 
     private sealed class MessageResponseAwaiter : BaseAnswerAwaiter<string, MessageResponseAwaiterModel>

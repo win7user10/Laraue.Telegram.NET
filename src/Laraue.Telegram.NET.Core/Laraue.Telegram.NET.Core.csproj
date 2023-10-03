@@ -18,4 +18,9 @@
     <ProjectReference Include="..\Laraue.Telegram.NET.Abstractions\Laraue.Telegram.NET.Abstractions.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
+  </ItemGroup>
+
 </Project>

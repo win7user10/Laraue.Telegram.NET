@@ -1,5 +1,7 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Laraue.Telegram.NET.Abstractions;
+using Laraue.Telegram.NET.Abstractions.Request;
 using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot.Types;
 
@@ -7,27 +9,29 @@ namespace Laraue.Telegram.NET.Core.Routing;
 
 internal sealed class Route : IRoute
 {
-    private readonly Func<Update, bool> _tryMatchRoute;
+    private readonly TryMatch _tryMatchDelegate;
     private readonly MethodInfo _controllerMethod;
 
-    public Route(Func<Update, bool> tryMatchRoute, MethodInfo controllerMethod)
+    public Route(TryMatch tryMatchDelegate, MethodInfo controllerMethod)
     {
-        _tryMatchRoute = tryMatchRoute;
+        _tryMatchDelegate = tryMatchDelegate;
         _controllerMethod = controllerMethod;
     }
+
+    public delegate bool TryMatch(Update update, [NotNullWhen(true)] out RequestParameters? requestParameters);
     
     public ValueTask<RouteExecutionResult> TryExecuteAsync(IServiceProvider requestProvider)
     {
-        return _tryMatchRoute(requestProvider.GetRequiredService<TelegramRequestContext>().Update)
-            ? ExecuteAsync(requestProvider)
+        return _tryMatchDelegate(requestProvider.GetRequiredService<TelegramRequestContext>().Update, out var requestParameters)
+            ? ExecuteAsync(requestProvider, requestParameters)
             : ValueTask.FromResult(new RouteExecutionResult(false, null));
     }
 
-    private async ValueTask<RouteExecutionResult> ExecuteAsync(IServiceProvider serviceProvider)
+    private async ValueTask<RouteExecutionResult> ExecuteAsync(IServiceProvider serviceProvider, RequestParameters requestParameters)
     {
         var result = _controllerMethod.Invoke(
             serviceProvider.GetRequiredService(_controllerMethod.DeclaringType!),
-            GetRouteParameters(serviceProvider, _controllerMethod));
+            GetRouteParameters(serviceProvider, _controllerMethod, requestParameters));
 
         if (result is null)
         {
@@ -50,17 +54,42 @@ internal sealed class Route : IRoute
         return new RouteExecutionResult(true, result);
     }
     
-    private static object[] GetRouteParameters(
+    private static object?[] GetRouteParameters(
         IServiceProvider serviceProvider,
-        MethodBase methodInfo)
+        MethodBase methodInfo,
+        RequestParameters requestParameters)
     {
         var methodParameters = methodInfo.GetParameters();
-        var parameters = new object[methodParameters.Length];
+        var parameters = new object?[methodParameters.Length];
         
         for (var i = 0; i < methodParameters.Length; i++)
         {
             var methodParameter = methodParameters[i];
-            parameters[i] = serviceProvider.GetRequiredService(methodParameter.ParameterType);
+            object? parameterValue;
+            if (methodParameter.GetCustomAttribute<FromPathAttribute>() is not null)
+            {
+                parameterValue = requestParameters.GetPathParameter(
+                    methodParameter.Name!, methodParameter.ParameterType)
+                    ?? throw new InvalidOperationException($"Parameter {methodParameter.Name} hasn't been found in route");
+            }
+            else if (methodParameter.GetCustomAttribute<FromQueryAttribute>() is not null)
+            {
+                if (methodParameter.ParameterType.IsValueType || methodParameter.ParameterType == typeof(string))
+                {
+                    parameterValue = requestParameters.GetQueryParameter(
+                        methodParameter.Name!, methodParameter.ParameterType);
+                }
+                else
+                {
+                    parameterValue = requestParameters.GetQueryParameters(methodParameter.ParameterType);
+                }
+            }
+            else
+            {
+                parameterValue = serviceProvider.GetRequiredService(methodParameter.ParameterType);
+            }
+            
+            parameters[i] = parameterValue;
         }
 
         return parameters;

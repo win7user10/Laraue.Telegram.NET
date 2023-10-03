@@ -1,4 +1,6 @@
-﻿namespace Laraue.Telegram.NET.Abstractions;
+﻿using Laraue.Telegram.NET.Abstractions.Request;
+
+namespace Laraue.Telegram.NET.Abstractions;
 
 /// <summary>
 /// One of the telegram routes.
