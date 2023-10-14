@@ -3,10 +3,10 @@ using Telegram.Bot.Types;
 namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
 
 /// <summary>
-/// <see cref="BaseAnswerAwaiter{TModel}"/> validation result.
+/// <see cref="BaseRequestInterceptor{TUserKey,TModel}"/> validation result.
 /// </summary>
 /// <typeparam name="TResult">Awaiter model data type.</typeparam>
-public sealed record AnswerResult<TResult>
+public sealed record InterceptResult<TResult>
 {
     /// <summary>
     /// The model bind from the <see cref="Update"/> request.

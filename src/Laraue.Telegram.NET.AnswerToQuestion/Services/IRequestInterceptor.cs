@@ -3,7 +3,7 @@
 /// <summary>
 /// The class that will be executed in the request pipeline for the user instead if standard request pipeline. 
 /// </summary>
-public interface IAnswerAwaiter
+public interface IRequestInterceptor
 {
     /// <summary>
     /// Unique awaiter identifier. Each awaiter Type should have its own unique identifier. 

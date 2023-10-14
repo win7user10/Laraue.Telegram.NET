@@ -31,7 +31,7 @@ public class ControllerTests
                     .AddScoped<TelegramRequestContext<string>>()
                     .AddScoped<TelegramRequestContext>(
                         sp => sp.GetRequiredService<TelegramRequestContext<string>>())
-                    .AddAnswerToQuestionFunctionality<InMemoryQuestionStateStorage, string>(ServiceLifetime.Singleton)
+                    .AddAnswerToQuestionFunctionality<InMemoryInterceptorState, string>(ServiceLifetime.Singleton)
                     .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
                     .AddScoped<IUserService<string>, MockedUserService>();
             })
@@ -137,11 +137,11 @@ public class ControllerTests
 
     public class TestTelegramController : TelegramController
     {
-        private readonly IQuestionStateStorage<string> _responseAwaiterStorage;
+        private readonly IInterceptorState<string> _responseAwaiter;
 
-        public TestTelegramController(IQuestionStateStorage<string> responseAwaiterStorage)
+        public TestTelegramController(IInterceptorState<string> responseAwaiter)
         {
-            _responseAwaiterStorage = responseAwaiterStorage;
+            _responseAwaiter = responseAwaiter;
         }
 
         [TelegramMessageRoute("message")]
@@ -159,7 +159,7 @@ public class ControllerTests
         [TelegramMessageRoute("awaitResponse")]
         public async Task<string?> ExecuteMessageWithResponseAwaiterAsync(TelegramRequestContext<string> requestContext)
         {
-            await _responseAwaiterStorage.SetAsync<MessageResponseAwaiter>(requestContext.UserId!);
+            await _responseAwaiter.SetAsync<MessageResponseAwaiter>(requestContext.UserId!);
             
             return requestContext.Update.Message!.Text;
         }
@@ -170,13 +170,15 @@ public class ControllerTests
         public string Name { get; init; }
     }
 
-    private sealed class MessageResponseAwaiter : BaseAnswerAwaiter<string, MessageResponseAwaiterModel>
+    private sealed class MessageResponseAwaiter : BaseRequestInterceptor<string, MessageResponseAwaiterModel>
     {
         public override string Id => "MessageResponseAwaiter";
-        
-        protected override void Validate(TelegramRequestContext<string> requestContext, AnswerResult<MessageResponseAwaiterModel> answerResult)
+
+        protected override Task ValidateAsync(TelegramRequestContext<string> requestContext, InterceptResult<MessageResponseAwaiterModel> interceptResult)
         {
-            answerResult.SetResult(new MessageResponseAwaiterModel("awaited"));
+            interceptResult.SetResult(new MessageResponseAwaiterModel("awaited"));
+
+            return Task.CompletedTask;
         }
 
         protected override Task<object?> ExecuteRouteAsync(TelegramRequestContext<string> requestContext, MessageResponseAwaiterModel model)
@@ -187,11 +189,11 @@ public class ControllerTests
 
     private sealed record MessageResponseAwaiterModel(string Message);
 
-    private class InMemoryQuestionStateStorage : BaseQuestionStateStorage<string>
+    private class InMemoryInterceptorState : BaseInterceptorState<string>
     {
         private readonly Dictionary<string, string> _awaiterStorage = new ();
 
-        public InMemoryQuestionStateStorage(IEnumerable<IAnswerAwaiter> awaiters, IServiceProvider serviceProvider)
+        public InMemoryInterceptorState(IEnumerable<IRequestInterceptor> awaiters, IServiceProvider serviceProvider)
             : base(awaiters, serviceProvider)
         {
         }

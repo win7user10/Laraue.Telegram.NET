@@ -7,24 +7,24 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Laraue.Telegram.NET.AnswerToQuestion.Middleware;
 
 /// <summary>
-/// Middleware to support answer to the question functionality.
+/// Middleware to support interceptors functionality.
 /// </summary>
-public class AnswerToQuestionMiddleware<TKey> : ITelegramMiddleware
+public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
     where TKey : IEquatable<TKey>
 {
     private readonly ITelegramMiddleware _next;
-    private readonly IQuestionStateStorage<TKey> _questionStateStorage;
+    private readonly IInterceptorState<TKey> _interceptorState;
     private readonly TelegramRequestContext<TKey> _requestContext;
     private readonly IServiceProvider _serviceProvider;
 
-    public AnswerToQuestionMiddleware(
+    public InterceptorsMiddleware(
         ITelegramMiddleware next,
-        IQuestionStateStorage<TKey> questionStateStorage,
+        IInterceptorState<TKey> interceptorState,
         TelegramRequestContext<TKey> requestContext,
         IServiceProvider serviceProvider)
     {
         _next = next;
-        _questionStateStorage = questionStateStorage;
+        _interceptorState = interceptorState;
         _requestContext = requestContext;
         _serviceProvider = serviceProvider;
     }
@@ -32,7 +32,7 @@ public class AnswerToQuestionMiddleware<TKey> : ITelegramMiddleware
     /// <inheritdoc />
     public async Task<object?> InvokeAsync(CancellationToken ct = default)
     {
-        var responseAwaiter = await _questionStateStorage.TryGetAsync(_requestContext.UserId!);
+        var responseAwaiter = await _interceptorState.TryGetAsync(_requestContext.UserId!);
 
         if (responseAwaiter is null)
         {
@@ -41,7 +41,7 @@ public class AnswerToQuestionMiddleware<TKey> : ITelegramMiddleware
         
         var result = await responseAwaiter.ExecuteAsync(_serviceProvider);
         
-        await _questionStateStorage.ResetAsync(_requestContext.UserId);
+        await _interceptorState.ResetAsync(_requestContext.UserId);
         
         return result;
     }

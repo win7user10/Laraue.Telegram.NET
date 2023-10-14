@@ -23,30 +23,31 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="serviceCollection"></param>
     /// <param name="storageLifetime"></param>
-    /// <param name="awaiterAssemblies"></param>
-    /// <typeparam name="TQuestionStateStorage"></typeparam>
+    /// <param name="interceptorAssemblies"></param>
+    /// <typeparam name="TInterceptorState"></typeparam>
+    /// <typeparam name="TUserKey"></typeparam>
     /// <returns></returns>
-    public static IServiceCollection AddAnswerToQuestionFunctionality<TQuestionStateStorage, TUserKey>(
+    public static IServiceCollection AddAnswerToQuestionFunctionality<TInterceptorState, TUserKey>(
         this IServiceCollection serviceCollection,
         ServiceLifetime storageLifetime = ServiceLifetime.Scoped,
-        IEnumerable<Assembly>? awaiterAssemblies = null)
-        where TQuestionStateStorage : class, IQuestionStateStorage<TUserKey>
+        IEnumerable<Assembly>? interceptorAssemblies = null)
+        where TInterceptorState : class, IInterceptorState<TUserKey>
         where TUserKey : IEquatable<TUserKey>
     {
-        var responseAwaiters = (awaiterAssemblies ?? new []{ Assembly.GetCallingAssembly() })
+        var interceptors = (interceptorAssemblies ?? new []{ Assembly.GetCallingAssembly() })
             .SelectMany(x => x.GetTypes())
-            .Where(x => x is { IsClass: true, IsAbstract: false } && x.IsAssignableTo(typeof(IAnswerAwaiter)));
+            .Where(x => x is { IsClass: true, IsAbstract: false } && x.IsAssignableTo(typeof(IRequestInterceptor)));
 
-        foreach (var responseAwaiter in responseAwaiters)
+        foreach (var interceptor in interceptors)
         {
-            serviceCollection.AddScoped(responseAwaiter);
-            serviceCollection.AddScoped(typeof(IAnswerAwaiter), responseAwaiter);
+            serviceCollection.AddScoped(interceptor);
+            serviceCollection.AddScoped(typeof(IRequestInterceptor), interceptor);
         }
         
-        serviceCollection.AddTelegramMiddleware<AnswerToQuestionMiddleware<TUserKey>>()
+        serviceCollection.AddTelegramMiddleware<InterceptorsMiddleware<TUserKey>>()
             .Add(new ServiceDescriptor(
-                typeof(IQuestionStateStorage<TUserKey>),
-                typeof(TQuestionStateStorage),
+                typeof(IInterceptorState<TUserKey>),
+                typeof(TInterceptorState),
                 storageLifetime));
 
         return serviceCollection;

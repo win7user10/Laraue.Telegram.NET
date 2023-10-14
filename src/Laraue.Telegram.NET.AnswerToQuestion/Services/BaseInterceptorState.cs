@@ -2,14 +2,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
 
-public abstract class BaseQuestionStateStorage<TKey> : IQuestionStateStorage<TKey>
+public abstract class BaseInterceptorState<TKey> : IInterceptorState<TKey>
      where TKey : IEquatable<TKey>
 {
-    private readonly IEnumerable<IAnswerAwaiter> _awaiters;
+    private readonly IEnumerable<IRequestInterceptor> _awaiters;
     private readonly IServiceProvider _serviceProvider;
 
-    protected BaseQuestionStateStorage(
-        IEnumerable<IAnswerAwaiter> awaiters,
+    protected BaseInterceptorState(
+        IEnumerable<IRequestInterceptor> awaiters,
         IServiceProvider serviceProvider)
     {
         _awaiters = awaiters;
@@ -17,7 +17,7 @@ public abstract class BaseQuestionStateStorage<TKey> : IQuestionStateStorage<TKe
     }
     
     /// <inheritdoc />
-    public async Task<IAnswerAwaiter?> TryGetAsync(TKey userId)
+    public async Task<IRequestInterceptor?> TryGetAsync(TKey userId)
     {
         var id = await TryGetStringIdentifierFromStorageAsync(userId);
 
@@ -32,7 +32,7 @@ public abstract class BaseQuestionStateStorage<TKey> : IQuestionStateStorage<TKe
     protected abstract Task<string?> TryGetStringIdentifierFromStorageAsync(TKey userId);
 
     /// <inheritdoc />
-    public Task SetAsync<TResponseAwaiter>(TKey userId) where TResponseAwaiter : IAnswerAwaiter
+    public Task SetAsync<TResponseAwaiter>(TKey userId) where TResponseAwaiter : IRequestInterceptor
     {
         var awaiter = _serviceProvider.GetRequiredService<TResponseAwaiter>();
         

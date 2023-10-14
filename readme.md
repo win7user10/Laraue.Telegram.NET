@@ -151,7 +151,7 @@ This library allow to create an answer functionality. It is suitable for cases w
 next messages should be a response for this question. To use it should be implemented how to store Type that should be used to answer
 for question.
 ```csharp
-public class QuestionStateStorage : BaseQuestionStateStorage
+public class InterceptorState : BaseInterceptorState
 {
     protected override Task<string?> TryGetStringIdentifierFromStorageAsync(string userId)
     {
@@ -173,14 +173,14 @@ Add the functionality to container. AnswerToQuestionFunctionality is depending f
 and should be registered in this order.
 ```csharp
 services.AddTelegramCore(new TelegramBotClientOptions(builder.Configuration["Telegram:Token"]!))
-    .AddAnswerToQuestionFunctionality<QuestionStateStorage>()
-    .AddTelegramAuthentication<User>()
+    .AddAnswerToQuestionFunctionality<InterceptorState>()
+    .AddTelegramAuthentication<User, Guid>()
 ```
-Then the response awaiter can be implemented
+Then the interceptor can be implemented
 ```csharp
-public class UpdateAgeResponseAwaiter : BaseAnswerAwaiter<uint>
+public class UpdateAgeResponseInterceptor : BaseRequestInterceptor<uint>
 {
-    protected override void Validate(Update update, AnswerResult<TModel> answerResult)
+    protected override Task ValidateAsync(Update update, AnswerResult<TModel> answerResult)
     {
         if (uint.TryParse(update.Message!.Text, out var age))
         {
@@ -190,6 +190,8 @@ public class UpdateAgeResponseAwaiter : BaseAnswerAwaiter<uint>
         {
             answerResult.SetError("Age should be a positive number");
         }
+        
+        return Task.CompletedTask;
     }
     
     protected abstract Task<object?> ExecuteRouteAsync(uint age)
@@ -202,10 +204,10 @@ There is a short example of awaiter using
 ```csharp
 public class TestController : TelegramController
 {
-    private readonly IQuestionStateStorage _questionState;
+    private readonly IInterceptorState _questionState;
     private readonly ITelegramBotClient _telegramClient;
 
-    public TestController(IQuestionStateStorage questionState, ITelegramBotClient telegramClient)
+    public TestController(IInterceptorState questionState, ITelegramBotClient telegramClient)
     {
         _questionStorage = questionState;
         _telegramClient = telegramClient;
@@ -218,7 +220,7 @@ public class TestController : TelegramController
             context.UserId!,
             "What is your age?");
             
-        await _questionState.SetAsync<UpdateAgeResponseAwaiter>(context.UserId);
+        await _questionState.SetAsync<UpdateAgeResponseInterceptor>(context.UserId);
     }
 }
 ```
