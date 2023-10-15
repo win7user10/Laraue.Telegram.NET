@@ -129,7 +129,7 @@ public class ControllerTests
         Assert.Equal("awaitResponse", result);
         
         result = await SendRequestAsync(sendMessage);
-        Assert.Equal("awaited", result);
+        Assert.Equal("awaitedHi", result);
         
         result = await SendRequestAsync(sendMessage);
         Assert.Equal("awaitResponse", result);
@@ -159,7 +159,9 @@ public class ControllerTests
         [TelegramMessageRoute("awaitResponse")]
         public async Task<string?> ExecuteMessageWithResponseAwaiterAsync(TelegramRequestContext<string> requestContext)
         {
-            await _responseAwaiter.SetAsync<MessageResponseAwaiter>(requestContext.UserId!);
+            await _responseAwaiter.SetAsync<MessageResponseAwaiter, MessageResponseAwaiterParameters>(
+                requestContext.UserId!,
+                new MessageResponseAwaiterParameters("Hi"));
             
             return requestContext.Update.Message!.Text;
         }
@@ -170,7 +172,7 @@ public class ControllerTests
         public string Name { get; init; }
     }
 
-    private sealed class MessageResponseAwaiter : BaseRequestInterceptor<string, MessageResponseAwaiterModel>
+    private sealed class MessageResponseAwaiter : BaseRequestInterceptor<string, MessageResponseAwaiterModel, MessageResponseAwaiterParameters>
     {
         public override string Id => "MessageResponseAwaiter";
 
@@ -181,40 +183,57 @@ public class ControllerTests
             return Task.CompletedTask;
         }
 
-        protected override Task<object?> ExecuteRouteAsync(TelegramRequestContext<string> requestContext, MessageResponseAwaiterModel model)
+        protected override Task<object?> ExecuteRouteAsync(
+            TelegramRequestContext<string> requestContext,
+            MessageResponseAwaiterModel model,
+            MessageResponseAwaiterParameters? interceptorContext)
         {
-            return Task.FromResult((object?)model.Message);
+            return Task.FromResult((object?)(model.Message + interceptorContext?.Message));
+        }
+
+        public MessageResponseAwaiter(TelegramRequestContext<string> requestContext, IInterceptorState<string> interceptorState)
+            : base(requestContext, interceptorState)
+        {
         }
     }
-
+    private sealed record MessageResponseAwaiterParameters(string Message);
     private sealed record MessageResponseAwaiterModel(string Message);
 
     private class InMemoryInterceptorState : BaseInterceptorState<string>
     {
-        private readonly Dictionary<string, string> _awaiterStorage = new ();
+        private readonly Dictionary<string, (string, object)> _interceptors = new ();
 
-        public InMemoryInterceptorState(IEnumerable<IRequestInterceptor> awaiters, IServiceProvider serviceProvider)
-            : base(awaiters, serviceProvider)
+        public InMemoryInterceptorState(IServiceProvider serviceProvider)
+            : base(serviceProvider)
         {
         }
 
-        protected override Task<string?> TryGetStringIdentifierFromStorageAsync(string userId)
+        public override Task<string?> GetAsync(string userId)
         {
-            _awaiterStorage.TryGetValue(userId, out var value);
-
-            return Task.FromResult(value);
+            return Task.FromResult(_interceptors.TryGetValue(userId, out var value)
+                ? value.Item1
+                : default);
         }
 
-        protected override Task SetStringIdentifierToStorageAsync(string userId, string id)
+        protected override Task<TContext?> GetInterceptorContextInternalAsync<TContext>(string userId) where TContext : class
         {
-            _awaiterStorage[userId] = id;
+            _interceptors.TryGetValue(userId, out var value);
+
+            var e = value.Item2 as TContext;
+
+            return (Task.FromResult(e));
+        }
+
+        protected override Task SetInterceptorAsync<TContext>(string userId, string id, TContext context)
+        {
+            _interceptors[userId] = (id, context);
             
             return Task.CompletedTask;
         }
 
         public override Task ResetAsync(string userId)
         {
-            _awaiterStorage.Remove(userId);
+            _interceptors.Remove(userId);
             
             return Task.CompletedTask;
         }

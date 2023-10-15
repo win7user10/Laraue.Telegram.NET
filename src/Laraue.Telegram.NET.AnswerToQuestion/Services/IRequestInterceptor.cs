@@ -13,7 +13,10 @@ public interface IRequestInterceptor
     /// <summary>
     /// Try execute response awaiter if it is suitable for the execution.
     /// </summary>
-    /// <param name="serviceProvider"></param>
     /// <returns></returns>
-    Task<object?> ExecuteAsync(IServiceProvider serviceProvider);
+    Task<object?> ExecuteAsync();
+}
+
+public interface IRequestInterceptor<TInterceptorContext> : IRequestInterceptor
+{
 }

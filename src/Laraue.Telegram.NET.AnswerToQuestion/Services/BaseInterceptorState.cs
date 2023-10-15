@@ -5,47 +5,59 @@ namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
 public abstract class BaseInterceptorState<TKey> : IInterceptorState<TKey>
      where TKey : IEquatable<TKey>
 {
-    private readonly IEnumerable<IRequestInterceptor> _awaiters;
     private readonly IServiceProvider _serviceProvider;
 
     protected BaseInterceptorState(
-        IEnumerable<IRequestInterceptor> awaiters,
         IServiceProvider serviceProvider)
     {
-        _awaiters = awaiters;
         _serviceProvider = serviceProvider;
     }
-    
-    /// <inheritdoc />
-    public async Task<IRequestInterceptor?> TryGetAsync(TKey userId)
-    {
-        var id = await TryGetStringIdentifierFromStorageAsync(userId);
 
-        return _awaiters.FirstOrDefault(x => x.Id == id);
+    /// <inheritdoc />
+    public abstract Task<string?> GetAsync(TKey userId);
+
+    /// <inheritdoc />
+    public Task<TContext?> GetInterceptorContextAsync<TContext>(TKey userId)
+        where TContext : class
+    {
+        return typeof(TContext) == typeof(EmptyContext)
+            ? (Task.FromResult(EmptyContext.Value) as Task<TContext?>)!
+            : GetInterceptorContextInternalAsync<TContext>(userId);
     }
 
     /// <summary>
-    /// Describes how to retrieve a string identifier of the current question to the storage.
+    /// Get interceptor context from the storage.
     /// </summary>
     /// <param name="userId"></param>
+    /// <typeparam name="TContext"></typeparam>
     /// <returns></returns>
-    protected abstract Task<string?> TryGetStringIdentifierFromStorageAsync(TKey userId);
+    protected abstract Task<TContext?> GetInterceptorContextInternalAsync<TContext>(TKey userId)
+        where TContext : class;
 
     /// <inheritdoc />
-    public Task SetAsync<TResponseAwaiter>(TKey userId) where TResponseAwaiter : IRequestInterceptor
+    public Task SetAsync<TInterceptor, TInterceptorContext>(TKey userId, TInterceptorContext data)
+        where TInterceptor : IRequestInterceptor<TInterceptorContext>
+        where TInterceptorContext : class
     {
-        var awaiter = _serviceProvider.GetRequiredService<TResponseAwaiter>();
+        var interceptor = _serviceProvider.GetRequiredService<TInterceptor>();
         
-        return SetStringIdentifierToStorageAsync(userId, awaiter.Id);
+        return SetInterceptorAsync(userId, interceptor.Id, data);
     }
-    
+
+    /// <inheritdoc />
+    public Task SetAsync<TInterceptor>(TKey userId) where TInterceptor : IRequestInterceptor<EmptyContext>
+    {
+        return SetAsync<TInterceptor, EmptyContext>(userId, EmptyContext.Value);
+    }
+
     /// <summary>
     /// Describes how to save a string identifier of the current question to the storage.
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="id"></param>
+    /// <param name="context"></param>
     /// <returns></returns>
-    protected abstract Task SetStringIdentifierToStorageAsync(TKey userId, string id);
+    protected abstract Task SetInterceptorAsync<TContext>(TKey userId, string id, TContext context);
 
     /// <inheritdoc />
     public abstract Task ResetAsync(TKey userId);

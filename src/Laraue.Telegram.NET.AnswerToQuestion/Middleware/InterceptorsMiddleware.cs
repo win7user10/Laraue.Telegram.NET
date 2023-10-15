@@ -3,6 +3,7 @@ using Laraue.Telegram.NET.AnswerToQuestion.Services;
 using Laraue.Telegram.NET.Authentication.Middleware;
 using Laraue.Telegram.NET.Authentication.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Laraue.Telegram.NET.AnswerToQuestion.Middleware;
 
@@ -15,31 +16,41 @@ public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
     private readonly ITelegramMiddleware _next;
     private readonly IInterceptorState<TKey> _interceptorState;
     private readonly TelegramRequestContext<TKey> _requestContext;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IEnumerable<IRequestInterceptor> _interceptors;
+    private readonly ILogger<InterceptorsMiddleware<TKey>> _logger;
 
     public InterceptorsMiddleware(
         ITelegramMiddleware next,
         IInterceptorState<TKey> interceptorState,
         TelegramRequestContext<TKey> requestContext,
-        IServiceProvider serviceProvider)
+        IEnumerable<IRequestInterceptor> interceptors,
+        ILogger<InterceptorsMiddleware<TKey>> logger)
     {
         _next = next;
         _interceptorState = interceptorState;
         _requestContext = requestContext;
-        _serviceProvider = serviceProvider;
+        _interceptors = interceptors;
+        _logger = logger;
     }
     
     /// <inheritdoc />
     public async Task<object?> InvokeAsync(CancellationToken ct = default)
     {
-        var responseAwaiter = await _interceptorState.TryGetAsync(_requestContext.UserId!);
-
-        if (responseAwaiter is null)
+        var interceptorId = await _interceptorState.GetAsync(_requestContext.UserId!);
+        if (interceptorId is null)
         {
             return await _next.InvokeAsync(ct);
         }
+
+        var interceptor = _interceptors.FirstOrDefault(x => x.Id == interceptorId);
+        if (interceptor is null)
+        {
+            _logger.LogWarning("Interceptor {Id} has not been found, use default routing mechanism", interceptorId);
+            
+            return await _next.InvokeAsync(ct);
+        }
         
-        var result = await responseAwaiter.ExecuteAsync(_serviceProvider);
+        var result = await interceptor.ExecuteAsync();
         
         await _interceptorState.ResetAsync(_requestContext.UserId);
         
