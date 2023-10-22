@@ -33,7 +33,7 @@ public class HandleExceptionsMiddleware : ITelegramMiddleware
     }
 
     /// <inheritdoc />
-    public async Task<object?> InvokeAsync(CancellationToken ct = default)
+    public async Task<object?> InvokeAsync(CancellationToken ct)
     {
         try
         {

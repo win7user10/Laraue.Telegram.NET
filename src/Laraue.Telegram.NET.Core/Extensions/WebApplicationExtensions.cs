@@ -43,7 +43,7 @@ public static class WebApplicationExtensions
                 return;
             }
 
-            var routeResult = await _telegramRouter.RouteAsync(update);
+            var routeResult = await _telegramRouter.RouteAsync(update, context.RequestAborted);
 
             if (routeResult is string stringResult)
             {

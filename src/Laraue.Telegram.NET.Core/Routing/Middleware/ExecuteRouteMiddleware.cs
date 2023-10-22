@@ -19,7 +19,7 @@ internal sealed class ExecuteRouteMiddleware : ITelegramMiddleware
     {
         foreach (var route in _routes)
         {
-            var result = await route.TryExecuteAsync(_serviceProvider);
+            var result = await route.TryExecuteAsync(_serviceProvider, ct);
             
             if (!result.IsExecuted)
             {

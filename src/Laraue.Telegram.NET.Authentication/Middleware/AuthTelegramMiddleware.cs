@@ -30,7 +30,7 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
         _logger = logger;
     }
     
-    public async Task<object?> InvokeAsync(CancellationToken ct = default)
+    public async Task<object?> InvokeAsync(CancellationToken ct)
     {
         var from = _telegramRequestContext.Update.GetUser()!;
         

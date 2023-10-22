@@ -20,18 +20,21 @@ internal sealed class Route : IRoute
 
     public delegate bool TryMatch(Update update, [NotNullWhen(true)] out RequestParameters? requestParameters);
     
-    public ValueTask<RouteExecutionResult> TryExecuteAsync(IServiceProvider requestProvider)
+    public ValueTask<RouteExecutionResult> TryExecuteAsync(IServiceProvider requestProvider, CancellationToken ct = default)
     {
         return _tryMatchDelegate(requestProvider.GetRequiredService<TelegramRequestContext>().Update, out var requestParameters)
-            ? ExecuteAsync(requestProvider, requestParameters)
+            ? ExecuteAsync(requestProvider, requestParameters, ct)
             : ValueTask.FromResult(new RouteExecutionResult(false, null));
     }
 
-    private async ValueTask<RouteExecutionResult> ExecuteAsync(IServiceProvider serviceProvider, RequestParameters requestParameters)
+    private async ValueTask<RouteExecutionResult> ExecuteAsync(
+        IServiceProvider serviceProvider,
+        RequestParameters requestParameters,
+        CancellationToken ct)
     {
         var result = _controllerMethod.Invoke(
             serviceProvider.GetRequiredService(_controllerMethod.DeclaringType!),
-            GetRouteParameters(serviceProvider, _controllerMethod, requestParameters));
+            GetRouteParameters(serviceProvider, _controllerMethod, requestParameters, ct));
 
         if (result is null)
         {
@@ -57,7 +60,8 @@ internal sealed class Route : IRoute
     private static object?[] GetRouteParameters(
         IServiceProvider serviceProvider,
         MethodBase methodInfo,
-        RequestParameters requestParameters)
+        RequestParameters requestParameters,
+        CancellationToken ct)
     {
         var methodParameters = methodInfo.GetParameters();
         var parameters = new object?[methodParameters.Length];
@@ -66,7 +70,11 @@ internal sealed class Route : IRoute
         {
             var methodParameter = methodParameters[i];
             object? parameterValue;
-            if (methodParameter.GetCustomAttribute<FromPathAttribute>() is not null)
+            if (methodParameter.ParameterType == typeof(CancellationToken))
+            {
+                parameterValue = ct;
+            }
+            else if (methodParameter.GetCustomAttribute<FromPathAttribute>() is not null)
             {
                 parameterValue = requestParameters.GetPathParameter(
                     methodParameter.Name!, methodParameter.ParameterType)

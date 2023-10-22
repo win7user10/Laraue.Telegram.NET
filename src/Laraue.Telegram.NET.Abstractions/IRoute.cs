@@ -1,6 +1,4 @@
-﻿using Laraue.Telegram.NET.Abstractions.Request;
-
-namespace Laraue.Telegram.NET.Abstractions;
+﻿namespace Laraue.Telegram.NET.Abstractions;
 
 /// <summary>
 /// One of the telegram routes.
@@ -11,6 +9,7 @@ public interface IRoute
     /// Try execute route if it is suitable for the execution.
     /// </summary>
     /// <param name="requestProvider"></param>
+    /// <param name="ct"></param>
     /// <returns></returns>
-    ValueTask<RouteExecutionResult> TryExecuteAsync(IServiceProvider requestProvider);
+    ValueTask<RouteExecutionResult> TryExecuteAsync(IServiceProvider requestProvider, CancellationToken ct);
 }
