@@ -1,4 +1,4 @@
-﻿namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
+﻿namespace Laraue.Telegram.NET.Interceptors.Services;
 
 /// <summary>
 /// The class that will be executed in the request pipeline for the user instead if standard request pipeline. 

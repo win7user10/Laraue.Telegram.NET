@@ -1,4 +1,4 @@
-﻿namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
+﻿namespace Laraue.Telegram.NET.Interceptors.Services;
 
 /// <summary>
 /// Storage to understand the current user context, is interceptor is active now and user request should be redirected to it?

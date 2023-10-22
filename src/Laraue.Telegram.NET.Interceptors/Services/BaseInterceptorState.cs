@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
+namespace Laraue.Telegram.NET.Interceptors.Services;
 
 public abstract class BaseInterceptorState<TKey> : IInterceptorState<TKey>
      where TKey : IEquatable<TKey>

@@ -1,10 +1,10 @@
 using System.Reflection;
-using Laraue.Telegram.NET.AnswerToQuestion.Middleware;
-using Laraue.Telegram.NET.AnswerToQuestion.Services;
 using Laraue.Telegram.NET.Core.Extensions;
+using Laraue.Telegram.NET.Interceptors.Middleware;
+using Laraue.Telegram.NET.Interceptors.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Laraue.Telegram.NET.AnswerToQuestion.Extensions;
+namespace Laraue.Telegram.NET.Interceptors.Extensions;
 
 /// <summary>
 /// Extensions to add AnswerToQuestion functionality to the container.
@@ -27,7 +27,7 @@ public static class ServiceCollectionExtensions
     /// <typeparam name="TInterceptorState"></typeparam>
     /// <typeparam name="TUserKey"></typeparam>
     /// <returns></returns>
-    public static IServiceCollection AddAnswerToQuestionFunctionality<TInterceptorState, TUserKey>(
+    public static IServiceCollection AddTelegramRequestInterceptors<TInterceptorState, TUserKey>(
         this IServiceCollection serviceCollection,
         ServiceLifetime storageLifetime = ServiceLifetime.Scoped,
         IEnumerable<Assembly>? interceptorAssemblies = null)

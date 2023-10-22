@@ -1,6 +1,6 @@
 using Telegram.Bot.Types;
 
-namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
+namespace Laraue.Telegram.NET.Interceptors.Services;
 
 /// <summary>
 /// <see cref="BaseRequestInterceptor{TUserKey,TModel}"/> validation result.

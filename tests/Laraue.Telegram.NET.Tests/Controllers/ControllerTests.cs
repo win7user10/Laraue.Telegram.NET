@@ -1,13 +1,13 @@
 ﻿using System.Text;
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Abstractions.Request;
-using Laraue.Telegram.NET.AnswerToQuestion.Extensions;
-using Laraue.Telegram.NET.AnswerToQuestion.Services;
 using Laraue.Telegram.NET.Authentication.Middleware;
 using Laraue.Telegram.NET.Authentication.Services;
 using Laraue.Telegram.NET.Core.Extensions;
 using Laraue.Telegram.NET.Core.Routing;
 using Laraue.Telegram.NET.Core.Routing.Attributes;
+using Laraue.Telegram.NET.Interceptors.Extensions;
+using Laraue.Telegram.NET.Interceptors.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +31,7 @@ public class ControllerTests
                     .AddScoped<TelegramRequestContext<string>>()
                     .AddScoped<TelegramRequestContext>(
                         sp => sp.GetRequiredService<TelegramRequestContext<string>>())
-                    .AddAnswerToQuestionFunctionality<InMemoryInterceptorState, string>(ServiceLifetime.Singleton)
+                    .AddTelegramRequestInterceptors<InMemoryInterceptorState, string>(ServiceLifetime.Singleton)
                     .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
                     .AddScoped<IUserService<string>, MockedUserService>();
             })

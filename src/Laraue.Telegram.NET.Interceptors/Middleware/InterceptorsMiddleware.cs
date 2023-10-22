@@ -1,11 +1,9 @@
 ﻿using Laraue.Telegram.NET.Abstractions;
-using Laraue.Telegram.NET.AnswerToQuestion.Services;
-using Laraue.Telegram.NET.Authentication.Middleware;
 using Laraue.Telegram.NET.Authentication.Services;
-using Microsoft.Extensions.DependencyInjection;
+using Laraue.Telegram.NET.Interceptors.Services;
 using Microsoft.Extensions.Logging;
 
-namespace Laraue.Telegram.NET.AnswerToQuestion.Middleware;
+namespace Laraue.Telegram.NET.Interceptors.Middleware;
 
 /// <summary>
 /// Middleware to support interceptors functionality.

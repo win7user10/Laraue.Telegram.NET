@@ -10,13 +10,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laraue.Telegram.NET.DataAcc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laraue.Telegram.NET.Authentication", "src\Laraue.Telegram.NET.Authentication\Laraue.Telegram.NET.Authentication.csproj", "{4790F177-E6A8-4832-A477-36E807C3FA7F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laraue.Telegram.NET.AnswerToQuestion", "src\Laraue.Telegram.NET.AnswerToQuestion\Laraue.Telegram.NET.AnswerToQuestion.csproj", "{B015F5DD-7D31-4F96-8F75-AE1BB5A87CB5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laraue.Telegram.NET.Interceptors", "src\Laraue.Telegram.NET.Interceptors\Laraue.Telegram.NET.Interceptors.csproj", "{B015F5DD-7D31-4F96-8F75-AE1BB5A87CB5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{44318B0F-08DD-4ECF-A409-4E49BAA20D75}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{88B2A19A-B927-4053-87DE-275C1592053C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laraue.Telegram.NET.Tests", "tests\Laraue.Telegram.NET.Tests\Laraue.Telegram.NET.Tests.csproj", "{FAC730FF-22FA-4C59-8E9A-5074CBC79668}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laraue.Telegram.NET.Interceptors.EFCore", "src\Laraue.Telegram.NET.Interceptors.EFCore\Laraue.Telegram.NET.Interceptors.EFCore.csproj", "{60E0A76B-1B65-4A42-986E-ECE6F95C1C7B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,6 +54,10 @@ Global
 		{FAC730FF-22FA-4C59-8E9A-5074CBC79668}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FAC730FF-22FA-4C59-8E9A-5074CBC79668}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FAC730FF-22FA-4C59-8E9A-5074CBC79668}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60E0A76B-1B65-4A42-986E-ECE6F95C1C7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60E0A76B-1B65-4A42-986E-ECE6F95C1C7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60E0A76B-1B65-4A42-986E-ECE6F95C1C7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60E0A76B-1B65-4A42-986E-ECE6F95C1C7B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{3F74C50A-3C22-49E7-B1C9-125165FFAF38} = {44318B0F-08DD-4ECF-A409-4E49BAA20D75}
@@ -61,5 +67,6 @@ Global
 		{EDF88D22-0C48-4065-945E-A587AFAD36F2} = {44318B0F-08DD-4ECF-A409-4E49BAA20D75}
 		{53ED5332-82BA-4D29-B734-6B2C968CFB8D} = {44318B0F-08DD-4ECF-A409-4E49BAA20D75}
 		{FAC730FF-22FA-4C59-8E9A-5074CBC79668} = {88B2A19A-B927-4053-87DE-275C1592053C}
+		{60E0A76B-1B65-4A42-986E-ECE6F95C1C7B} = {44318B0F-08DD-4ECF-A409-4E49BAA20D75}
 	EndGlobalSection
 EndGlobal

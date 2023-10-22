@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Description>EFCore storage implementation for the Laraue.Telegram.NET.Interceptors.</Description>
+        <RepositoryUrl>https://github.com/win7user10/Laraue.Telegram.NET</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <Authors>Belyanskiy Ilya</Authors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <PackageTags>Telegram</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Laraue.Telegram.NET.Interceptors\Laraue.Telegram.NET.Interceptors.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Laraue.Core.DataAccess.EFCore" Version="7.0.4" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.12" />
+    </ItemGroup>
+
+</Project>

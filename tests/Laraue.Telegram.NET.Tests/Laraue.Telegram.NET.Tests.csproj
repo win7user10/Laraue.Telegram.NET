@@ -24,7 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Laraue.Telegram.NET.Authentication\Laraue.Telegram.NET.Authentication.csproj" />
     <ProjectReference Include="..\..\src\Laraue.Telegram.NET.Core\Laraue.Telegram.NET.Core.csproj" />
-    <ProjectReference Include="..\..\src\Laraue.Telegram.NET.AnswerToQuestion\Laraue.Telegram.NET.AnswerToQuestion.csproj" />
+    <ProjectReference Include="..\..\src\Laraue.Telegram.NET.Interceptors\Laraue.Telegram.NET.Interceptors.csproj" />
   </ItemGroup>
 
 </Project>

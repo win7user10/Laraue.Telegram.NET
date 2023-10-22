@@ -1,7 +1,7 @@
 ﻿using Laraue.Telegram.NET.Abstractions.Exceptions;
 using Laraue.Telegram.NET.Authentication.Services;
 
-namespace Laraue.Telegram.NET.AnswerToQuestion.Services;
+namespace Laraue.Telegram.NET.Interceptors.Services;
 
 /// <summary>
 /// The common case of interceptor is to
