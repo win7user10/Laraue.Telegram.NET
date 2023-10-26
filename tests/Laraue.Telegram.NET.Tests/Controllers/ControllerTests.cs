@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Reflection;
+using System.Text;
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Abstractions.Request;
 using Laraue.Telegram.NET.Authentication.Middleware;
@@ -31,7 +32,10 @@ public class ControllerTests
                     .AddScoped<TelegramRequestContext<string>>()
                     .AddScoped<TelegramRequestContext>(
                         sp => sp.GetRequiredService<TelegramRequestContext<string>>())
-                    .AddTelegramRequestInterceptors<InMemoryInterceptorState, string>(ServiceLifetime.Singleton)
+                    .AddTelegramRequestInterceptors<InMemoryInterceptorState, string>(ServiceLifetime.Singleton, new Assembly[]
+                    {
+                        Assembly.GetExecutingAssembly(), 
+                    })
                     .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
                     .AddScoped<IUserService<string>, MockedUserService>();
             })
