@@ -11,10 +11,10 @@ namespace Laraue.Telegram.NET.Interceptors.EFCore;
 public sealed class EFCoreInterceptorState<TUserKey> : BaseInterceptorState<TUserKey>
     where TUserKey : IEquatable<TUserKey>
 {
-    private readonly IInterceptorsContext<TUserKey> _dbContext;
+    private readonly IInterceptorsDbContext<TUserKey> _dbContext;
 
     /// <inheritdoc />
-    public EFCoreInterceptorState(IInterceptorsContext<TUserKey> dbContext, IServiceProvider serviceProvider)
+    public EFCoreInterceptorState(IInterceptorsDbContext<TUserKey> dbContext, IServiceProvider serviceProvider)
         : base(serviceProvider)
     {
         _dbContext = dbContext;

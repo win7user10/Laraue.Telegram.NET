@@ -15,6 +15,12 @@ public interface IRequestInterceptor
     /// </summary>
     /// <returns></returns>
     Task<object?> ExecuteAsync();
+
+    /// <summary>
+    /// Some kind of logic before interceptor will be set. E.g. ask user a question.
+    /// </summary>
+    /// <returns></returns>
+    Task BeforeInterceptorSetAsync();
 }
 
 public interface IRequestInterceptor<TInterceptorContext> : IRequestInterceptor

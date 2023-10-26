@@ -16,7 +16,7 @@ public static class ServiceCollectionExtensions
     /// The next schema can be used:
     /// 1. Message route executes and asks something from the client. Ex: "What is your age?"
     /// 2. Message route should register response awaiting for the question.
-    /// _responseAwaiter.RegisterAwaiter(IResponseAwaiter awaiter)
+    /// _interceptorState.SetAsync(IResponseAwaiter awaiter)
     /// 3. Next response will try to find registered awaiter and only if it was not found
     /// will execute usual routing, otherwise execute that awaiter.
     /// Should be registered before authentication middleware.
@@ -34,7 +34,7 @@ public static class ServiceCollectionExtensions
         where TInterceptorState : class, IInterceptorState<TUserKey>
         where TUserKey : IEquatable<TUserKey>
     {
-        var interceptors = (interceptorAssemblies ?? new []{ Assembly.GetCallingAssembly() })
+        var interceptors = (interceptorAssemblies ?? new []{ Assembly.GetExecutingAssembly() })
             .SelectMany(x => x.GetTypes())
             .Where(x => x is { IsClass: true, IsAbstract: false } && x.IsAssignableTo(typeof(IRequestInterceptor)));
 

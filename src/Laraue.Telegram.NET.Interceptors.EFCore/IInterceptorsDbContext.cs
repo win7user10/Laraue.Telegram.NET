@@ -7,7 +7,7 @@ namespace Laraue.Telegram.NET.Interceptors.EFCore;
 /// Database context stores the state of users interceptor state.
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
-public interface IInterceptorsContext<TUserKey> : IDbContext where TUserKey : IEquatable<TUserKey>
+public interface IInterceptorsDbContext<TUserKey> : IDbContext where TUserKey : IEquatable<TUserKey>
 {
     /// <summary>
     /// The interceptors states table.

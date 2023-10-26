@@ -57,6 +57,12 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
             .ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
+    public virtual Task BeforeInterceptorSetAsync()
+    {
+        return Task.CompletedTask;
+    }
+
     /// <summary>
     /// In this method validation should be passed.
     /// If any error occured, <see cref="InterceptResult{TResult}"/> should had an error.

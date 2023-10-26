@@ -35,13 +35,15 @@ public abstract class BaseInterceptorState<TKey> : IInterceptorState<TKey>
         where TContext : class;
 
     /// <inheritdoc />
-    public Task SetAsync<TInterceptor, TInterceptorContext>(TKey userId, TInterceptorContext data)
+    public async Task SetAsync<TInterceptor, TInterceptorContext>(TKey userId, TInterceptorContext data)
         where TInterceptor : IRequestInterceptor<TInterceptorContext>
         where TInterceptorContext : class
     {
         var interceptor = _serviceProvider.GetRequiredService<TInterceptor>();
+
+        await interceptor.BeforeInterceptorSetAsync().ConfigureAwait(false);
         
-        return SetInterceptorAsync(userId, interceptor.Id, data);
+        await SetInterceptorAsync(userId, interceptor.Id, data).ConfigureAwait(false);
     }
 
     /// <inheritdoc />

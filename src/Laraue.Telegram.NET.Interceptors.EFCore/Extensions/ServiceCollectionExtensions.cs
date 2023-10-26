@@ -19,9 +19,9 @@ public static class ServiceCollectionExtensions
         this IServiceCollection serviceCollection,
         IEnumerable<Assembly>? interceptorAssemblies = null)
         where TUserKey : IEquatable<TUserKey>
-        where TDbContext : class, IInterceptorsContext<TUserKey>
+        where TDbContext : class, IInterceptorsDbContext<TUserKey>
     {
-        serviceCollection.AddScoped<IInterceptorsContext<TUserKey>>(sp => sp.GetRequiredService<TDbContext>());
+        serviceCollection.AddScoped<IInterceptorsDbContext<TUserKey>>(sp => sp.GetRequiredService<TDbContext>());
         
         return serviceCollection.AddTelegramRequestInterceptors<EFCoreInterceptorState<TUserKey>, TUserKey>(
             ServiceLifetime.Scoped,

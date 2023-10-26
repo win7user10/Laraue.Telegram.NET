@@ -1,4 +1,5 @@
-﻿using Laraue.Telegram.NET.Abstractions;
+﻿using System.Runtime.CompilerServices;
+using Laraue.Telegram.NET.Abstractions;
 
 namespace Laraue.Telegram.NET.Core.Routing.Middleware;
 
@@ -26,12 +27,13 @@ public sealed class MiddlewareList
 
     private void AddByPriority(byte index, Type middlewareType)
     {
-        if (!_middlewareTypes.ContainsKey(index))
+        if (!_middlewareTypes.TryGetValue(index, out var value))
         {
-            _middlewareTypes[index] = new List<Type>();
+            value = new List<Type>();
+            _middlewareTypes[index] = value;
         }
-        
-        _middlewareTypes[index].Add(middlewareType);
+
+        value.Add(middlewareType);
     }
 
     /// <summary>
