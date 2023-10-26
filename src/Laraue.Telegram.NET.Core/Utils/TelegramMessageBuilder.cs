@@ -8,7 +8,7 @@ namespace Laraue.Telegram.NET.Core.Utils;
 /// </summary>
 public class TelegramMessageBuilder
 {
-    private readonly List<string> _rows = new ();
+    private readonly StringBuilder _textBuilder = new ();
     private readonly List<IEnumerable<InlineKeyboardButton>> _inlineKeyboardButtons = new ();
     private readonly List<IEnumerable<KeyboardButton>> _keyboardButtons = new ();
 
@@ -19,7 +19,30 @@ public class TelegramMessageBuilder
     /// <returns></returns>
     public TelegramMessageBuilder AppendRow(string text)
     {
-        _rows.Add(text);
+        _textBuilder.AppendLine(text);
+
+        return this;
+    }
+    
+    /// <summary>
+    /// Adds new empty line.
+    /// </summary>
+    /// <returns></returns>
+    public TelegramMessageBuilder AppendRow()
+    {
+        _textBuilder.AppendLine();
+
+        return this;
+    }
+    
+    /// <summary>
+    /// Append the passed string builder.
+    /// </summary>
+    /// <param name="stringBuilder"></param>
+    /// <returns></returns>
+    public TelegramMessageBuilder Append(StringBuilder stringBuilder)
+    {
+        _textBuilder.Append(stringBuilder);
 
         return this;
     }
@@ -63,7 +86,7 @@ public class TelegramMessageBuilder
     /// <summary>
     /// Returns message text.
     /// </summary>
-    public string Text => string.Join("\n", _rows);
+    public string Text => _textBuilder.ToString();
     
     /// <summary>
     /// Returns Keyboard with callback buttons.
