@@ -7,8 +7,7 @@ public abstract class BaseInterceptorState<TKey> : IInterceptorState<TKey>
 {
     private readonly IServiceProvider _serviceProvider;
 
-    protected BaseInterceptorState(
-        IServiceProvider serviceProvider)
+    protected BaseInterceptorState(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
@@ -35,12 +34,21 @@ public abstract class BaseInterceptorState<TKey> : IInterceptorState<TKey>
         where TContext : class;
 
     /// <inheritdoc />
-    public async Task SetAsync<TInterceptor, TInterceptorContext>(TKey userId, TInterceptorContext data)
+    public Task SetAsync<TInterceptor, TInterceptorContext>(TKey userId, TInterceptorContext data)
         where TInterceptor : IRequestInterceptor<TInterceptorContext>
         where TInterceptorContext : class
     {
         var interceptor = _serviceProvider.GetRequiredService<TInterceptor>();
 
+        return SetAsync(interceptor, userId, data);
+    }
+
+    /// <inheritdoc />
+    public async Task SetAsync<TInterceptorContext>(
+        IRequestInterceptor<TInterceptorContext> interceptor,
+        TKey userId,
+        TInterceptorContext data) where TInterceptorContext : class
+    {
         await interceptor.BeforeInterceptorSetAsync().ConfigureAwait(false);
         
         await SetInterceptorAsync(userId, interceptor.Id, data).ConfigureAwait(false);
@@ -50,6 +58,12 @@ public abstract class BaseInterceptorState<TKey> : IInterceptorState<TKey>
     public Task SetAsync<TInterceptor>(TKey userId) where TInterceptor : IRequestInterceptor<EmptyContext>
     {
         return SetAsync<TInterceptor, EmptyContext>(userId, EmptyContext.Value);
+    }
+
+    /// <inheritdoc />
+    public Task SetAsync(IRequestInterceptor<EmptyContext> interceptor, TKey userId)
+    {
+        return SetAsync(interceptor, userId, EmptyContext.Value);
     }
 
     /// <summary>

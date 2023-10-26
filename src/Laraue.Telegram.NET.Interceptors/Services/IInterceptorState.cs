@@ -21,8 +21,7 @@ public interface IInterceptorState<in TKey> where TKey : IEquatable<TKey>
         where TContext : class;
     
     /// <summary>
-    /// Sets that user should answer the question on the next request
-    /// and sets context data for that.
+    /// Sets that user should answer the question on the next request and sets context data for that.
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="data"></param>
@@ -34,12 +33,31 @@ public interface IInterceptorState<in TKey> where TKey : IEquatable<TKey>
         where TInterceptorContext : class;
     
     /// <summary>
+    /// Sets that user should answer the question on the next request and sets context data for that.
+    /// </summary>
+    /// <param name="interceptor"></param>
+    /// <param name="userId"></param>
+    /// <param name="data"></param>
+    /// <typeparam name="TInterceptorContext"></typeparam>
+    /// <returns></returns>
+    Task SetAsync<TInterceptorContext>(IRequestInterceptor<TInterceptorContext> interceptor, TKey userId, TInterceptorContext data)
+        where TInterceptorContext : class;
+    
+    /// <summary>
     /// Sets that user should answer the question on the next request.
     /// </summary>
     /// <param name="userId"></param>
     /// <typeparam name="TInterceptor"></typeparam>
     /// <returns></returns>
     Task SetAsync<TInterceptor>(TKey userId) where TInterceptor : IRequestInterceptor<EmptyContext>;
+    
+    /// <summary>
+    /// Sets that user should answer the question on the next request.
+    /// </summary>
+    /// <param name="interceptor"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    Task SetAsync(IRequestInterceptor<EmptyContext> interceptor, TKey userId);
     
     /// <summary>
     /// Sets that routing for user is executing with standard routing rules.

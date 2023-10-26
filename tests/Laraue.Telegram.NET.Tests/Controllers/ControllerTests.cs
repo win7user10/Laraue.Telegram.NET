@@ -32,10 +32,10 @@ public class ControllerTests
                     .AddScoped<TelegramRequestContext<string>>()
                     .AddScoped<TelegramRequestContext>(
                         sp => sp.GetRequiredService<TelegramRequestContext<string>>())
-                    .AddTelegramRequestInterceptors<InMemoryInterceptorState, string>(ServiceLifetime.Singleton, new Assembly[]
+                    .AddTelegramRequestInterceptors<InMemoryInterceptorState, string>(new[]
                     {
                         Assembly.GetExecutingAssembly(), 
-                    })
+                    }, ServiceLifetime.Singleton)
                     .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
                     .AddScoped<IUserService<string>, MockedUserService>();
             })

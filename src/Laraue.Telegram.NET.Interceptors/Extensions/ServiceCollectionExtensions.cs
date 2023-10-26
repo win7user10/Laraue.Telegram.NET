@@ -22,15 +22,15 @@ public static class ServiceCollectionExtensions
     /// Should be registered before authentication middleware.
     /// </summary>
     /// <param name="serviceCollection"></param>
-    /// <param name="storageLifetime"></param>
     /// <param name="interceptorAssemblies"></param>
+    /// <param name="storageLifetime"></param>
     /// <typeparam name="TInterceptorState"></typeparam>
     /// <typeparam name="TUserKey"></typeparam>
     /// <returns></returns>
     public static IServiceCollection AddTelegramRequestInterceptors<TInterceptorState, TUserKey>(
         this IServiceCollection serviceCollection,
-        ServiceLifetime storageLifetime = ServiceLifetime.Scoped,
-        IEnumerable<Assembly>? interceptorAssemblies = null)
+        IEnumerable<Assembly>? interceptorAssemblies,
+        ServiceLifetime storageLifetime = ServiceLifetime.Scoped)
         where TInterceptorState : class, IInterceptorState<TUserKey>
         where TUserKey : IEquatable<TUserKey>
     {

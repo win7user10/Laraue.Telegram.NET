@@ -17,14 +17,13 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddTelegramRequestEfCoreInterceptors<TUserKey, TDbContext>(
         this IServiceCollection serviceCollection,
-        IEnumerable<Assembly>? interceptorAssemblies = null)
+        IEnumerable<Assembly> interceptorAssemblies)
         where TUserKey : IEquatable<TUserKey>
         where TDbContext : class, IInterceptorsDbContext<TUserKey>
     {
         serviceCollection.AddScoped<IInterceptorsDbContext<TUserKey>>(sp => sp.GetRequiredService<TDbContext>());
         
         return serviceCollection.AddTelegramRequestInterceptors<EFCoreInterceptorState<TUserKey>, TUserKey>(
-            ServiceLifetime.Scoped,
             interceptorAssemblies);
     }
 }
