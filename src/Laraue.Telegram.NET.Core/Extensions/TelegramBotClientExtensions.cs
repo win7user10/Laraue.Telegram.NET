@@ -26,7 +26,7 @@ public static class TelegramBotClientExtensions
         return botClient.SendTextMessageAsync(
             chatId,
             messageBuilder.Text,
-            replyMarkup: messageBuilder.ReplyKeyboard,
+            replyMarkup: messageBuilder.InlineKeyboard,
             cancellationToken: ct);
     }
 }
