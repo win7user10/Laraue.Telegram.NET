@@ -17,6 +17,11 @@ public sealed record InterceptResult<TResult>
     /// Error if the validation failed.
     /// </summary>
     public string? Error { get; private set; }
+    
+    /// <summary>
+    /// Intercepting has been cancelled.
+    /// </summary>
+    public bool IsCancelled { get; private set; }
 
     /// <summary>
     /// Set the model received after validation.
@@ -34,5 +39,13 @@ public sealed record InterceptResult<TResult>
     public void SetError(string error)
     {
         Error = error;
+    }
+    
+    /// <summary>
+    /// Set that interceptor should not be executed, it should be unset.
+    /// </summary>
+    public void Cancel()
+    {
+        IsCancelled = true;
     }
 }

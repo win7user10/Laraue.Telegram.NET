@@ -34,23 +34,22 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
     /// <inheritdoc />
     public async Task<object?> ExecuteAsync()
     {
-        var answerResult = new InterceptResult<TInput>();
+        var interceptResult = new InterceptResult<TInput>();
 
-        var executionMode = await GetExecutionModeAsync(_requestContext).ConfigureAwait(false);
-        if (executionMode == ExecutionMode.Cancel)
+        await ValidateAsync(_requestContext, interceptResult)
+            .ConfigureAwait(false);
+
+        if (interceptResult.IsCancelled)
         {
             return null;
         }
-
-        await ValidateAsync(_requestContext, answerResult)
-            .ConfigureAwait(false);
         
-        if (answerResult.Error is not null)
+        if (interceptResult.Error is not null)
         {
-            throw new BadTelegramRequestException(answerResult.Error);
+            throw new BadTelegramRequestException(interceptResult.Error);
         }
         
-        if (answerResult.Model is null)
+        if (interceptResult.Model is null)
         {
             throw new InvalidOperationException("Model should be bind if validation finished successfully.");
         }
@@ -59,20 +58,9 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
             .GetInterceptorContextAsync<TContext>(_requestContext.UserId)
             .ConfigureAwait(false);
 
-        return await ExecuteRouteAsync(_requestContext, answerResult.Model, context)
+        return await ExecuteRouteAsync(_requestContext, interceptResult.Model, context)
             .ConfigureAwait(false);
     }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    protected virtual Task<ExecutionMode> GetExecutionModeAsync(TelegramRequestContext<TUserKey> requestContext)
-    {
-        return Task.FromResult(ExecutionMode.Execute);
-    }
-
-    public IInterceptorState<TUserKey> InterceptorState => _interceptorState;
 
     /// <inheritdoc />
     public virtual Task BeforeInterceptorSetAsync()
@@ -130,20 +118,4 @@ public sealed class EmptyContext
     /// Context singleton value.
     /// </summary>
     public static EmptyContext Value => Instance;
-}
-
-/// <summary>
-/// Describe should the interceptor be executed.
-/// </summary>
-public enum ExecutionMode
-{
-    /// <summary>
-    /// Interceptor code should be executed
-    /// </summary>
-    Execute,
-        
-    /// <summary>
-    /// Interceptor code should not be executed.
-    /// </summary>
-    Cancel,
 }
