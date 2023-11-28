@@ -1,5 +1,6 @@
 ﻿using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Authentication.Services;
+using Laraue.Telegram.NET.Core.Extensions;
 using Laraue.Telegram.NET.Interceptors.Services;
 using Microsoft.Extensions.Logging;
 
@@ -51,6 +52,8 @@ public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
         var result = await interceptor.ExecuteAsync();
         
         await _interceptorState.ResetAsync(_requestContext.UserId);
+        
+        _requestContext.SetExecutedRoute(new ExecutedRouteInfo("Interceptor", interceptor.ToString()));
         
         return result;
     }

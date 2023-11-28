@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Laraue.Telegram.NET.Abstractions;
+using Laraue.Telegram.NET.Core.Extensions;
 using Laraue.Telegram.NET.Core.Routing.Middleware;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -56,12 +57,14 @@ public sealed class TelegramRouter : ITelegramRouter
         }
 
         var result = await lastMiddleware!.InvokeAsync(cancellationToken);
-        if (_telegramRequestContext.ExecutedRoute is not null)
+        var executedRoute = _telegramRequestContext.GetExecutedRoute();
+        
+        if (executedRoute is not null)
         {
             _logger.LogDebug(
                 "Request time {Time} ms, route: {RouteName} executed",
                 sw.ElapsedMilliseconds,
-                _telegramRequestContext.ExecutedRoute);
+                executedRoute);
         }
         else
         {

@@ -1,4 +1,5 @@
 ﻿using Laraue.Telegram.NET.Abstractions;
+using Laraue.Telegram.NET.Core.Extensions;
 
 namespace Laraue.Telegram.NET.Core.Routing.Middleware;
 
@@ -26,7 +27,7 @@ internal sealed class ExecuteRouteMiddleware : ITelegramMiddleware
                 continue;
             }
 
-            _requestContext.ExecutedRoute = route;
+            _requestContext.SetExecutedRoute(new ExecutedRouteInfo("Route", route.ToString()));
             
             return result.ExecutionResult;
         }

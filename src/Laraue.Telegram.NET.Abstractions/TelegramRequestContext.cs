@@ -13,12 +13,13 @@ public class TelegramRequestContext
     public Update Update { get; set; } = default!;
 
     /// <summary>
-    /// Dictionary with parameters for pipeline customization.
+    /// Data associated with the request.
     /// </summary>
-    public Dictionary<string, object?> AdditionalParameters { get; } = new();
-
-    /// <summary>
-    /// Contains route that was executed in the current request.
-    /// </summary>
-    public IRoute? ExecutedRoute { get; set; }
+    public TelegramRequestContextData Data { get; } = new();
 }
+
+/// <summary>
+/// Dictionary with parameters of context, which can be modified in the request pipeline.
+/// </summary>
+public class TelegramRequestContextData : Dictionary<string, object?>
+{}
