@@ -180,7 +180,10 @@ public class ControllerTests
     {
         public override string Id => "MessageResponseAwaiter";
 
-        protected override Task ValidateAsync(TelegramRequestContext<string> requestContext, InterceptResult<MessageResponseAwaiterModel> interceptResult)
+        protected override Task ValidateAsync(
+            TelegramRequestContext<string> requestContext,
+            InterceptResult<MessageResponseAwaiterModel> interceptResult,
+            MessageResponseAwaiterParameters? interceptorContext)
         {
             interceptResult.SetResult(new MessageResponseAwaiterModel("awaited"));
 

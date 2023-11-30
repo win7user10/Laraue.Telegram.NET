@@ -36,7 +36,11 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
     {
         var interceptResult = new InterceptResult<TInput>();
 
-        await ValidateAsync(_requestContext, interceptResult)
+        var context = await _interceptorState
+            .GetInterceptorContextAsync<TContext>(_requestContext.UserId)
+            .ConfigureAwait(false);
+
+        await ValidateAsync(_requestContext, interceptResult, context)
             .ConfigureAwait(false);
 
         if (interceptResult.IsCancelled)
@@ -53,10 +57,6 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
         {
             throw new InvalidOperationException("Model should be bind if validation finished successfully.");
         }
-
-        var context = await _interceptorState
-            .GetInterceptorContextAsync<TContext>(_requestContext.UserId)
-            .ConfigureAwait(false);
 
         return await ExecuteRouteAsync(_requestContext, interceptResult.Model, context)
             .ConfigureAwait(false);
@@ -75,9 +75,11 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
     /// </summary>
     /// <param name="requestContext">Current telegram request context.</param>
     /// <param name="interceptResult">Validation result.</param>
+    /// <param name="interceptorContext">Context for the interceptor.</param>
     protected abstract Task ValidateAsync(
         TelegramRequestContext<TUserKey> requestContext,
-        InterceptResult<TInput> interceptResult);
+        InterceptResult<TInput> interceptResult,
+        TContext? interceptorContext);
     
     /// <summary>
     /// Execute the awaiter body if validation has been passed successfully.
