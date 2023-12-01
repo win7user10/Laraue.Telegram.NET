@@ -1,6 +1,7 @@
 ﻿using Laraue.Telegram.NET.Core.Utils;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace Laraue.Telegram.NET.Core.Extensions;
 
@@ -12,21 +13,32 @@ public static class TelegramBotClientExtensions
     /// <summary>
     /// Sends telegram message builder content to a user.
     /// </summary>
-    /// <param name="botClient"></param>
-    /// <param name="chatId"></param>
-    /// <param name="messageBuilder"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
     public static Task SendTextMessageAsync(
         this ITelegramBotClient botClient,
         ChatId chatId,
         TelegramMessageBuilder messageBuilder,
-        CancellationToken ct = default)
+        int? messageThreadId = default,
+        ParseMode? parseMode = default,
+        IEnumerable<MessageEntity>? entities = default,
+        bool? disableWebPagePreview = default,
+        bool? disableNotification = default,
+        bool? protectContent = default,
+        int? replyToMessageId = default,
+        bool? allowSendingWithoutReply = default,
+        CancellationToken cancellationToken = default)
     {
         return botClient.SendTextMessageAsync(
-            chatId,
-            messageBuilder.Text,
+            chatId: chatId,
+            text: messageBuilder.Text,
+            messageThreadId: messageThreadId,
+            parseMode: parseMode,
+            entities: entities,
+            disableWebPagePreview: disableWebPagePreview,
+            disableNotification: disableNotification,
+            protectContent: protectContent,
+            replyToMessageId: replyToMessageId,
+            allowSendingWithoutReply: allowSendingWithoutReply,
             replyMarkup: messageBuilder.InlineKeyboard,
-            cancellationToken: ct);
+            cancellationToken: cancellationToken);
     }
 }
