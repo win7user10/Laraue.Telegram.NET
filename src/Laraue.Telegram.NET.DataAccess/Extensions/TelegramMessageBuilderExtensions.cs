@@ -22,7 +22,7 @@ public static class TelegramMessageBuilderExtensions
     /// <returns></returns>
     public static TelegramMessageBuilder AppendDataRows<TData>(
         this TelegramMessageBuilder messageBuilder,
-        IPaginatedResult<TData> result,
+        IShortPaginatedResult<TData> result,
         Func<TData, int, string> formatRow)
         where TData : class
     {
@@ -43,9 +43,9 @@ public static class TelegramMessageBuilderExtensions
     /// <param name="fallbackButtons"></param>
     /// <typeparam name="TData"></typeparam>
     /// <returns></returns>
-    public static TelegramMessageBuilder AddControlButtons<TData>(
+    public static TelegramMessageBuilder AddPaginationButtons<TData>(
         this TelegramMessageBuilder messageBuilder,
-        IPaginatedResult<TData> result,
+        IShortPaginatedResult<TData> result,
         RoutePathBuilder route,
         ControlButtons? fallbackButtons = null)
         where TData : class
@@ -91,7 +91,7 @@ public static class TelegramMessageBuilderExtensions
     /// <returns></returns>
     public static TelegramMessageBuilder AddInlineKeyboardButtons<TData>(
         this TelegramMessageBuilder messageBuilder,
-        IPaginatedResult<TData> result,
+        IShortPaginatedResult<TData> result,
         Func<TData, int, InlineKeyboardButton> getButton)
         where TData : class
     {

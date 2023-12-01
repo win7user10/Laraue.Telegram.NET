@@ -17,7 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Laraue.Core.DataAccess.EFCore" Version="7.0.4" />
+      <PackageReference Include="Laraue.Core.DataAccess.EFCore" Version="7.1.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.12" />
     </ItemGroup>
 
