@@ -40,6 +40,8 @@ public static class TelegramMessageBuilderExtensions
     /// <param name="messageBuilder"></param>
     /// <param name="result"></param>
     /// <param name="route"></param>
+    /// <param name="previousButtonText"></param>
+    /// <param name="nextButtonText"></param>
     /// <param name="fallbackButtons"></param>
     /// <typeparam name="TData"></typeparam>
     /// <returns></returns>
@@ -47,6 +49,8 @@ public static class TelegramMessageBuilderExtensions
         this TelegramMessageBuilder messageBuilder,
         IShortPaginatedResult<TData> result,
         RoutePathBuilder route,
+        string previousButtonText = "Previous ⬅",
+        string nextButtonText = "Next ➡",
         ControlButtons? fallbackButtons = null)
         where TData : class
     {
@@ -54,7 +58,7 @@ public static class TelegramMessageBuilderExtensions
         if (result.HasPreviousPage)
         {
             rowButtons.Add(InlineKeyboardButton.WithCallbackData(
-                "Previous ⬅", 
+                previousButtonText, 
                 route.WithQueryParameter(PageParameterName, result.Page - 1)));
         }
         else if (fallbackButtons?.PreviousButton is not null)
@@ -65,7 +69,7 @@ public static class TelegramMessageBuilderExtensions
         if (result.HasNextPage)
         {
             rowButtons.Add(InlineKeyboardButton.WithCallbackData(
-                "Next ➡",
+                nextButtonText,
                 route.WithQueryParameter(PageParameterName, result.Page + 1)));
         }
         else if (fallbackButtons?.NextButton is not null)
