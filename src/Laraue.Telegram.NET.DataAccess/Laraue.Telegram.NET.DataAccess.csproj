@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Laraue.Core.DataAccess" Version="7.1.0" />
+    <PackageReference Include="Laraue.Core.DataAccess" Version="7.1.1" />
   </ItemGroup>
 
 </Project>
