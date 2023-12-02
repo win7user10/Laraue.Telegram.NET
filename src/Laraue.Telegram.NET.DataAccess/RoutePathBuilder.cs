@@ -57,9 +57,14 @@ public sealed class RoutePathBuilder
     /// <param name="parameterName"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public RoutePathBuilder WithQueryParameter(string parameterName, object value)
+    public RoutePathBuilder WithQueryParameter(string parameterName, object? value)
     {
-        _queryParameters.Value[parameterName] = JsonSerializer.Serialize(value);
+        if (value is null)
+        {
+            return this;
+        }
+
+        _queryParameters.Value[parameterName] = JsonSerializer.SerializeToElement(value).ToString();
 
         return this;
     }
