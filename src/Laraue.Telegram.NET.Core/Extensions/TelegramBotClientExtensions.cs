@@ -41,4 +41,28 @@ public static class TelegramBotClientExtensions
             replyMarkup: messageBuilder.InlineKeyboard,
             cancellationToken: cancellationToken);
     }
+
+    /// <summary>
+    /// Edit telegram message with the content of the passed <see cref="TelegramMessageBuilder"/>.
+    /// </summary>
+    public static Task EditMessageTextAsync(
+        this ITelegramBotClient botClient,
+        ChatId chatId,
+        int messageId,
+        TelegramMessageBuilder messageBuilder,
+        ParseMode? parseMode = default,
+        IEnumerable<MessageEntity>? entities = default,
+        bool? disableWebPagePreview = default,
+        CancellationToken cancellationToken = default)
+    {
+        return botClient.EditMessageTextAsync(
+            chatId: chatId,
+            messageId: messageId,
+            text: messageBuilder.Text,
+            parseMode: parseMode,
+            entities: entities,
+            disableWebPagePreview: disableWebPagePreview,
+            replyMarkup: messageBuilder.InlineKeyboard,
+            cancellationToken: cancellationToken);
+    }
 }
