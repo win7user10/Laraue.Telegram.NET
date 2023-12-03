@@ -12,7 +12,7 @@ public class UnauthorizedRequestException : HttpExceptionWithErrors
     /// Initializes a <see cref="UnauthorizedRequestException"/>.
     /// </summary>
     /// <param name="errors"></param>
-    public UnauthorizedRequestException(IReadOnlyDictionary<string, string[]> errors) 
+    public UnauthorizedRequestException(IReadOnlyDictionary<string, string?[]> errors) 
         : base(HttpStatusCode.Unauthorized, errors)
     {
     }
