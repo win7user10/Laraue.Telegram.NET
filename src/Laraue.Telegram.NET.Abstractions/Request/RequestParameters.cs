@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Numerics;
+using System.Text.Json;
 
 namespace Laraue.Telegram.NET.Abstractions.Request;
 
@@ -77,14 +78,19 @@ public class RequestParameters
         {
             return null;
         }
+
+        if (value is null)
+        {
+            return null;
+        }
         
         if (valueType == typeof(string))
         {
             return value;
         }
 
-        return value is null 
-            ? null
-            : JsonSerializer.Deserialize(value, valueType);
+        return valueType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(INumber<>))
+            ? JsonSerializer.Deserialize(value, valueType)
+            : JsonSerializer.SerializeToElement(value).Deserialize(valueType);
     }
 }
