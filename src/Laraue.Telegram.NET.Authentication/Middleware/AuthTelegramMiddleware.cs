@@ -32,22 +32,26 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     
     public async Task<object?> InvokeAsync(CancellationToken ct)
     {
-        var from = _telegramRequestContext.Update.GetUser()!;
+        var user = _telegramRequestContext.Update.GetUser();
+        if (user is null)
+        {
+            return await _next.InvokeAsync(ct);
+        }
         
-        using var _ = await Semaphore.WaitAsync(from.Id, ct);
+        using var _ = await Semaphore.WaitAsync(user.Id, ct);
 
-        if (!UserIdTelegramIdMap.TryGetValue(from.Id, out var systemId))
+        if (!UserIdTelegramIdMap.TryGetValue(user.Id, out var systemId))
         {
             var result = await _userService.LoginOrRegisterAsync(
-                new TelegramData(from.Id, from.Username!));
+                new TelegramData(user.Id, user.Username!));
             
-            UserIdTelegramIdMap.TryAdd(from.Id, result.UserId);
+            UserIdTelegramIdMap.TryAdd(user.Id, result.UserId);
             systemId = result.UserId;
         }
         
         _telegramRequestContext.UserId = systemId;
         
-        _logger.LogInformation("Auth as: telegram id: {TelegramId}, system id: {SystemId}", from.Id, systemId);
+        _logger.LogInformation("Auth as: telegram id: {TelegramId}, system id: {SystemId}", user.Id, systemId);
         return await _next.InvokeAsync(ct);
     }
 }

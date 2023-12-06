@@ -16,19 +16,26 @@ public class TelegramRequestContext<TKey> : TelegramRequestContext
     /// <summary>
     /// Current user id identifier.
     /// </summary>
-    public TKey UserId
+    public TKey? UserId
     {
-        get
-        {
-            if (_userId == null || _userId.Equals(default))
-            {
-                throw new InvalidOperationException(
-                    $"User information is not available." +
-                    $" Ensure {typeof(AuthTelegramMiddleware<TKey>)} has been registered at the top of pipeline");
-            }
-
-            return _userId;
-        }
+        get => _userId;
         set => _userId = value;
+    }
+
+    /// <summary>
+    /// Gets current user id identifier or throw. 
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public TKey GetUserIdOrThrow()
+    {
+        if (_userId == null || _userId.Equals(default))
+        {
+            throw new InvalidOperationException(
+                $"User information is not available." +
+                $" Ensure {typeof(AuthTelegramMiddleware<TKey>)} has been registered at the top of pipeline");
+        }
+
+        return _userId;
     }
 }

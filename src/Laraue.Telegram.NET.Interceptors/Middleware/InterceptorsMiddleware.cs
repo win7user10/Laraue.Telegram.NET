@@ -35,7 +35,13 @@ public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
     /// <inheritdoc />
     public async Task<object?> InvokeAsync(CancellationToken ct = default)
     {
-        var interceptorId = await _interceptorState.GetAsync(_requestContext.UserId!);
+        var userId = _requestContext.UserId;
+        if (userId is null)
+        {
+            return await _next.InvokeAsync(ct);
+        }
+        
+        var interceptorId = await _interceptorState.GetAsync(userId);
         if (interceptorId is null)
         {
             return await _next.InvokeAsync(ct);
