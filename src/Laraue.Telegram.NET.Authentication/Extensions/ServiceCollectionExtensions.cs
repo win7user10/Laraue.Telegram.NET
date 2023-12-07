@@ -68,7 +68,7 @@ public static class ServiceCollectionExtensions
         
         serviceCollection.AddScoped<IUserService<TKey>, UserService<TUser, TKey>>();
 
-        serviceCollection.UseUserGroupsProvider<DefaultUserGroupProvider>();
+        serviceCollection.UseUserRolesProvider<DefaultUserRoleProvider>();
         serviceCollection.AddScoped<IControllerProtector, UserShouldBeInGroupProtector<TKey>>();
         
         return serviceCollection.AddIdentity<TUser, IdentityRole<TKey>>(
@@ -83,9 +83,12 @@ public static class ServiceCollectionExtensions
             });
     }
 
-    public static IServiceCollection UseUserGroupsProvider<TUserGroupProvider>(this IServiceCollection services)
-        where TUserGroupProvider : class, IUserGroupProvider
+    /// <summary>
+    /// Start use role provider for the user.
+    /// </summary>
+    public static IServiceCollection UseUserRolesProvider<TUserGroupProvider>(this IServiceCollection services)
+        where TUserGroupProvider : class, IUserRoleProvider
     {
-        return services.AddScoped<IUserGroupProvider, TUserGroupProvider>();
+        return services.AddScoped<IUserRoleProvider, TUserGroupProvider>();
     }
 }

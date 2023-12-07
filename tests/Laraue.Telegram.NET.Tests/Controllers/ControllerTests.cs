@@ -14,6 +14,7 @@ using Laraue.Telegram.NET.Interceptors.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -40,8 +41,8 @@ public class ControllerTests
                     }, ServiceLifetime.Singleton)
                     .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
                     .AddScoped<IUserService<string>, MockedUserService>()
-                    .AddScoped<IUserGroupProvider>(sp => new StaticUserGroupProvider(
-                        new GroupUsers { ["Protected.View"] = new []{ "JohnLennon" } }))
+                    .AddScoped<IUserRoleProvider>(_ => new StaticUserRoleProvider(
+                        Options.Create(new RoleUsers { ["Protected.View"] = new []{ "JohnLennon" } })))
                     .AddScoped<IControllerProtector, UserShouldBeInGroupProtector<string>>();;
             })
             .Configure(a => a.MapTelegramRequests("/test"));
@@ -203,7 +204,7 @@ public class ControllerTests
             return requestContext.Update.Message!.Text;
         }
         
-        [RequiresUserGroup("Protected.View")]
+        [RequiresUserRole("Protected.View")]
         [TelegramMessageRoute("protected")]
         public Task<string?> ExecuteProtectedAsync(TelegramRequestContext<string> requestContext)
         {

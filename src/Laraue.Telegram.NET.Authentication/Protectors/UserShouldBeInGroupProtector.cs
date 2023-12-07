@@ -23,7 +23,13 @@ public sealed class UserShouldBeInGroupProtector<TUserKey> : IControllerProtecto
     /// <inheritdoc />
     public bool IsExecutionAllowed(MethodInfo controllerMethod)
     {
-        var attribute = controllerMethod.GetCustomAttribute<RequiresUserGroupAttribute>();
-        return attribute is null || attribute.AllowedGroups.Any(x => _requestContext.Groups.Contains(x));
+        var attribute = controllerMethod.GetCustomAttribute<RequiresUserRoleAttribute>();
+        if (attribute is null)
+        {
+            var controllerType = controllerMethod.DeclaringType;
+            attribute = controllerType?.GetCustomAttribute<RequiresUserRoleAttribute>();
+        }
+        
+        return attribute is null || attribute.AllowedRoles.Any(x => _requestContext.Groups.Contains(x));
     }
 }

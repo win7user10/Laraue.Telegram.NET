@@ -15,7 +15,7 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     private readonly IUserService<TKey> _userService;
     private readonly TelegramRequestContext<TKey> _telegramRequestContext;
     private readonly ILogger<AuthTelegramMiddleware<TKey>> _logger;
-    private readonly IUserGroupProvider _userGroupProvider;
+    private readonly IUserRoleProvider _userRoleProvider;
 
     private static readonly ConcurrentDictionary<long, TKey> UserIdTelegramIdMap = new ();
     private static readonly KeyedSemaphoreSlim<long> Semaphore = new (1);
@@ -25,13 +25,13 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
         IUserService<TKey> userService,
         TelegramRequestContext<TKey> telegramRequestContext,
         ILogger<AuthTelegramMiddleware<TKey>> logger,
-        IUserGroupProvider userGroupProvider)
+        IUserRoleProvider userRoleProvider)
     {
         _next = next;
         _userService = userService;
         _telegramRequestContext = telegramRequestContext;
         _logger = logger;
-        _userGroupProvider = userGroupProvider;
+        _userRoleProvider = userRoleProvider;
     }
     
     /// <inheritdoc />
@@ -56,7 +56,7 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
         
         _telegramRequestContext.UserId = systemId;
 
-        var userGroups = await _userGroupProvider.GetUserGroupsAsync(user);
+        var userGroups = await _userRoleProvider.GetUserGroupsAsync(user);
         _telegramRequestContext.Groups = userGroups.Select(x => x.Name).ToArray();
         
         _logger.LogInformation(
