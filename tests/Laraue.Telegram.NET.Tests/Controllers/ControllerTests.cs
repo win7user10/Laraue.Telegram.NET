@@ -2,7 +2,9 @@
 using System.Text;
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Abstractions.Request;
+using Laraue.Telegram.NET.Authentication.Attributes;
 using Laraue.Telegram.NET.Authentication.Middleware;
+using Laraue.Telegram.NET.Authentication.Protectors;
 using Laraue.Telegram.NET.Authentication.Services;
 using Laraue.Telegram.NET.Core.Extensions;
 using Laraue.Telegram.NET.Core.Routing;
@@ -37,7 +39,10 @@ public class ControllerTests
                         Assembly.GetExecutingAssembly(), 
                     }, ServiceLifetime.Singleton)
                     .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
-                    .AddScoped<IUserService<string>, MockedUserService>();
+                    .AddScoped<IUserService<string>, MockedUserService>()
+                    .AddScoped<IUserGroupProvider>(sp => new StaticUserGroupProvider(
+                        new GroupUsers { ["Protected.View"] = new []{ "JohnLennon" } }))
+                    .AddScoped<IControllerProtector, UserShouldBeInGroupProtector<string>>();;
             })
             .Configure(a => a.MapTelegramRequests("/test"));
         
@@ -138,6 +143,34 @@ public class ControllerTests
         result = await SendRequestAsync(sendMessage);
         Assert.Equal("awaitResponse", result);
     }
+    
+    [Theory]
+    [InlineData("JohnLennon", true)]
+    [InlineData("AlexFerrari", false)]
+    public async Task MessageRoute_ShouldBeProtectedAsync(string userName, bool shouldRouteBeAvailable)
+    {
+        var result = await SendRequestAsync(new Update
+        {
+            Message = new Message
+            {
+                From = new User
+                {
+                    FirstName = "Ilya",
+                    Username = userName,
+                    Id = 123,
+                    IsBot = false,
+                },
+                Text = "protected",
+                Date = DateTime.UtcNow,
+                Chat = new Chat
+                {
+                    Id = 1,
+                }
+            },
+        });
+        
+        Assert.Equal(shouldRouteBeAvailable ? "protected" : string.Empty, result);
+    }
 
     public class TestTelegramController : TelegramController
     {
@@ -168,6 +201,13 @@ public class ControllerTests
                 new MessageResponseAwaiterParameters("Hi"));
             
             return requestContext.Update.Message!.Text;
+        }
+        
+        [RequiresUserGroup("Protected.View")]
+        [TelegramMessageRoute("protected")]
+        public Task<string?> ExecuteProtectedAsync(TelegramRequestContext<string> requestContext)
+        {
+            return Task.FromResult(requestContext.Update.Message!.Text);
         }
     }
 

@@ -11,16 +11,10 @@ namespace Laraue.Telegram.NET.Authentication.Services;
 public class TelegramRequestContext<TKey> : TelegramRequestContext
     where TKey : IEquatable<TKey>
 {
-    private TKey? _userId;
-    
     /// <summary>
     /// Current user id identifier.
     /// </summary>
-    public TKey? UserId
-    {
-        get => _userId;
-        set => _userId = value;
-    }
+    public TKey? UserId { get; set; }
 
     /// <summary>
     /// Gets current user id identifier or throw. 
@@ -29,13 +23,18 @@ public class TelegramRequestContext<TKey> : TelegramRequestContext
     /// <exception cref="InvalidOperationException"></exception>
     public TKey GetUserIdOrThrow()
     {
-        if (_userId == null || _userId.Equals(default))
+        if (UserId == null || UserId.Equals(default))
         {
             throw new InvalidOperationException(
                 $"User information is not available." +
                 $" Ensure {typeof(AuthTelegramMiddleware<TKey>)} has been registered at the top of pipeline");
         }
 
-        return _userId;
+        return UserId;
     }
+
+    /// <summary>
+    /// User groups list.
+    /// </summary>
+    public string[] Groups { get; set; } = Array.Empty<string>();
 }

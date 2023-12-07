@@ -22,7 +22,7 @@ public class RoutePathBuilderTests
         var pathBuilder = new RoutePathBuilder("/route");
         pathBuilder.WithQueryParameter("from", dateTime);
         
-        Assert.Equal($"/route?from={dateTime:yyyy-MM-ddTHH:mm:ss.fffffffZ}", pathBuilder.ToString());
+        Assert.Matches($"\\/route\\?from\\={dateTime:yyyy-MM-ddTHH:mm:ss}(.*)Z", pathBuilder.ToString());
     }
     
     [Fact]

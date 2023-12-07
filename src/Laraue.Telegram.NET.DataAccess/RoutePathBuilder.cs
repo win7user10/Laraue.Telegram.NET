@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 
 namespace Laraue.Telegram.NET.DataAccess;
@@ -82,18 +83,24 @@ public sealed class RoutePathBuilder
     /// <returns></returns>
     public override string ToString()
     {
-        var result = _routePattern;
-
         if (!_queryParameters.IsValueCreated)
         {
-            return result;
+            return _routePattern;
         }
-        
-        var queryParamsParts = _queryParameters.Value.Keys
-            .Select(key => $"{key}={_queryParameters.Value[key]}");
 
-        result = $"{result}?{string.Join('&', queryParamsParts)}";
+        var sb = new StringBuilder(_routePattern);
 
-        return result;
+        sb.Append('?');
+        foreach (var queryParameter in _queryParameters.Value.Keys)
+        {
+            sb.Append(queryParameter)
+                .Append('=')
+                .Append(_queryParameters.Value[queryParameter])
+                .Append('&');
+        }
+
+        sb.Remove(sb.Length - 1, 1);
+
+        return sb.ToString();
     }
 }

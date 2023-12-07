@@ -32,6 +32,12 @@ internal sealed class Route : IRoute
         RequestParameters requestParameters,
         CancellationToken ct)
     {
+        var protectors = serviceProvider.GetRequiredService<IEnumerable<IControllerProtector>>();
+        if (protectors.Any(protector => !protector.IsExecutionAllowed(_controllerMethod)))
+        {
+            return new RouteExecutionResult(false, null);
+        }
+        
         var result = _controllerMethod.Invoke(
             serviceProvider.GetRequiredService(_controllerMethod.DeclaringType!),
             GetRouteParameters(serviceProvider, _controllerMethod, requestParameters, ct));

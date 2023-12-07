@@ -1,6 +1,7 @@
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Authentication.Middleware;
 using Laraue.Telegram.NET.Authentication.Models;
+using Laraue.Telegram.NET.Authentication.Protectors;
 using Laraue.Telegram.NET.Authentication.Services;
 using Laraue.Telegram.NET.Core.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -66,6 +67,9 @@ public static class ServiceCollectionExtensions
             sp => sp.GetRequiredService<TTelegramRequestContext>());
         
         serviceCollection.AddScoped<IUserService<TKey>, UserService<TUser, TKey>>();
+
+        serviceCollection.UseUserGroupsProvider<DefaultUserGroupProvider>();
+        serviceCollection.AddScoped<IControllerProtector, UserShouldBeInGroupProtector<TKey>>();
         
         return serviceCollection.AddIdentity<TUser, IdentityRole<TKey>>(
             opt =>
@@ -77,5 +81,11 @@ public static class ServiceCollectionExtensions
                 opt.Password.RequireNonAlphanumeric = false;
                 opt.Password.RequiredUniqueChars = 1;
             });
+    }
+
+    public static IServiceCollection UseUserGroupsProvider<TUserGroupProvider>(this IServiceCollection services)
+        where TUserGroupProvider : class, IUserGroupProvider
+    {
+        return services.AddScoped<IUserGroupProvider, TUserGroupProvider>();
     }
 }
