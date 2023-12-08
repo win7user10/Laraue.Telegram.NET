@@ -59,7 +59,7 @@ public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
         }
         
         var result = await interceptor.ExecuteAsync();
-        if (result == ExecutionState.FullyExecuted)
+        if (result is ExecutionState.FullyExecuted or ExecutionState.Cancelled)
         {
             await _interceptorState.ResetAsync(_requestContext.GetUserIdOrThrow());
         }

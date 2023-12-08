@@ -45,7 +45,7 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
 
         if (interceptResult.IsCancelled)
         {
-            return ExecutionState.NotExecuted;
+            return ExecutionState.Cancelled;
         }
         
         if (interceptResult.Error is not null)

@@ -36,6 +36,11 @@ public enum ExecutionState
     /// Interceptor execution was skipped, the next request should try to execute it again.
     /// </summary>
     NotExecuted,
+    
+    /// <summary>
+    /// Interceptor execution was skipped, and no more required.
+    /// </summary>
+    Cancelled,
 }
 
 /// <summary>
