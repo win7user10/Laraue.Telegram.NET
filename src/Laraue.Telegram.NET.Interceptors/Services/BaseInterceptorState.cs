@@ -49,7 +49,7 @@ public abstract class BaseInterceptorState<TKey> : IInterceptorState<TKey>
         TKey userId,
         TInterceptorContext data) where TInterceptorContext : class
     {
-        await interceptor.BeforeInterceptorSetAsync().ConfigureAwait(false);
+        await interceptor.BeforeInterceptorSetAsync(data).ConfigureAwait(false);
         
         await SetInterceptorAsync(userId, interceptor.Id, data).ConfigureAwait(false);
     }

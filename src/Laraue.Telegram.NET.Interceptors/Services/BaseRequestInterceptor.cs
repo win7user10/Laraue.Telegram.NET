@@ -37,7 +37,7 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
         var interceptResult = new InterceptResult<TInput>();
 
         var context = await _interceptorState
-            .GetInterceptorContextAsync<TContext>(_requestContext.UserId)
+            .GetInterceptorContextAsync<TContext>(_requestContext.GetUserIdOrThrow())
             .ConfigureAwait(false);
 
         await ValidateAsync(_requestContext, interceptResult, context)
@@ -63,7 +63,7 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
     }
 
     /// <inheritdoc />
-    public virtual Task BeforeInterceptorSetAsync()
+    public virtual Task BeforeInterceptorSetAsync(TContext? context)
     {
         return Task.CompletedTask;
     }

@@ -1,7 +1,7 @@
 ﻿namespace Laraue.Telegram.NET.Interceptors.Services;
 
 /// <summary>
-/// The class that will be executed in the request pipeline for the user instead if standard request pipeline. 
+/// The class that will be executed in the request pipeline for the user instead of standard request pipeline. 
 /// </summary>
 public interface IRequestInterceptor
 {
@@ -15,14 +15,17 @@ public interface IRequestInterceptor
     /// </summary>
     /// <returns></returns>
     Task<object?> ExecuteAsync();
+}
 
+/// <summary>
+/// <see cref="IRequestInterceptor"/> with some context.
+/// </summary>
+/// <typeparam name="TInterceptorContext"></typeparam>
+public interface IRequestInterceptor<in TInterceptorContext> : IRequestInterceptor
+{
     /// <summary>
     /// Some kind of logic before interceptor will be set. E.g. ask user a question.
     /// </summary>
     /// <returns></returns>
-    Task BeforeInterceptorSetAsync();
-}
-
-public interface IRequestInterceptor<TInterceptorContext> : IRequestInterceptor
-{
+    Task BeforeInterceptorSetAsync(TInterceptorContext? context);
 }
