@@ -43,19 +43,7 @@ public static class WebApplicationExtensions
                 return;
             }
 
-            var routeResult = await _telegramRouter.RouteAsync(update, context.RequestAborted);
-
-            if (routeResult is string stringResult)
-            {
-                context.Response.ContentType = "text/plain";
-                await context.Response.WriteAsync(stringResult);
-            }
-            
-            else if (routeResult is not null)
-            {
-                context.Response.ContentType = "text/json";
-                await context.Response.WriteAsync(JsonConvert.SerializeObject(routeResult));
-            }
+            await _telegramRouter.RouteAsync(update, context.RequestAborted);
         }
     }
 }

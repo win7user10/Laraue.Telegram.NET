@@ -32,7 +32,7 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
     public abstract string Id { get; }
 
     /// <inheritdoc />
-    public async Task<object?> ExecuteAsync()
+    public async Task<ExecutionState> ExecuteAsync()
     {
         var interceptResult = new InterceptResult<TInput>();
 
@@ -45,7 +45,7 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
 
         if (interceptResult.IsCancelled)
         {
-            return null;
+            return ExecutionState.NotExecuted;
         }
         
         if (interceptResult.Error is not null)
@@ -88,7 +88,7 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
     /// <param name="model">Validated model.</param>
     /// <param name="interceptorContext">Context data set for the interceptor.</param>
     /// <returns></returns>
-    protected abstract Task<object?> ExecuteRouteAsync(
+    protected abstract Task<ExecutionState> ExecuteRouteAsync(
         TelegramRequestContext<TUserKey> requestContext,
         TInput model,
         TContext? interceptorContext);

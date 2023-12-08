@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Laraue.Core.Threading;
 using Laraue.Telegram.NET.Abstractions;
-using Laraue.Telegram.NET.Authentication.Extensions;
 using Laraue.Telegram.NET.Authentication.Services;
 using Laraue.Telegram.NET.Core.Extensions;
 using Microsoft.Extensions.Logging;
@@ -35,12 +34,13 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     }
     
     /// <inheritdoc />
-    public async Task<object?> InvokeAsync(CancellationToken ct)
+    public async Task InvokeAsync(CancellationToken ct)
     {
         var user = _telegramRequestContext.Update.GetUser();
         if (user is null)
         {
-            return await _next.InvokeAsync(ct);
+            await _next.InvokeAsync(ct);
+            return;
         }
         
         using var _ = await Semaphore.WaitAsync(user.Id, ct);
@@ -65,6 +65,6 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
             systemId,
             string.Join(',', userGroups));
         
-        return await _next.InvokeAsync(ct);
+        await _next.InvokeAsync(ct);
     }
 }

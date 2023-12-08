@@ -33,18 +33,20 @@ public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
     }
     
     /// <inheritdoc />
-    public async Task<object?> InvokeAsync(CancellationToken ct = default)
+    public async Task InvokeAsync(CancellationToken ct = default)
     {
         var userId = _requestContext.UserId;
         if (userId is null)
         {
-            return await _next.InvokeAsync(ct);
+            await _next.InvokeAsync(ct);
+            return;
         }
         
         var interceptorId = await _interceptorState.GetAsync(userId);
         if (interceptorId is null)
         {
-            return await _next.InvokeAsync(ct);
+            await _next.InvokeAsync(ct);
+            return;
         }
 
         var interceptor = _interceptors.FirstOrDefault(x => x.Id == interceptorId);
@@ -52,15 +54,16 @@ public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
         {
             _logger.LogWarning("Interceptor {Id} has not been found, use default routing mechanism", interceptorId);
             
-            return await _next.InvokeAsync(ct);
+            await _next.InvokeAsync(ct);
+            return;
         }
         
         var result = await interceptor.ExecuteAsync();
-        
-        await _interceptorState.ResetAsync(_requestContext.UserId);
+        if (result == ExecutionState.FullyExecuted)
+        {
+            await _interceptorState.ResetAsync(_requestContext.GetUserIdOrThrow());
+        }
         
         _requestContext.SetExecutedRoute(new ExecutedRouteInfo("Interceptor", interceptor.ToString()));
-        
-        return result;
     }
 }

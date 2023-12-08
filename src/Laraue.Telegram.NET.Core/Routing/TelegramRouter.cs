@@ -39,7 +39,7 @@ public sealed class TelegramRouter : ITelegramRouter
     }
     
     /// <inheritdoc />
-    public async Task<object?> RouteAsync(Update update, CancellationToken cancellationToken = default)
+    public async Task RouteAsync(Update update, CancellationToken cancellationToken = default)
     {
         var sw = new Stopwatch();
         sw.Start();
@@ -56,7 +56,7 @@ public sealed class TelegramRouter : ITelegramRouter
             lastMiddleware = (ITelegramMiddleware) middleware;
         }
 
-        var result = await lastMiddleware!.InvokeAsync(cancellationToken);
+        await lastMiddleware!.InvokeAsync(cancellationToken);
         var executedRoute = _telegramRequestContext.GetExecutedRoute();
         
         if (executedRoute is not null)
@@ -73,7 +73,5 @@ public sealed class TelegramRouter : ITelegramRouter
                 sw.ElapsedMilliseconds,
                 JsonConvert.SerializeObject(update));
         }
-        
-        return result;
     }
 }

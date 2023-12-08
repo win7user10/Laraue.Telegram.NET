@@ -16,7 +16,7 @@ internal sealed class ExecuteRouteMiddleware : ITelegramMiddleware
         _requestContext = requestContext;
     }
 
-    public async Task<object?> InvokeAsync(CancellationToken ct = default)
+    public async Task InvokeAsync(CancellationToken ct = default)
     {
         foreach (var route in _routes)
         {
@@ -29,9 +29,7 @@ internal sealed class ExecuteRouteMiddleware : ITelegramMiddleware
 
             _requestContext.SetExecutedRoute(new ExecutedRouteInfo("Route", route.ToString()));
             
-            return result.ExecutionResult;
+            return;
         }
-
-        return null;
     }
 }

@@ -24,7 +24,7 @@ internal sealed class Route : IRoute
     {
         return _tryMatchDelegate(requestProvider.GetRequiredService<TelegramRequestContext>().Update, out var requestParameters)
             ? ExecuteAsync(requestProvider, requestParameters, ct)
-            : ValueTask.FromResult(new RouteExecutionResult(false, null));
+            : ValueTask.FromResult(new RouteExecutionResult(false));
     }
 
     private async ValueTask<RouteExecutionResult> ExecuteAsync(
@@ -35,7 +35,7 @@ internal sealed class Route : IRoute
         var protectors = serviceProvider.GetRequiredService<IEnumerable<IControllerProtector>>();
         if (protectors.Any(protector => !protector.IsExecutionAllowed(_controllerMethod)))
         {
-            return new RouteExecutionResult(false, null);
+            return new RouteExecutionResult(false);
         }
         
         var result = _controllerMethod.Invoke(
@@ -44,23 +44,23 @@ internal sealed class Route : IRoute
 
         if (result is null)
         {
-            return new RouteExecutionResult(true, null);
+            return new RouteExecutionResult(true);
         }
                         
         if ((_controllerMethod.ReturnType.BaseType == typeof(Task) || _controllerMethod.ReturnType.BaseType == typeof(ValueTask))
             && _controllerMethod.ReturnType.GenericTypeArguments.Length == 1)
         {
-            result = await (dynamic) result;
+            _ = await (dynamic) result;
         }
 
         else if (_controllerMethod.ReturnType == typeof(Task) || _controllerMethod.ReturnType == typeof(ValueTask))
         {
             await (dynamic) result;
 
-            return new RouteExecutionResult(true, null);
+            return new RouteExecutionResult(true);
         }
 
-        return new RouteExecutionResult(true, result);
+        return new RouteExecutionResult(true);
     }
     
     private static object?[] GetRouteParameters(

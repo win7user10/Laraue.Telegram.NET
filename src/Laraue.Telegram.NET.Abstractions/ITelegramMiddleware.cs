@@ -11,5 +11,5 @@ public interface ITelegramMiddleware
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public Task<object?> InvokeAsync(CancellationToken ct = default);
+    public Task InvokeAsync(CancellationToken ct = default);
 }

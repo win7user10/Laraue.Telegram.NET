@@ -6,15 +6,36 @@
 public interface IRequestInterceptor
 {
     /// <summary>
-    /// Unique awaiter identifier. Each awaiter Type should have its own unique identifier. 
+    /// Unique interceptor identifier. Each awaiter Type should have its own unique identifier. 
     /// </summary>
     string Id { get; }
 
     /// <summary>
-    /// Try execute response awaiter if it is suitable for the execution.
+    /// Run the interceptor.
     /// </summary>
     /// <returns></returns>
-    Task<object?> ExecuteAsync();
+    Task<ExecutionState> ExecuteAsync();
+}
+
+/// <summary>
+/// Interceptor execution state.
+/// </summary>
+public enum ExecutionState
+{
+    /// <summary>
+    /// Interceptor is fully executed and no more required.
+    /// </summary>
+    FullyExecuted,
+    
+    /// <summary>
+    /// Interceptor was executed, but should be executed again, at the next request.
+    /// </summary>
+    ParticularlyExecuted,
+    
+    /// <summary>
+    /// Interceptor execution was skipped, the next request should try to execute it again.
+    /// </summary>
+    NotExecuted,
 }
 
 /// <summary>

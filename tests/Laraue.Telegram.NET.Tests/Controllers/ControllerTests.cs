@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Moq;
 using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -25,6 +26,7 @@ namespace Laraue.Telegram.NET.Tests.Controllers;
 public class ControllerTests
 {
     private readonly TestServer _testServer;
+    private readonly Mock<ITestChecker> _testChecker = new();
     
     public ControllerTests()
     {
@@ -37,13 +39,14 @@ public class ControllerTests
                         sp => sp.GetRequiredService<TelegramRequestContext<string>>())
                     .AddTelegramRequestInterceptors<InMemoryInterceptorState, string>(new[]
                     {
-                        Assembly.GetExecutingAssembly(), 
+                        Assembly.GetExecutingAssembly(),
                     }, ServiceLifetime.Singleton)
                     .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
                     .AddScoped<IUserService<string>, MockedUserService>()
                     .AddScoped<IUserRoleProvider>(_ => new StaticUserRoleProvider(
-                        Options.Create(new RoleUsers { ["Protected.View"] = new []{ "JohnLennon" } })))
-                    .AddScoped<IControllerProtector, UserShouldBeInGroupProtector<string>>();;
+                        Options.Create(new RoleUsers { ["Protected.View"] = new[] { "JohnLennon" } })))
+                    .AddScoped<IControllerProtector, UserShouldBeInGroupProtector<string>>()
+                    .AddSingleton(_testChecker.Object);
             })
             .Configure(a => a.MapTelegramRequests("/test"));
         
@@ -86,7 +89,7 @@ public class ControllerTests
             },
         });
         
-        Assert.Equal("message", result);
+        _testChecker.Verify(x => x.Call("message"));
     }
     
     [Fact]
@@ -109,11 +112,11 @@ public class ControllerTests
             },
         });
         
-        Assert.Equal("Alex12Alex", result);
+        _testChecker.Verify(x => x.Call("Alex12Alex"));
     }
     
     [Fact]
-    public async Task MessageRoute_ShouldAwaitResponseOnMessageAsync()
+    public async Task MessageRoute_ShouldWorkWithInterceptorsAsync()
     {
         var sendMessage = new Update
         {
@@ -136,13 +139,13 @@ public class ControllerTests
         };
         
         var result = await SendRequestAsync(sendMessage);
-        Assert.Equal("awaitResponse", result);
+        _testChecker.Verify(x => x.Call("awaitResponse"));
+        
+        await SendRequestAsync(sendMessage);
+        _testChecker.Verify(x => x.Call("intercepted"));
         
         result = await SendRequestAsync(sendMessage);
-        Assert.Equal("awaitedHi", result);
-        
-        result = await SendRequestAsync(sendMessage);
-        Assert.Equal("awaitResponse", result);
+        _testChecker.Verify(x => x.Call("awaitResponse"));
     }
     
     [Theory]
@@ -169,46 +172,61 @@ public class ControllerTests
                 }
             },
         });
-        
-        Assert.Equal(shouldRouteBeAvailable ? "protected" : string.Empty, result);
+
+        if (shouldRouteBeAvailable)
+        {
+            _testChecker.Verify(x => x.Call("protected"));
+        }
+        else
+        {
+            _testChecker.VerifyNoOtherCalls();
+        }
     }
 
     public class TestTelegramController : TelegramController
     {
         private readonly IInterceptorState<string> _responseAwaiter;
+        private readonly ITestChecker _testChecker;
 
-        public TestTelegramController(IInterceptorState<string> responseAwaiter)
+        public TestTelegramController(IInterceptorState<string> responseAwaiter, ITestChecker testChecker)
         {
             _responseAwaiter = responseAwaiter;
+            _testChecker = testChecker;
         }
 
         [TelegramMessageRoute("message")]
-        public Task<string?> ExecuteMessageAsync(TelegramRequestContext<string> requestContext)
+        public Task ExecuteMessageAsync(TelegramRequestContext<string> requestContext)
         {
-            return Task.FromResult(requestContext.Update.Message!.Text);
+            _testChecker.Call(requestContext.Update.Message!.Text);
+            
+            return Task.CompletedTask;
         }
         
         [TelegramCallbackRoute("callback/{id}")]
-        public Task<string> ExecuteCallbackAsync([FromPath] int id, [FromQuery] string? name, [FromQuery] QueryParameters queryParameters)
+        public Task ExecuteCallbackAsync([FromPath] int id, [FromQuery] string? name, [FromQuery] QueryParameters queryParameters)
         {
-            return Task.FromResult($"{name}{id}{queryParameters.Name}");
+            _testChecker.Call($"{name}{id}{queryParameters.Name}");
+            
+            return Task.CompletedTask;
         }
         
         [TelegramMessageRoute("awaitResponse")]
-        public async Task<string?> ExecuteMessageWithResponseAwaiterAsync(TelegramRequestContext<string> requestContext)
+        public async Task ExecuteMessageWithResponseAwaiterAsync(TelegramRequestContext<string> requestContext)
         {
             await _responseAwaiter.SetAsync<MessageResponseAwaiter, MessageResponseAwaiterParameters>(
                 requestContext.UserId!,
                 new MessageResponseAwaiterParameters("Hi"));
             
-            return requestContext.Update.Message!.Text;
+            _testChecker.Call(requestContext.Update.Message!.Text);
         }
         
         [RequiresUserRole("Protected.View")]
         [TelegramMessageRoute("protected")]
-        public Task<string?> ExecuteProtectedAsync(TelegramRequestContext<string> requestContext)
+        public Task ExecuteProtectedAsync(TelegramRequestContext<string> requestContext)
         {
-            return Task.FromResult(requestContext.Update.Message!.Text);
+            _testChecker.Call(requestContext.Update.Message!.Text);
+            
+            return Task.CompletedTask;
         }
     }
 
@@ -219,6 +237,8 @@ public class ControllerTests
 
     private sealed class MessageResponseAwaiter : BaseRequestInterceptor<string, MessageResponseAwaiterModel, MessageResponseAwaiterParameters>
     {
+        private readonly ITestChecker _testChecker;
+        
         public override string Id => "MessageResponseAwaiter";
 
         protected override Task ValidateAsync(
@@ -231,17 +251,20 @@ public class ControllerTests
             return Task.CompletedTask;
         }
 
-        protected override Task<object?> ExecuteRouteAsync(
+        protected override Task<ExecutionState> ExecuteRouteAsync(
             TelegramRequestContext<string> requestContext,
             MessageResponseAwaiterModel model,
             MessageResponseAwaiterParameters? interceptorContext)
         {
-            return Task.FromResult((object?)(model.Message + interceptorContext?.Message));
+            _testChecker.Call("intercepted");
+            
+            return Task.FromResult(ExecutionState.FullyExecuted);
         }
 
-        public MessageResponseAwaiter(TelegramRequestContext<string> requestContext, IInterceptorState<string> interceptorState)
+        public MessageResponseAwaiter(TelegramRequestContext<string> requestContext, IInterceptorState<string> interceptorState, ITestChecker testChecker)
             : base(requestContext, interceptorState)
         {
+            _testChecker = testChecker;
         }
     }
     private sealed record MessageResponseAwaiterParameters(string Message);
@@ -293,5 +316,10 @@ public class ControllerTests
         {
             return Task.FromResult(new LoginResponse<string>("123"));
         }
+    }
+    
+    public interface ITestChecker
+    {
+        void Call(string? testValue);
     }
 }

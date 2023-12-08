@@ -32,19 +32,19 @@ public sealed class AutoCallbackResponseMiddleware : ITelegramMiddleware
     }
 
     /// <inheritdoc />
-    public Task<object?> InvokeAsync(CancellationToken ct = default)
+    public Task InvokeAsync(CancellationToken ct = default)
     {
         var callbackQueryId = _requestContext.Update.CallbackQuery?.Id;
         return callbackQueryId is null ? _next.InvokeAsync(ct) : InvokeInternalAsync(callbackQueryId, ct);
     }
 
-    private async Task<object?> InvokeInternalAsync(string callbackQueryId, CancellationToken ct)
+    private async Task InvokeInternalAsync(string callbackQueryId, CancellationToken ct)
     {
-        var result = await _next.InvokeAsync(ct);
+        await _next.InvokeAsync(ct);
 
         if (_requestContext.GetExecutedRoute() is null)
         {
-            return result;
+            return;
         }
         
         try
@@ -59,7 +59,5 @@ public sealed class AutoCallbackResponseMiddleware : ITelegramMiddleware
         {
             _logger.LogWarning(e, "Failed responding to the callback query {Id}", callbackQueryId);
         }
-
-        return result;
     }
 }

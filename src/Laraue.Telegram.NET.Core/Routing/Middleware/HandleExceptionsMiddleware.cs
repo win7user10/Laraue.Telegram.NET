@@ -33,11 +33,11 @@ public class HandleExceptionsMiddleware : ITelegramMiddleware
     }
 
     /// <inheritdoc />
-    public async Task<object?> InvokeAsync(CancellationToken ct)
+    public async Task InvokeAsync(CancellationToken ct)
     {
         try
         {
-            return await _next.InvokeAsync(ct);
+            await _next.InvokeAsync(ct);
         }
         catch (BadTelegramRequestException ex)
         {
@@ -48,7 +48,5 @@ public class HandleExceptionsMiddleware : ITelegramMiddleware
                 ex.Message,
                 cancellationToken: ct);
         }
-
-        return null;
     }
 }
