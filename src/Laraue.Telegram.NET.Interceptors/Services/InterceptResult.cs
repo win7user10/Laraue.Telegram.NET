@@ -24,12 +24,18 @@ public sealed record InterceptResult<TResult>
     public bool IsCancelled { get; private set; }
 
     /// <summary>
+    /// Model set has been called.
+    /// </summary>
+    public bool IsResultSet { get; private set; }
+
+    /// <summary>
     /// Set the model received after validation.
     /// </summary>
     /// <param name="result"></param>
     public void SetResult(TResult result)
     {
         Model = result;
+        IsResultSet = true;
     }
     
     /// <summary>

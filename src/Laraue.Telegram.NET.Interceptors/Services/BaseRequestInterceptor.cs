@@ -53,12 +53,12 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
             throw new BadTelegramRequestException(interceptResult.Error);
         }
         
-        if (interceptResult.Model is null)
+        if (!interceptResult.IsResultSet)
         {
             throw new InvalidOperationException("Model should be bind if validation finished successfully.");
         }
 
-        return await ExecuteRouteAsync(_requestContext, interceptResult.Model, context)
+        return await ExecuteRouteAsync(_requestContext, interceptResult.Model!, context)
             .ConfigureAwait(false);
     }
 
