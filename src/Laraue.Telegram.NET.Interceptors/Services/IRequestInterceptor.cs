@@ -53,5 +53,5 @@ public interface IRequestInterceptor<in TInterceptorContext> : IRequestIntercept
     /// Some kind of logic before interceptor will be set. E.g. ask user a question.
     /// </summary>
     /// <returns></returns>
-    Task BeforeInterceptorSetAsync(TInterceptorContext? context);
+    Task BeforeInterceptorSetAsync(TInterceptorContext context);
 }

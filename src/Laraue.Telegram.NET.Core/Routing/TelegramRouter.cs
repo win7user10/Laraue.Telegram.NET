@@ -61,14 +61,14 @@ public sealed class TelegramRouter : ITelegramRouter
         
         if (executedRoute is not null)
         {
-            _logger.LogDebug(
+            _logger.LogInformation(
                 "Request time {Time} ms, route: {RouteName} executed",
                 sw.ElapsedMilliseconds,
                 executedRoute);
         }
         else
         {
-            _logger.LogDebug(
+            _logger.LogInformation(
                 "Request time {Time} ms, status: not found, payload: {Payload}",
                 sw.ElapsedMilliseconds,
                 JsonConvert.SerializeObject(update));

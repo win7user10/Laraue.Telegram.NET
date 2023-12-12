@@ -63,7 +63,7 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
             "Auth as: telegram id: {TelegramId}, system id: {SystemId}, groups: [{Groups}]",
             user.Id,
             systemId,
-            string.Join(',', userGroups));
+            string.Join(',', userGroups.Select(x => x.Name)));
         
         await _next.InvokeAsync(ct);
     }

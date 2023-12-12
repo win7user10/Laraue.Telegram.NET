@@ -40,6 +40,11 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
             .GetInterceptorContextAsync<TContext>(_requestContext.GetUserIdOrThrow())
             .ConfigureAwait(false);
 
+        if (context is null)
+        {
+            throw new InvalidOperationException("Interceptor context hasn't been loaded");
+        }
+
         await ValidateAsync(_requestContext, interceptResult, context)
             .ConfigureAwait(false);
 
@@ -63,7 +68,7 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
     }
 
     /// <inheritdoc />
-    public virtual Task BeforeInterceptorSetAsync(TContext? context)
+    public virtual Task BeforeInterceptorSetAsync(TContext context)
     {
         return Task.CompletedTask;
     }
@@ -79,7 +84,7 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
     protected abstract Task ValidateAsync(
         TelegramRequestContext<TUserKey> requestContext,
         InterceptResult<TInput> interceptResult,
-        TContext? interceptorContext);
+        TContext interceptorContext);
     
     /// <summary>
     /// Execute the awaiter body if validation has been passed successfully.
@@ -91,7 +96,7 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
     protected abstract Task<ExecutionState> ExecuteRouteAsync(
         TelegramRequestContext<TUserKey> requestContext,
         TInput model,
-        TContext? interceptorContext);
+        TContext interceptorContext);
 }
 
 /// <summary>

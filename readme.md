@@ -1,31 +1,28 @@
 # Laraue.Telegram.NET
 
-This library contains infrastructure code for fast telegram bots building. The library use https://github.com/TelegramBots/Telegram.Bot package inside to communicate with Telegram.
-This repo https://github.com/win7user10/Laraue.Apps.LearnLanguage contains full example of using this library.
+This library contains infrastructure code for fast telegram bots building.
+The library use https://github.com/TelegramBots/Telegram.Bot package inside to communicate with Telegram.
 
 ## Laraue.Telegram.NET.Core
 
 [![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Core)](https://www.nuget.org/packages/Laraue.Telegram.NET.Core)
 
-The main idea of this library is to register all possible telegram routes inheriting from the class _TelegramController_.
+The basic idea of the library is to register all possible telegram routes in classes inherited _TelegramController_.
 
 ```csharp
-public class SettingsController : TelegramController
+public class MenuController : TelegramController
 {
-    private readonly IMediator _mediator;
+    private readonly IMenuService _service;
 
-    public SettingsController(IMediator mediator)
+    public SettingsController(IMenuService service)
     {
-        _mediator = mediator;
+        _service = service;
     }
     
-    [TelegramMessageRoute("/settings")]
+    [TelegramMessageRoute("/start")]
     public Task ShowMenuAsync(TelegramRequestContext requestContext)
     {
-        return _mediator.Send(new SendSettingsCommand
-        {
-            Data = requestContext.Update.Message!,
-        });
+        return _service.HandleStartAsync(requestContext.Update.Message!);
     }
 ```
 
@@ -47,6 +44,70 @@ This address should be set also on the telegram side by calling the next url:
 ```
 https://api.telegram.org/bot5118263652:AAHiPDQ8kVcbs2WZWG4Z.../setWebhook?url=https://your.host/api/telegram
 ```
+
+## Laraue.Telegram.NET.Authentication
+
+[![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Authentication)](https://www.nuget.org/packages/Laraue.Telegram.NET.Authentication)
+
+As soon as each request is usually associated with the specific user, it is convenient to
+have information about system user in the request instead of manual finding
+user by telegram id when it is required.
+This library helps to integrate ASP.NET.Identity with the telegram request context.
+To use it the model of user can be defined (example for the user with id of _Guid_ type)
+```csharp
+public class User : TelegramIdentityUser<Guid>
+{}
+
+```
+Register Auth functionality in the container. Here is the using of ```User``` model with _Guid_ as identifier.
+```csharp
+services.AddTelegramCore(new TelegramBotClientOptions(builder.Configuration["Telegram:Token"]!))
+    .AddTelegramAuthentication<User, Guid>()
+    .AddEntityFrameworkStores<CianCrawlerDbContext>()
+    .AddDefaultTokenProviders()
+```
+
+After that in each telegram controller method can be retrieved ```TelegramRequestContext<Guid>``` which contains information
+about the user made the request.
+
+```csharp
+public class UserController : TelegramController
+{
+    [TelegramMessageRoute("/me")]
+    public void PrintMyId(TelegramRequestContext<Guid> requestContext)
+    {
+        Console.WriteLine(requestContext.UserId); // user id in our storage
+        Console.WriteLine(requestContext.Update.GetUserId()); // telegram user id from the update
+    }
+```
+
+To prevent writing generic type for each request, new context class can be created and added to the container.
+```csharp
+public sealed class RequestContext : TelegramRequestContext<Guid>
+{}
+```
+
+```csharp
+services.AddTelegramAuthentication<User, Guid, RequestContext>()
+```
+
+Now the class ```RequestContext``` can be injected without defining request generic type in the each request.
+
+```csharp
+public class UserController : TelegramController
+{
+    [TelegramMessageRoute("/also-me")]
+    public void PrintMyId(RequestContext requestContext)
+    {
+        Console.WriteLine(requestContext.UserId);
+    }
+```
+
+**Note** - ```AddTelegramAuthentication()``` returns ```Microsoft.AspNetCore.Identity.IdentityBuilder```,
+use it to configure identity options.
+
+The logic of retrieving user id field is next: from the received telegram message telegram identifier of the user that send the message takes.
+Then this identifier maps to the identifier in the database. Then this identifier sets to the request context.
 
 ### Middleware
 The package has the opportunity to extend request pipeline by adding custom middlewares. The example is the next
@@ -85,70 +146,14 @@ services.AddTelegramMiddleware<LogExceptionsMiddleware>();
 ```
 **Note** - middlewares executes in the order they were added.
 
-## Laraue.Telegram.NET.Authentication
 
-[![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Authentication)](https://www.nuget.org/packages/Laraue.Telegram.NET.Authentication)
-
-This library helps to integrate ASP.NET.Identity with the telegram request context.
-To use it the model of user can be defined (example for the user with id of _Guid_ type)
-```csharp
-public class User : TelegramIdentityUser<Guid>
-{}
-
-```
-Register Auth functionality in the container. Here is the using of ```User``` model with _Guid_ as identifier.
-```csharp
-services.AddTelegramCore(new TelegramBotClientOptions(builder.Configuration["Telegram:Token"]!))
-    .AddTelegramAuthentication<User, Guid>()
-    .AddEntityFrameworkStores<CianCrawlerDbContext>()
-```
-
-After that in each telegram controller method can be retrieved ```TelegramRequestContext<Guid>``` which contains information 
-about the user made the request.
-
-```csharp
-public class UserController : TelegramController
-{
-    [TelegramMessageRoute("/me")]
-    public void PrintMyId(TelegramRequestContext<Guid> requestContext)
-    {
-        Console.WriteLine(requestContext.UserId);
-    }
-```
-
-To simplify injecting custom request context class can be created and added to the container.
-```csharp
-public sealed class RequestContext : TelegramRequestContext<Guid>
-{}
-```
-
-```csharp
-services.AddTelegramAuthentication<User, Guid, RequestContext>()
-```
-
-Now the class ```RequestContext``` can be injected without defining request generic type in the each request.
-
-```csharp
-public class UserController : TelegramController
-{
-    [TelegramMessageRoute("/also-me")]
-    public void PrintMyId(RequestContext requestContext)
-    {
-        Console.WriteLine(requestContext.UserId);
-    }
-```
-
-**Note** - ```AddTelegramAuthentication()``` returns ```Microsoft.AspNetCore.Identity.IdentityBuilder```, use it to configure identity options.
-
-The logic of retrieving user id field is next: from the received telegram message telegram identifier of the user that send the message takes.
-Then this identifier maps to the identifier in the database. Then this identifier sets to the request context.
-
-## Laraue.Telegram.NET.AnswerToQuestion
+## Laraue.Telegram.NET.Interceptors
 
 [![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.AnswerToQuestion)](https://www.nuget.org/packages/Laraue.Telegram.NET.AnswerToQuestion)
 
-This library allow to create an answer functionality. It is suitable for cases when something has been asked from the user and 
-next messages should be a response for this question. To use it should be implemented how to store Type that should be used to answer
+The main case of the library is sometimes something from the user should be asked,
+and next his answer should be considered as answer to this question.
+This library allow to create such functionality. To use it should be implemented how to store Type that should be used to answer
 for question.
 ```csharp
 public class InterceptorState : BaseInterceptorState
@@ -169,38 +174,58 @@ public class InterceptorState : BaseInterceptorState
     }
 }
 ```
-Add the functionality to container. AnswerToQuestionFunctionality is depending from Laraue.Telegram.NET.Core and Laraue.Telegram.NET.Authentication packages
-and should be registered in this order.
+Add the functionality to container. Interceptors are depending on _Laraue.Telegram.NET.Core_ 
+and _Laraue.Telegram.NET.Authentication_ packages and should be registered in such order.
 ```csharp
 services.AddTelegramCore(new TelegramBotClientOptions(builder.Configuration["Telegram:Token"]!))
-    .AddAnswerToQuestionFunctionality<InterceptorState>()
+    .AddTelegramRequestEfCoreInterceptors<InterceptorState>()
     .AddTelegramAuthentication<User, Guid>()
 ```
-Then the interceptor can be implemented
+**Note** - there is already implemented IInterceptorState with storing state in the DB via EFCore in the package
+_Laraue.Telegram.NET.Interceptors.EFCore_.
 ```csharp
-public class UpdateAgeResponseInterceptor : BaseRequestInterceptor<uint>
+services.AddTelegramRequestEfCoreInterceptors<Guid, MyDbContext>(assemblies})
+```
+
+After interceptors state storage is setup, the interceptor can be implemented
+```csharp
+public class UpdateAgeInterceptor : BaseRequestInterceptor<Guid, uint, UpdateAgeContext>
 {
-    protected override Task ValidateAsync(Update update, AnswerResult<TModel> answerResult)
+    private readonly IUserRepository _repository;
+    
+    public UpdateAgeResponseInterceptor(IUserRepository repository)
+    {
+        _repository = repository;
+    }
+    
+    protected override Task ValidateAsync(
+        TelegramRequestContext<Guid> requestContext,
+        InterceptResult<uint> interceptResult,
+        UpdateAgeContext interceptorContext)
     {
         if (uint.TryParse(update.Message!.Text, out var age))
         {
-            answerResult.SetModel(age);
+            interceptResult.SetModel(age);
         }
         else
         {
-            answerResult.SetError("Age should be a positive number");
+            interceptResult.SetError("Age should be a positive number");
         }
         
         return Task.CompletedTask;
     }
     
-    protected abstract Task<object?> ExecuteRouteAsync(uint age)
+    protected abstract Task ExecuteRouteAsync(
+        TelegramRequestContext<Guid> requestContext,
+        uint model,
+        UpdateAgeContext interceptorContext)
     {
-        // Do something with the data.
+        return _repository.UpdateUserAgeAsync(interceptorContext.UserId, model);
     }
 }
+
 ```
-There is a short example of awaiter using
+There is a short example of interceptor using
 ```csharp
 public class TestController : TelegramController
 {
@@ -217,10 +242,13 @@ public class TestController : TelegramController
     public async Task HandleStart(TelegramRequestContext context)
     {
         await _client.SendTextMessageAsync(
-            context.UserId!,
+            context.Update.GetUserId(),
             "What is your age?");
             
-        await _questionState.SetAsync<UpdateAgeResponseInterceptor>(context.UserId);
+        await _questionState.SetAsync<UpdateAgeInterceptor>(context.UserId, new UpdateAgeInterceptor
+        {
+            UserId = context.UserId
+        });
     }
 }
 ```
