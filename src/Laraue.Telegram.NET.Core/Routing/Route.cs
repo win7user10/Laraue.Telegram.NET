@@ -80,18 +80,18 @@ internal sealed class Route : IRoute
             {
                 parameterValue = ct;
             }
-            else if (methodParameter.GetCustomAttribute<FromPathAttribute>() is not null)
+            else if (TryGetAttribute<FromPathAttribute>(methodParameter, out var pathAttribute))
             {
-                parameterValue = requestParameters.GetPathParameter(
-                    methodParameter.Name!, methodParameter.ParameterType)
+                var parameterName = pathAttribute.PropertyName ?? methodParameter.Name!;
+                parameterValue = requestParameters.GetPathParameter(parameterName, methodParameter.ParameterType)
                     ?? throw new InvalidOperationException($"Parameter {methodParameter.Name} hasn't been found in route");
             }
-            else if (methodParameter.GetCustomAttribute<FromQueryAttribute>() is not null)
+            else if (TryGetAttribute<FromQueryAttribute>(methodParameter, out var queryAttribute))
             {
                 if (methodParameter.ParameterType.IsValueType || methodParameter.ParameterType == typeof(string))
                 {
-                    parameterValue = requestParameters.GetQueryParameter(
-                        methodParameter.Name!, methodParameter.ParameterType);
+                    var parameterName = queryAttribute.PropertyName ?? methodParameter.Name!;
+                    parameterValue = requestParameters.GetQueryParameter(parameterName, methodParameter.ParameterType);
                 }
                 else
                 {
@@ -107,6 +107,13 @@ internal sealed class Route : IRoute
         }
 
         return parameters;
+    }
+
+    public static bool TryGetAttribute<TAttribute>(ParameterInfo parameterInfo, [NotNullWhen(true)] out TAttribute? attribute)
+        where TAttribute : Attribute
+    {
+        attribute = parameterInfo.GetCustomAttribute<TAttribute>();
+        return attribute != null;
     }
 
     public override string ToString()

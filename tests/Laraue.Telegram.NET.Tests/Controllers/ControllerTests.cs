@@ -112,7 +112,7 @@ public class ControllerTests
             },
         });
         
-        _testChecker.Verify(x => x.Call("Alex12Alex"));
+        _testChecker.Verify(x => x.Call("AlexAlex1212Alex"));
     }
     
     [Fact]
@@ -203,9 +203,14 @@ public class ControllerTests
         }
         
         [TelegramCallbackRoute("callback/{id}")]
-        public Task ExecuteCallbackAsync([FromPath] int id, [FromQuery] string? name, [FromQuery] QueryParameters queryParameters)
+        public Task ExecuteCallbackAsync(
+            [FromPath] int id,
+            [FromPath("id")] int alsoId,
+            [FromQuery] string? name,
+            [FromQuery("name")] string? alsoName,
+            [FromQuery] QueryParameters queryParameters)
         {
-            _testChecker.Call($"{name}{id}{queryParameters.Name}");
+            _testChecker.Call($"{name}{alsoName}{id}{alsoId}{queryParameters.Name}");
             
             return Task.CompletedTask;
         }
