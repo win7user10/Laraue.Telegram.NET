@@ -149,7 +149,7 @@ services.AddTelegramMiddleware<LogExceptionsMiddleware>();
 
 ## Laraue.Telegram.NET.Interceptors
 
-[![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.AnswerToQuestion)](https://www.nuget.org/packages/Laraue.Telegram.NET.AnswerToQuestion)
+[![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Interceptors)](https://www.nuget.org/packages/Laraue.Telegram.NET.Interceptors)
 
 The main case of the library is sometimes something from the user should be asked,
 and next his answer should be considered as answer to this question.
