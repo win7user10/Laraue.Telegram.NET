@@ -88,9 +88,4 @@ public static class TelegramBotClientExtensions
             replyMarkup: messageBuilder.InlineKeyboard,
             cancellationToken: cancellationToken);
     }
-
-    /// <summary>
-    /// Fields to identify message to edit it.
-    /// </summary>
-    public record TelegramMessageId(ChatId ChatId, int MessageId);
 }
