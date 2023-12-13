@@ -89,7 +89,9 @@ public class RequestParameters
             return value;
         }
 
-        return valueType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(INumber<>))
+        valueType = Nullable.GetUnderlyingType(valueType) ?? valueType;
+
+        return valueType.IsEnum || valueType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(INumber<>))
             ? JsonSerializer.Deserialize(value, valueType)
             : JsonSerializer.SerializeToElement(value).Deserialize(valueType);
     }

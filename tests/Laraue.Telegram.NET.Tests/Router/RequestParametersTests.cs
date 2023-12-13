@@ -14,6 +14,14 @@ public class RequestParametersTests
     }
     
     [Fact]
+    public void NullableIntParameter_ShouldBeParsedCorrectly()
+    {
+        var value = TestParameter<int?>("1");
+        
+        Assert.Equal(1, value);
+    }
+    
+    [Fact]
     public void StringParameter_ShouldBeParsedCorrectly()
     {
         var value = TestParameter<string>("Alex");
@@ -28,6 +36,14 @@ public class RequestParametersTests
         
         Assert.Equal(new DateTime(2022, 01, 01, 15, 0, 0), value);
     }
+    
+    [Fact]
+    public void NullableEnumParameter_ShouldBeParsedCorrectly()
+    {
+        var value = TestParameter<TestEnum?>("1");
+        
+        Assert.Equal(TestEnum.Value1, value);
+    }
 
     private static T? TestParameter<T>(string stringValue)
     {
@@ -36,5 +52,10 @@ public class RequestParametersTests
             queryParameters: new Dictionary<string, string?> { ["p"] = stringValue });
 
         return (T?)parameters.GetQueryParameter("p", typeof(T));
+    }
+
+    private enum TestEnum
+    {
+        Value1 = 1
     }
 }
