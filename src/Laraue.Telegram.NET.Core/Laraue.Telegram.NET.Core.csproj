@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Description>Library to build telegram bots using controller classes.</Description>
@@ -16,11 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Laraue.Telegram.NET.Abstractions\Laraue.Telegram.NET.Abstractions.csproj" />
-  </ItemGroup>
-
-
-  <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Description>EFCore storage implementation for the Laraue.Telegram.NET.Interceptors.</Description>
@@ -17,8 +17,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Laraue.Core.DataAccess.EFCore" Version="7.1.5" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.12" />
+      <PackageReference Include="Laraue.Core.DataAccess.EFCore" Version="8.0.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.0" />
     </ItemGroup>
 
 </Project>
