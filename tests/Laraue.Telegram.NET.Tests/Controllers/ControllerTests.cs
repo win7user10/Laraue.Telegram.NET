@@ -106,7 +106,7 @@ public class ControllerTests
                     Id = 123,
                     IsBot = false,
                 },
-                Data = "callback/12?name=Alex",
+                Data = "callback/12?name=\"Alex\"",
                 Id = "123",
                 ChatInstance = "123",
             },

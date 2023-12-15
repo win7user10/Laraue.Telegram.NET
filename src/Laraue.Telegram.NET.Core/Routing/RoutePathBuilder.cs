@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace Laraue.Telegram.NET.DataAccess;
+namespace Laraue.Telegram.NET.Core.Routing;
 
 /// <summary>
 /// Class that allow to build telegram query paths for callback data in the
@@ -10,7 +10,7 @@ namespace Laraue.Telegram.NET.DataAccess;
 public sealed class RoutePathBuilder
 {
     private readonly string _routePattern;
-    private readonly Lazy<Dictionary<string, string?>> _queryParameters = new (() => new Dictionary<string, string?>());
+    private readonly Lazy<Dictionary<string, object>> _queryParameters = new (() => new Dictionary<string, object>());
 
     /// <summary>
     /// Default route pattern, like <c>users</c>.
@@ -58,14 +58,14 @@ public sealed class RoutePathBuilder
     /// <param name="parameterName"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public RoutePathBuilder WithQueryParameter(string parameterName, object? value)
+    public RoutePathBuilder WithQueryParameter<T>(string parameterName, T? value)
     {
         if (value is null)
         {
             return this;
         }
 
-        _queryParameters.Value[parameterName] = JsonSerializer.SerializeToElement(value).ToString();
+        _queryParameters.Value[parameterName] = value;
 
         return this;
     }
@@ -91,11 +91,15 @@ public sealed class RoutePathBuilder
         var sb = new StringBuilder(_routePattern);
 
         sb.Append('?');
+        
         foreach (var queryParameter in _queryParameters.Value.Keys)
         {
+            var value = _queryParameters.Value[queryParameter];
+            var jsonValue = JsonSerializer.Serialize(value, Defaults.JsonOptions);
+            
             sb.Append(queryParameter)
                 .Append('=')
-                .Append(_queryParameters.Value[queryParameter])
+                .Append(jsonValue)
                 .Append('&');
         }
 

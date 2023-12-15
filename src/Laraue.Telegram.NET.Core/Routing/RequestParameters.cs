@@ -1,7 +1,6 @@
-﻿using System.Numerics;
-using System.Text.Json;
+﻿using System.Text.Json;
 
-namespace Laraue.Telegram.NET.Abstractions.Request;
+namespace Laraue.Telegram.NET.Core.Routing;
 
 /// <summary>
 /// Contains parameters dictionary where each parameter can
@@ -68,8 +67,20 @@ public class RequestParameters
     /// <returns></returns>
     public object GetQueryParameters(Type modelType)
     {
-        return JsonSerializer.SerializeToDocument(_queryParameters)
-            .Deserialize(modelType, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+        using var s = new MemoryStream();
+        var w = new Utf8JsonWriter(s);
+        
+        w.WriteStartObject();
+        foreach (var queryParameter in _queryParameters)
+        {
+            w.WritePropertyName(queryParameter.Key);
+            w.WriteRawValue(queryParameter.Value ?? "null");
+        }
+        w.WriteEndObject();
+        w.Flush();
+
+        s.Seek(0, SeekOrigin.Begin);
+        return JsonSerializer.Deserialize(s, modelType, Defaults.JsonOptions)!;
     }
     
     private static object? GetParameter(IReadOnlyDictionary<string, string?> dictionary, string parameterName, Type valueType)
@@ -84,15 +95,6 @@ public class RequestParameters
             return null;
         }
         
-        if (valueType == typeof(string))
-        {
-            return value;
-        }
-
-        valueType = Nullable.GetUnderlyingType(valueType) ?? valueType;
-
-        return valueType.IsEnum || valueType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(INumber<>))
-            ? JsonSerializer.Deserialize(value, valueType)
-            : JsonSerializer.SerializeToElement(value).Deserialize(valueType);
+        return JsonSerializer.Deserialize(value, valueType, Defaults.JsonOptions);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Laraue.Telegram.NET.Core.Extensions;
+﻿using System.Web;
+
+namespace Laraue.Telegram.NET.Core.Extensions;
 
 /// <summary>
 /// Extensions to work work with strings.
@@ -19,6 +21,8 @@ public static class StringExtensions
         {
             return result;
         }
+        
+        var dict = HttpUtility.ParseQueryString(source);
 
         var sourceSpan = source.AsSpan();
         if (!sourceSpan.TrySplit('?', out _, out var parametersSpan))
