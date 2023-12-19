@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Laraue.Telegram.NET.Core.Routing;
 
@@ -11,6 +12,7 @@ public sealed class RoutePathBuilder
 {
     private readonly string _routePattern;
     private readonly Lazy<Dictionary<string, object>> _queryParameters = new (() => new Dictionary<string, object>());
+    private bool _isFreeze;
 
     /// <summary>
     /// Default route pattern, like <c>users</c>.
@@ -22,20 +24,14 @@ public sealed class RoutePathBuilder
     }
 
     /// <summary>
-    /// Make a copy of builder, and modify that copy.
+    /// When the builder is freeze each builder modifier returns a new instance of <see cref="RoutePathBuilder"/>. 
     /// </summary>
-    /// <param name="action"></param>
-    /// <returns></returns>
-    public string BuildFor(Action<RoutePathBuilder> action)
+    public void Freeze()
     {
-        var newBuilder = Copy();
-
-        action(newBuilder);
-
-        return newBuilder.ToString();
+        _isFreeze = true;
     }
 
-    private RoutePathBuilder Copy()
+    private RoutePathBuilder GetCopy()
     {
         var builder = new RoutePathBuilder(_routePattern);
 
@@ -60,14 +56,24 @@ public sealed class RoutePathBuilder
     /// <returns></returns>
     public RoutePathBuilder WithQueryParameter<T>(string parameterName, T? value)
     {
+        var builder = _isFreeze ? GetCopy() : this;
+        
         if (value is null)
         {
-            return this;
+            return builder;
         }
 
-        _queryParameters.Value[parameterName] = value;
+        builder._queryParameters.Value[parameterName] = value;
 
-        return this;
+        return builder;
+    }
+
+    /// <summary>
+    /// Returns callback button for the current <see cref="RoutePathBuilder"/> route.
+    /// </summary>
+    public InlineKeyboardButton ToInlineKeyboardButton(string text)
+    {
+        return InlineKeyboardButton.WithCallbackData(text, ToString());
     }
 
     /// <summary>

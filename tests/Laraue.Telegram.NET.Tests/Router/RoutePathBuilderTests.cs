@@ -52,4 +52,17 @@ public class RoutePathBuilderTests
         
         Assert.Equal("/route?p=12", pathBuilder.ToString());
     }
+    
+    [Fact]
+    public void FreezeBuilder_ShouldPreventBuilderFromModification()
+    {
+        var pathBuilder = new RoutePathBuilder("/route");
+        pathBuilder.WithQueryParameter("p", 10)
+            .Freeze();
+
+        var builder2 = pathBuilder.WithQueryParameter("x", 12);
+        
+        Assert.Equal("/route?p=10", pathBuilder.ToString());
+        Assert.Equal("/route?p=10&x=12", builder2.ToString());
+    }
 }
