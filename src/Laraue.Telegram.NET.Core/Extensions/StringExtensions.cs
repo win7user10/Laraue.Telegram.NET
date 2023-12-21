@@ -13,16 +13,14 @@ public static class StringExtensions
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static IDictionary<string, string?> ParseQueryParts(this string? source)
+    public static IDictionary<string, string> ParseQueryParts(this string? source)
     {
-        var result = new Dictionary<string, string?>();
+        var result = new Dictionary<string, string>();
         
         if (source is null)
         {
             return result;
         }
-        
-        var dict = HttpUtility.ParseQueryString(source);
 
         var sourceSpan = source.AsSpan();
         if (!sourceSpan.TrySplit('?', out _, out var parametersSpan))

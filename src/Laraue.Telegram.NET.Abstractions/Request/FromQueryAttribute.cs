@@ -3,7 +3,7 @@
 /// <summary>
 /// Marks a parameter it should be taken from the query parameter from the route string. 
 /// </summary>
-[AttributeUsage(AttributeTargets.Parameter)]
+[AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property)]
 public sealed class FromQueryAttribute : Attribute
 {
     /// <summary>

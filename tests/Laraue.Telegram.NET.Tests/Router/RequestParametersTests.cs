@@ -62,7 +62,7 @@ public class RequestParametersTests
             queryParameters: new Dictionary<string, string?>
             {
                 ["enumValue"] = "1",
-                ["stringValue"] = "\"Alex\""
+                ["s"] = "\"Alex\""
             });
         
         var result = (TestClass)parameters.GetQueryParameters(typeof(TestClass));
@@ -88,6 +88,8 @@ public class RequestParametersTests
     private class TestClass
     {
         public TestEnum EnumValue { get; set; }
+        
+        [FromQuery("s")]
         public string? StringValue { get; set; }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.Reflection;
+using System.Text.Json;
+using Laraue.Telegram.NET.Abstractions.Request;
 
 namespace Laraue.Telegram.NET.Core.Routing;
 
@@ -11,22 +13,28 @@ public class RequestParameters
     /// <summary>
     /// Request path parameters.
     /// </summary>
-    private readonly Dictionary<string, string?> _pathParameters;
+    private readonly Dictionary<string, string> _pathParameters;
     
     /// <summary>
     /// Request query parameters.
     /// </summary>
-    private readonly Dictionary<string, string?> _queryParameters;
+    private readonly Dictionary<string, string> _queryParameters;
+
+    /// <summary>
+    /// Cache for properties taken by reflection.
+    /// </summary>
+    private static readonly IDictionary<Type, IDictionary<string, string>> PropertiesCache
+        = new Dictionary<Type, IDictionary<string, string>>();
 
     /// <summary>
     /// Initializes a new instance of <see cref="RequestParameters"/> with predefined values.
     /// </summary>
     /// <param name="pathParameters"></param>
     /// <param name="queryParameters"></param>
-    public RequestParameters(IDictionary<string, string?> pathParameters, IDictionary<string, string?> queryParameters)
+    public RequestParameters(IDictionary<string, string> pathParameters, IDictionary<string, string> queryParameters)
     {
-        _pathParameters = new Dictionary<string, string?>(pathParameters, StringComparer.OrdinalIgnoreCase);
-        _queryParameters = new Dictionary<string, string?>(queryParameters, StringComparer.OrdinalIgnoreCase);
+        _pathParameters = new Dictionary<string, string>(pathParameters, StringComparer.OrdinalIgnoreCase);
+        _queryParameters = new Dictionary<string, string>(queryParameters, StringComparer.OrdinalIgnoreCase);
     }
     
     /// <summary>
@@ -34,8 +42,8 @@ public class RequestParameters
     /// </summary>
     public RequestParameters()
     {
-        _pathParameters = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-        _queryParameters = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        _pathParameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        _queryParameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     }
     
     /// <summary>
@@ -69,11 +77,32 @@ public class RequestParameters
     {
         using var s = new MemoryStream();
         var w = new Utf8JsonWriter(s);
+
+        if (!PropertiesCache.TryGetValue(modelType, out var properties))
+        {
+            properties = modelType
+                .GetProperties(BindingFlags.Public | BindingFlags.GetProperty | BindingFlags.Instance)
+                .Select(x => new
+                {
+                    PropertyName = x.Name,
+                    JsonName = x.GetCustomAttribute<FromQueryAttribute>()?.PropertyName
+                })
+                .Where(x => x.JsonName != null)
+                .ToDictionary(
+                    x => x.JsonName!,
+                    x => x.PropertyName,
+                    StringComparer.OrdinalIgnoreCase);
+
+            PropertiesCache[modelType] = properties;
+        }
         
         w.WriteStartObject();
         foreach (var queryParameter in _queryParameters)
         {
-            w.WritePropertyName(queryParameter.Key);
+            w.WritePropertyName(properties.TryGetValue(queryParameter.Key, out var key)
+                ? key
+                : queryParameter.Key);
+            
             w.WriteRawValue(queryParameter.Value ?? "null");
         }
         w.WriteEndObject();
@@ -83,14 +112,9 @@ public class RequestParameters
         return JsonSerializer.Deserialize(s, modelType, Defaults.JsonOptions)!;
     }
     
-    private static object? GetParameter(IReadOnlyDictionary<string, string?> dictionary, string parameterName, Type valueType)
+    private static object? GetParameter(IReadOnlyDictionary<string, string> dictionary, string parameterName, Type valueType)
     {
         if (!dictionary.TryGetValue(parameterName, out var value))
-        {
-            return null;
-        }
-
-        if (value is null)
         {
             return null;
         }

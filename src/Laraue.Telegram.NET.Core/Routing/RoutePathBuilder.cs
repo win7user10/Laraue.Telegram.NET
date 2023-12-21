@@ -26,9 +26,11 @@ public sealed class RoutePathBuilder
     /// <summary>
     /// When the builder is freeze each builder modifier returns a new instance of <see cref="RoutePathBuilder"/>. 
     /// </summary>
-    public void Freeze()
+    public RoutePathBuilder Freeze()
     {
         _isFreeze = true;
+
+        return this;
     }
 
     private RoutePathBuilder GetCopy()

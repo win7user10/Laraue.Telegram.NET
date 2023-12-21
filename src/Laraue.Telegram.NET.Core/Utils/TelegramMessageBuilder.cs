@@ -38,11 +38,19 @@ public class TelegramMessageBuilder
     /// <summary>
     /// Append the passed string builder.
     /// </summary>
-    /// <param name="stringBuilder"></param>
-    /// <returns></returns>
     public TelegramMessageBuilder Append(StringBuilder stringBuilder)
     {
         _textBuilder.Append(stringBuilder);
+
+        return this;
+    }
+    
+    /// <summary>
+    /// Append the passed string.
+    /// </summary>
+    public TelegramMessageBuilder Append(string value)
+    {
+        _textBuilder.Append(value);
 
         return this;
     }

@@ -65,7 +65,7 @@ public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttr
         var pathParameters = match.Groups
             .Cast<Group>()
             .Where(x => !int.TryParse(x.Name, out _))
-            .ToDictionary(x => x.Name, x => (string?) x.Value);
+            .ToDictionary(x => x.Name, x => x.Value);
 
         requestParameters = new RequestParameters(pathParameters, queryParameters);
         return true;
