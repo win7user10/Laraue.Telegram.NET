@@ -107,9 +107,14 @@ public class RequestParameters
             {
                 throw new BindException(property.Key);
             }
+
+            if (queryParameter is null)
+            {
+                continue;
+            }
             
             w.WritePropertyName(property.Key);
-            w.WriteRawValue(queryParameter ?? "null");
+            w.WriteRawValue(queryParameter);
         }
         
         w.WriteEndObject();

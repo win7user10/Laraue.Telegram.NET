@@ -9,8 +9,16 @@ namespace Laraue.Telegram.NET.Core.Utils;
 public class TelegramMessageBuilder
 {
     private readonly StringBuilder _textBuilder = new ();
-    private readonly List<IEnumerable<InlineKeyboardButton>> _inlineKeyboardButtons = new ();
-    private readonly List<IEnumerable<KeyboardButton>> _keyboardButtons = new ();
+    
+    /// <summary>
+    /// All InlineKeyboardButtons added to the builder.
+    /// </summary>
+    public List<List<InlineKeyboardButton>> InlineKeyboardButtons { get; } = [];
+    
+    /// <summary>
+    /// All KeyboardButtons added to the builder.
+    /// </summary>
+    public List<List<KeyboardButton>> KeyboardButtons { get; } = [];
 
     /// <summary>
     /// Add text row to the message.
@@ -74,7 +82,7 @@ public class TelegramMessageBuilder
             }
         }       
         
-        _inlineKeyboardButtons.Add(rowButtonsList);
+        InlineKeyboardButtons.Add(rowButtonsList);
 
         return this;
     }
@@ -86,7 +94,7 @@ public class TelegramMessageBuilder
     /// <returns></returns>
     public TelegramMessageBuilder AddReplyKeyboardButtons(IEnumerable<KeyboardButton> rowButtons)
     {
-        _keyboardButtons.Add(rowButtons);
+        KeyboardButtons.Add(rowButtons.ToList());
 
         return this;
     }
@@ -99,10 +107,10 @@ public class TelegramMessageBuilder
     /// <summary>
     /// Returns Keyboard with callback buttons.
     /// </summary>
-    public InlineKeyboardMarkup InlineKeyboard => new (_inlineKeyboardButtons);
+    public InlineKeyboardMarkup InlineKeyboard => new (InlineKeyboardButtons);
     
     /// <summary>
     /// Returns Keyboard with text buttons.
     /// </summary>
-    public ReplyKeyboardMarkup ReplyKeyboard => new (_keyboardButtons) { ResizeKeyboard = true };
+    public ReplyKeyboardMarkup ReplyKeyboard => new (KeyboardButtons) { ResizeKeyboard = true };
 }
