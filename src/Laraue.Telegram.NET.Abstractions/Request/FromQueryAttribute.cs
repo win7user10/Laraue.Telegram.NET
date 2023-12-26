@@ -12,11 +12,18 @@ public sealed class FromQueryAttribute : Attribute
     public string? PropertyName { get; }
     
     /// <summary>
+    /// Bind requiring.
+    /// </summary>
+    public bool BindRequired { get; }
+    
+    /// <summary>
     /// Initializes a new instance of <see cref="FromQueryAttribute"/>.
     /// </summary>
     /// <param name="propertyName">When set, the value will taken from the query parameter with this key.</param>
-    public FromQueryAttribute(string? propertyName = null)
+    /// <param name="bindRequired">When set, exception will be thrown if the value is not passed.</param>
+    public FromQueryAttribute(string? propertyName = null, bool bindRequired = false)
     {
         PropertyName = propertyName;
+        BindRequired = bindRequired;
     }
 }

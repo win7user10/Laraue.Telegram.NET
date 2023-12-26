@@ -84,7 +84,7 @@ internal sealed class Route : IRoute
             {
                 var parameterName = pathAttribute.PropertyName ?? methodParameter.Name!;
                 parameterValue = requestParameters.GetPathParameter(parameterName, methodParameter.ParameterType)
-                    ?? throw new InvalidOperationException($"Parameter {methodParameter.Name} hasn't been found in route");
+                    ?? throw new BindException(parameterName);
             }
             else if (TryGetAttribute<FromQueryAttribute>(methodParameter, out var queryAttribute))
             {
@@ -92,6 +92,10 @@ internal sealed class Route : IRoute
                 {
                     var parameterName = queryAttribute.PropertyName ?? methodParameter.Name!;
                     parameterValue = requestParameters.GetQueryParameter(parameterName, methodParameter.ParameterType);
+                    if (queryAttribute.BindRequired && parameterValue is null)
+                    {
+                        throw new BindException(parameterName);
+                    }
                 }
                 else
                 {
@@ -109,7 +113,7 @@ internal sealed class Route : IRoute
         return parameters;
     }
 
-    public static bool TryGetAttribute<TAttribute>(ParameterInfo parameterInfo, [NotNullWhen(true)] out TAttribute? attribute)
+    private static bool TryGetAttribute<TAttribute>(ParameterInfo parameterInfo, [NotNullWhen(true)] out TAttribute? attribute)
         where TAttribute : Attribute
     {
         attribute = parameterInfo.GetCustomAttribute<TAttribute>();

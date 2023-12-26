@@ -58,24 +58,40 @@ public class RequestParametersTests
     public void ClassParameter_ShouldBeParsedCorrectly()
     {
         var parameters = new RequestParameters(
-            pathParameters: new Dictionary<string, string?>(),
-            queryParameters: new Dictionary<string, string?>
+            pathParameters: new Dictionary<string, string>(),
+            queryParameters: new Dictionary<string, string>
             {
                 ["enumValue"] = "1",
-                ["s"] = "\"Alex\""
+                ["s"] = "\"Alex\"",
+                ["intValue"] = "1"
             });
         
         var result = (TestClass)parameters.GetQueryParameters(typeof(TestClass));
         
         Assert.Equal("Alex", result.StringValue);
         Assert.Equal(TestEnum.Value1, result.EnumValue);
+        Assert.Equal(1, result.IntValue);
+    }
+    
+    [Fact]
+    public void BindException_ShouldBeThrown_WhenRequiredPropertyIsNotPassed()
+    {
+        var parameters = new RequestParameters(
+            pathParameters: new Dictionary<string, string>(),
+            queryParameters: new Dictionary<string, string>
+            {
+                ["enumValue"] = "1",
+            });
+
+        var ex = Assert.Throws<BindException>(() => parameters.GetQueryParameters(typeof(TestClass)));
+        Assert.Equal(nameof(TestClass.IntValue), ex.PropertyName);
     }
 
     private static T? TestParameter<T>(string stringValue)
     {
         var parameters = new RequestParameters(
-            pathParameters: new Dictionary<string, string?>(),
-            queryParameters: new Dictionary<string, string?> { ["p"] = stringValue });
+            pathParameters: new Dictionary<string, string>(),
+            queryParameters: new Dictionary<string, string> { ["p"] = stringValue });
 
         return (T?)parameters.GetQueryParameter("p", typeof(T));
     }
@@ -91,5 +107,8 @@ public class RequestParametersTests
         
         [FromQuery("s")]
         public string? StringValue { get; set; }
+
+        [FromQuery(bindRequired: true)]
+        public int IntValue { get; set; }
     }
 }

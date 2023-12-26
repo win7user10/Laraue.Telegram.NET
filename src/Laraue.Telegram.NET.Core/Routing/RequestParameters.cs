@@ -23,8 +23,8 @@ public class RequestParameters
     /// <summary>
     /// Cache for properties taken by reflection.
     /// </summary>
-    private static readonly IDictionary<Type, IDictionary<string, string>> PropertiesCache
-        = new Dictionary<Type, IDictionary<string, string>>();
+    private static readonly IDictionary<Type, IDictionary<string, PropertyCache>> PropertiesCache
+        = new Dictionary<Type, IDictionary<string, PropertyCache>>();
 
     /// <summary>
     /// Initializes a new instance of <see cref="RequestParameters"/> with predefined values.
@@ -84,27 +84,34 @@ public class RequestParameters
                 .GetProperties(BindingFlags.Public | BindingFlags.GetProperty | BindingFlags.Instance)
                 .Select(x => new
                 {
-                    PropertyName = x.Name,
-                    JsonName = x.GetCustomAttribute<FromQueryAttribute>()?.PropertyName
+                    x.Name,
+                    QueryAttribute = x.GetCustomAttribute<FromQueryAttribute>(),
                 })
-                .Where(x => x.JsonName != null)
                 .ToDictionary(
-                    x => x.JsonName!,
-                    x => x.PropertyName,
+                    x => x.Name,
+                    x => new PropertyCache
+                    {
+                        BindRequired = x.QueryAttribute?.BindRequired ?? false,
+                        PropertyName = x.QueryAttribute?.PropertyName
+                    },
                     StringComparer.OrdinalIgnoreCase);
 
             PropertiesCache[modelType] = properties;
         }
         
         w.WriteStartObject();
-        foreach (var queryParameter in _queryParameters)
+        foreach (var property in properties)
         {
-            w.WritePropertyName(properties.TryGetValue(queryParameter.Key, out var key)
-                ? key
-                : queryParameter.Key);
+            var propertyName = property.Value.PropertyName ?? property.Key; 
+            if (!_queryParameters.TryGetValue(propertyName, out var queryParameter) && property.Value.BindRequired)
+            {
+                throw new BindException(property.Key);
+            }
             
-            w.WriteRawValue(queryParameter.Value ?? "null");
+            w.WritePropertyName(property.Key);
+            w.WriteRawValue(queryParameter ?? "null");
         }
+        
         w.WriteEndObject();
         w.Flush();
 
@@ -120,5 +127,12 @@ public class RequestParameters
         }
         
         return JsonSerializer.Deserialize(value, valueType, Defaults.JsonOptions);
+    }
+    
+    private sealed class PropertyCache
+    {
+        public bool BindRequired { get; set; }
+
+        public string? PropertyName { get; set; }
     }
 }
