@@ -25,7 +25,7 @@ public class UserService<TUser, TKey> : IUserService<TKey>
     /// <inheritdoc />
     public async Task<LoginResponse<TKey>> LoginOrRegisterAsync(TelegramData telegramData)
     {
-        var userName = $"tg_{telegramData.Username}";
+        var userName = $"tg_{telegramData.Id}";
         var user = await _userManager.FindByNameAsync(userName);
 
         if (user is not null)
@@ -39,6 +39,7 @@ public class UserService<TUser, TKey> : IUserService<TKey>
         var result = await CreateUserInternalAsync(
             userName,
             telegramData.Id,
+            telegramData.Username,
             password);
         
         if (!result.Succeeded)
@@ -51,13 +52,18 @@ public class UserService<TUser, TKey> : IUserService<TKey>
         return new LoginResponse<TKey>(user!.Id);
     }
 
-    private Task<IdentityResult> CreateUserInternalAsync(string userName, long? telegramId, string password)
+    private Task<IdentityResult> CreateUserInternalAsync(
+        string userName,
+        long? telegramId,
+        string? telegramUserName,
+        string password)
     {
         return _userManager.CreateAsync(
             new TUser
             {
                 UserName = userName,
                 TelegramId = telegramId,
+                TelegramUserName = telegramUserName,
                 CreatedAt = DateTime.UtcNow,
             }, password);
     }

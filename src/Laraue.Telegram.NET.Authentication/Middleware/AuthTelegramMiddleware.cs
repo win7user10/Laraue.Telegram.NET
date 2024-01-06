@@ -48,7 +48,7 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
         if (!UserIdTelegramIdMap.TryGetValue(user.Id, out var systemId))
         {
             var result = await _userService.LoginOrRegisterAsync(
-                new TelegramData(user.Id, user.Username!));
+                new TelegramData(user.Id, user.Username));
             
             UserIdTelegramIdMap.TryAdd(user.Id, result.UserId);
             systemId = result.UserId;
