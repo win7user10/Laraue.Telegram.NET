@@ -1,5 +1,6 @@
 ﻿using Laraue.Telegram.NET.Core.Utils;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -45,7 +46,7 @@ public static class TelegramBotClientExtensions
     /// <summary>
     /// Edit telegram message with the content of the passed <see cref="TelegramMessageBuilder"/>.
     /// </summary>
-    public static Task EditMessageTextAsync(
+    public static async Task EditMessageTextAsync(
         this ITelegramBotClient botClient,
         ChatId chatId,
         int messageId,
@@ -53,17 +54,28 @@ public static class TelegramBotClientExtensions
         ParseMode? parseMode = default,
         IEnumerable<MessageEntity>? entities = default,
         bool? disableWebPagePreview = default,
+        bool throwOnMessageNotModified = false,
         CancellationToken cancellationToken = default)
     {
-        return botClient.EditMessageTextAsync(
-            chatId: chatId,
-            messageId: messageId,
-            text: messageBuilder.Text,
-            parseMode: parseMode,
-            entities: entities,
-            disableWebPagePreview: disableWebPagePreview,
-            replyMarkup: messageBuilder.InlineKeyboard,
-            cancellationToken: cancellationToken);
+        try
+        {
+            await botClient.EditMessageTextAsync(
+                chatId: chatId,
+                messageId: messageId,
+                text: messageBuilder.Text,
+                parseMode: parseMode,
+                entities: entities,
+                disableWebPagePreview: disableWebPagePreview,
+                replyMarkup: messageBuilder.InlineKeyboard,
+                cancellationToken: cancellationToken);
+        }
+        catch (ApiRequestException e) when (
+            throwOnMessageNotModified
+            && e.ErrorCode == 400
+            && e.Message.StartsWith("Bad Request: message is not modified"))
+        {
+            throw;
+        }
     }
     
     /// <summary>
@@ -76,16 +88,17 @@ public static class TelegramBotClientExtensions
         ParseMode? parseMode = default,
         IEnumerable<MessageEntity>? entities = default,
         bool? disableWebPagePreview = default,
+        bool throwOnMessageNotModified = false,
         CancellationToken cancellationToken = default)
     {
         return botClient.EditMessageTextAsync(
             chatId: messageId.ChatId,
             messageId: messageId.MessageId,
-            text: messageBuilder.Text,
+            messageBuilder: messageBuilder,
             parseMode: parseMode,
             entities: entities,
             disableWebPagePreview: disableWebPagePreview,
-            replyMarkup: messageBuilder.InlineKeyboard,
+            throwOnMessageNotModified: throwOnMessageNotModified,
             cancellationToken: cancellationToken);
     }
 }

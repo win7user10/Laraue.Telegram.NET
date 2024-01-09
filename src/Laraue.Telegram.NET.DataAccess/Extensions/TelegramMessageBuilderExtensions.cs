@@ -10,8 +10,6 @@ namespace Laraue.Telegram.NET.DataAccess.Extensions;
 /// </summary>
 public static class TelegramMessageBuilderExtensions
 {
-    private const string PageParameterName = "p";
-    
     /// <summary>
     /// Get the paginated result and format it to the string message.
     /// Each item will represent one row in the message.
@@ -38,29 +36,22 @@ public static class TelegramMessageBuilderExtensions
     /// <summary>
     /// Add buttons to move forward and back in the pagination telegram view.
     /// </summary>
-    /// <param name="messageBuilder"></param>
-    /// <param name="result"></param>
-    /// <param name="route"></param>
-    /// <param name="previousButtonText"></param>
-    /// <param name="nextButtonText"></param>
-    /// <param name="fallbackButtons"></param>
-    /// <typeparam name="TData"></typeparam>
-    /// <returns></returns>
     public static TelegramMessageBuilder AddPaginationButtons<TData>(
         this TelegramMessageBuilder messageBuilder,
         IShortPaginatedResult<TData> result,
         RoutePathBuilder route,
         string previousButtonText = "Previous ⬅",
         string nextButtonText = "Next ➡",
+        string pageParameterName = Defaults.PageParameterName,
         ControlButtons? fallbackButtons = null)
         where TData : class
     {
         var rowButtons = new List<InlineKeyboardButton>();
         if (result.HasPreviousPage)
         {
-            rowButtons.Add(InlineKeyboardButton.WithCallbackData(
-                previousButtonText, 
-                route.WithQueryParameter(PageParameterName, result.Page - 1)));
+            rowButtons.Add(route
+                .WithQueryParameter(pageParameterName, result.Page - 1)
+                .ToInlineKeyboardButton(previousButtonText));
         }
         else if (fallbackButtons?.PreviousButton is not null)
         {
@@ -69,16 +60,16 @@ public static class TelegramMessageBuilderExtensions
         
         if (result.HasNextPage)
         {
-            rowButtons.Add(InlineKeyboardButton.WithCallbackData(
-                nextButtonText,
-                route.WithQueryParameter(PageParameterName, result.Page + 1)));
+            rowButtons.Add(route
+                .WithQueryParameter(pageParameterName, result.Page + 1)
+                .ToInlineKeyboardButton(nextButtonText));
         }
         else if (fallbackButtons?.NextButton is not null)
         {
             rowButtons.Add(fallbackButtons.NextButton);
         }
 
-        if (rowButtons.Any())
+        if (rowButtons.Count != 0)
         {
             messageBuilder.AddInlineKeyboardButtons(rowButtons);
         }
