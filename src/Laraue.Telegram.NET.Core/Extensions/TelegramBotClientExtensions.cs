@@ -70,11 +70,12 @@ public static class TelegramBotClientExtensions
                 cancellationToken: cancellationToken);
         }
         catch (ApiRequestException e) when (
-            throwOnMessageNotModified
-            && e.ErrorCode == 400
-            && e.Message.StartsWith("Bad Request: message is not modified"))
+            e.ErrorCode == 400 && e.Message.StartsWith("Bad Request: message is not modified"))
         {
-            throw;
+            if (throwOnMessageNotModified)
+            {
+                throw;
+            }
         }
     }
     
