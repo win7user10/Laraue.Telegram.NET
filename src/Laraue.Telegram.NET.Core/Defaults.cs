@@ -10,7 +10,7 @@ public static class Defaults
     /// <summary>
     /// Default json options for all serializations.
     /// </summary>
-    public static JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+    public static readonly JsonSerializerOptions JsonOptions = new ()
     {
         PropertyNameCaseInsensitive = true
     };

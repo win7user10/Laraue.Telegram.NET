@@ -6,7 +6,7 @@ namespace Laraue.Telegram.NET.Core.Utils;
 /// <summary>
 /// Message builder for telegram messages.
 /// </summary>
-public class TelegramMessageBuilder
+public sealed class TelegramMessageBuilder
 {
     private readonly StringBuilder _textBuilder = new ();
     
@@ -23,11 +23,22 @@ public class TelegramMessageBuilder
     /// <summary>
     /// Add text row to the message.
     /// </summary>
-    /// <param name="text"></param>
-    /// <returns></returns>
     public TelegramMessageBuilder AppendRow(string text)
     {
         _textBuilder.AppendLine(text);
+
+        return this;
+    }
+    
+    /// <summary>
+    /// Add text rows to the message.
+    /// </summary>
+    public TelegramMessageBuilder AppendRows(IEnumerable<string> textLines)
+    {
+        foreach (var text in textLines)
+        {
+            _textBuilder.AppendLine(text);
+        }
 
         return this;
     }
