@@ -27,6 +27,7 @@
     <ProjectReference Include="..\..\src\Laraue.Telegram.NET.Core\Laraue.Telegram.NET.Core.csproj" />
     <ProjectReference Include="..\..\src\Laraue.Telegram.NET.DataAccess\Laraue.Telegram.NET.DataAccess.csproj" />
     <ProjectReference Include="..\..\src\Laraue.Telegram.NET.Interceptors\Laraue.Telegram.NET.Interceptors.csproj" />
+    <ProjectReference Include="..\..\src\Laraue.Telegram.NET.Localization\Laraue.Telegram.NET.Localization.csproj" />
   </ItemGroup>
 
 </Project>

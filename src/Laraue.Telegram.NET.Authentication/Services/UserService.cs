@@ -1,6 +1,4 @@
-﻿using Laraue.Core.Exceptions.Web;
-using Laraue.Telegram.NET.Abstractions.Exceptions;
-using Laraue.Telegram.NET.Authentication.Models;
+﻿using Laraue.Telegram.NET.Authentication.Models;
 using Laraue.Telegram.NET.Authentication.Utils;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -40,6 +38,7 @@ public class UserService<TUser, TKey> : IUserService<TKey>
             userName,
             telegramData.Id,
             telegramData.Username,
+            telegramData.LanguageCode,
             password);
         
         if (!result.Succeeded)
@@ -56,6 +55,7 @@ public class UserService<TUser, TKey> : IUserService<TKey>
         string userName,
         long? telegramId,
         string? telegramUserName,
+        string? telegramLanguageCode,
         string password)
     {
         return _userManager.CreateAsync(
@@ -65,6 +65,7 @@ public class UserService<TUser, TKey> : IUserService<TKey>
                 TelegramId = telegramId,
                 TelegramUserName = telegramUserName,
                 CreatedAt = DateTime.UtcNow,
+                TelegramLanguageCode = telegramLanguageCode
             }, password);
     }
 }

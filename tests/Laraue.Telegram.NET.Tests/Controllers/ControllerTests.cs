@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Globalization;
+using System.Reflection;
 using System.Text;
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Abstractions.Request;
@@ -11,6 +12,8 @@ using Laraue.Telegram.NET.Core.Routing;
 using Laraue.Telegram.NET.Core.Routing.Attributes;
 using Laraue.Telegram.NET.Interceptors.Extensions;
 using Laraue.Telegram.NET.Interceptors.Services;
+using Laraue.Telegram.NET.Localization;
+using Laraue.Telegram.NET.Localization.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +40,12 @@ public class ControllerTests
                     .AddScoped<TelegramRequestContext<string>>()
                     .AddScoped<TelegramRequestContext>(
                         sp => sp.GetRequiredService<TelegramRequestContext<string>>())
+                    .AddTelegramRequestLocalization()
+                    .Configure<TelegramRequestLocalizationOptions>(opt =>
+                    {
+                        opt.DefaultLanguage = "en";
+                        opt.AvailableLanguages = ["en", "ru"];
+                    })
                     .AddTelegramRequestInterceptors<InMemoryInterceptorState, string>(new[]
                     {
                         Assembly.GetExecutingAssembly(),
@@ -182,6 +191,33 @@ public class ControllerTests
             _testChecker.VerifyNoOtherCalls();
         }
     }
+    
+    [Fact]
+    public async Task MessageRoute_ShouldBeLocalizedAsync()
+    {
+        await SendRequestAsync(new Update
+        {
+            Message = new Message
+            {
+                From = new User
+                {
+                    FirstName = "Ilya",
+                    Username = "user",
+                    Id = 123,
+                    IsBot = false,
+                    LanguageCode = "ru"
+                },
+                Text = "localizedRoute",
+                Date = DateTime.UtcNow,
+                Chat = new Chat
+                {
+                    Id = 1,
+                }
+            },
+        });
+        
+        _testChecker.Verify(x => x.Call("Locale: ru ru"));
+    }
 
     public class TestTelegramController : TelegramController
     {
@@ -232,6 +268,12 @@ public class ControllerTests
             _testChecker.Call(requestContext.Update.Message!.Text);
             
             return Task.CompletedTask;
+        }
+        
+        [TelegramMessageRoute("localizedRoute")]
+        public void ExecuteLocalizedRoute(TelegramRequestContext<string> requestContext)
+        {
+            _testChecker.Call($"Locale: {CultureInfo.CurrentCulture} {CultureInfo.CurrentUICulture}");
         }
     }
 

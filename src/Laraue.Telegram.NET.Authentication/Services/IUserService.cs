@@ -19,4 +19,4 @@ public record LoginResponse<TKey>(TKey UserId) where TKey : IEquatable<TKey>;
 /// <summary>
 /// Telegram credentials to get system user id.
 /// </summary>
-public record TelegramData(long Id, string? Username);
+public record TelegramData(long Id, string? Username, string? LanguageCode);

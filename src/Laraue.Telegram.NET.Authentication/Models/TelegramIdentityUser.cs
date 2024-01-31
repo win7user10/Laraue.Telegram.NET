@@ -22,6 +22,11 @@ public class TelegramIdentityUser<TKey> : IdentityUser<TKey> where TKey : IEquat
     public string? TelegramUserName { get; init; }
 
     /// <summary>
+    /// Telegram user language code, e.g "ru", "en" etc.
+    /// </summary>
+    public string? TelegramLanguageCode { get; init; }
+
+    /// <summary>
     /// When the user first time wrote to the telegram bot (in UTC).
     /// </summary>
     public DateTime CreatedAt { get; init; }

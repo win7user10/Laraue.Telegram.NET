@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laraue.Telegram.NET.Tests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laraue.Telegram.NET.Interceptors.EFCore", "src\Laraue.Telegram.NET.Interceptors.EFCore\Laraue.Telegram.NET.Interceptors.EFCore.csproj", "{60E0A76B-1B65-4A42-986E-ECE6F95C1C7B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laraue.Telegram.NET.Localization", "src\Laraue.Telegram.NET.Localization\Laraue.Telegram.NET.Localization.csproj", "{D8A2ECA8-2176-4A63-B0CB-60B0030DE503}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{60E0A76B-1B65-4A42-986E-ECE6F95C1C7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60E0A76B-1B65-4A42-986E-ECE6F95C1C7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60E0A76B-1B65-4A42-986E-ECE6F95C1C7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8A2ECA8-2176-4A63-B0CB-60B0030DE503}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8A2ECA8-2176-4A63-B0CB-60B0030DE503}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8A2ECA8-2176-4A63-B0CB-60B0030DE503}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8A2ECA8-2176-4A63-B0CB-60B0030DE503}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{3F74C50A-3C22-49E7-B1C9-125165FFAF38} = {44318B0F-08DD-4ECF-A409-4E49BAA20D75}
@@ -61,5 +67,6 @@ Global
 		{EDF88D22-0C48-4065-945E-A587AFAD36F2} = {44318B0F-08DD-4ECF-A409-4E49BAA20D75}
 		{FAC730FF-22FA-4C59-8E9A-5074CBC79668} = {88B2A19A-B927-4053-87DE-275C1592053C}
 		{60E0A76B-1B65-4A42-986E-ECE6F95C1C7B} = {44318B0F-08DD-4ECF-A409-4E49BAA20D75}
+		{D8A2ECA8-2176-4A63-B0CB-60B0030DE503} = {44318B0F-08DD-4ECF-A409-4E49BAA20D75}
 	EndGlobalSection
 EndGlobal
