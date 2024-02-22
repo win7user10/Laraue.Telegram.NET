@@ -36,7 +36,7 @@ public sealed class CallbackRoutePath
 
     private CallbackRoutePath GetCopy()
     {
-        var builder = new CallbackRoutePath(_routePattern);
+        var builder = new CallbackRoutePath(_routePattern, _routeMethod);
 
         if (!_queryParameters.IsValueCreated)
         {
