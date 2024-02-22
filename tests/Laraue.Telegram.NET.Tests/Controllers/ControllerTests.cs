@@ -78,7 +78,7 @@ public class ControllerTests
     [Fact]
     public async Task MessageRoute_ShouldResponseCorrectlyAsync()
     {
-        var result = await SendRequestAsync(new Update
+        await SendRequestAsync(new Update
         {
             Message = new Message
             {
@@ -98,13 +98,13 @@ public class ControllerTests
             },
         });
         
-        _testChecker.Verify(x => x.Call("message"));
+        _testChecker.Verify(x => x.Call("get: message"));
     }
     
     [Fact]
     public async Task CallbackRoute_ShouldParsePathParametersCorrectlyAsync()
     {
-        var result = await SendRequestAsync(new Update
+        await SendRequestAsync(new Update
         {
             CallbackQuery = new CallbackQuery
             {
@@ -115,13 +115,36 @@ public class ControllerTests
                     Id = 123,
                     IsBot = false,
                 },
-                Data = "callback/12?name=\"Alex\"",
+                Data = new CallbackRoutePath("callback/12").WithQueryParameter("name", "Alex"),
                 Id = "123",
                 ChatInstance = "123",
             },
         });
         
         _testChecker.Verify(x => x.Call("AlexAlex1212Alex"));
+    }
+    
+    [Fact]
+    public async Task CallbackRoute_ShouldBeRoutedCorrectly_WhenMethodIsPostAsync()
+    {
+        await SendRequestAsync(new Update
+        {
+            CallbackQuery = new CallbackQuery
+            {
+                From = new User
+                {
+                    FirstName = "Ilya",
+                    Username = "user",
+                    Id = 123,
+                    IsBot = false,
+                },
+                Data = new CallbackRoutePath("callback/12", RouteMethod.Post),
+                Id = "123",
+                ChatInstance = "123",
+            },
+        });
+        
+        _testChecker.Verify(x => x.Call("post: 12"));
     }
     
     [Fact]
@@ -231,15 +254,15 @@ public class ControllerTests
         }
 
         [TelegramMessageRoute("message")]
-        public Task ExecuteMessageAsync(TelegramRequestContext<string> requestContext)
+        public Task GetMessageAsync(TelegramRequestContext<string> requestContext)
         {
-            _testChecker.Call(requestContext.Update.Message!.Text);
+            _testChecker.Call($"get: {requestContext.Update.Message!.Text}");
             
             return Task.CompletedTask;
         }
         
         [TelegramCallbackRoute("callback/{id}")]
-        public Task ExecuteCallbackAsync(
+        public Task GetCallbackAsync(
             [FromPath] int id,
             [FromPath("id")] int alsoId,
             [FromQuery] string? name,
@@ -247,6 +270,14 @@ public class ControllerTests
             [FromQuery] QueryParameters queryParameters)
         {
             _testChecker.Call($"{name}{alsoName}{id}{alsoId}{queryParameters.Name}");
+            
+            return Task.CompletedTask;
+        }
+        
+        [TelegramCallbackRoute("callback/{id}", RouteMethod.Post)]
+        public Task ExecuteCallbackAsync([FromPath] int id)
+        {
+            _testChecker.Call($"post: {id}");
             
             return Task.CompletedTask;
         }

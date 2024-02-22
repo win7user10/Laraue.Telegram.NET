@@ -12,14 +12,13 @@ public class TelegramMessageRouteAttribute : TelegramBaseRouteWithPathAttribute
     /// <summary>
     /// This route will be matched when the message text is matching to the passed pattern.
     /// </summary>
-    /// <param name="pathPattern"></param>
     public TelegramMessageRouteAttribute(string pathPattern)
-        : base(UpdateType.Message, pathPattern)
+        : base(UpdateType.Message, RouteMethod.Get, pathPattern)
     {
     }
 
     /// <inheritdoc />
-    protected override string? GetPathFromUpdate(Update update)
+    protected override string? GetDataStringFromUpdate(Update update)
     {
         return update.Message?.Text;
     }

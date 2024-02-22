@@ -39,7 +39,7 @@ public static class TelegramMessageBuilderExtensions
     public static TelegramMessageBuilder AddPaginationButtons<TData>(
         this TelegramMessageBuilder messageBuilder,
         IShortPaginatedResult<TData> result,
-        RoutePathBuilder route,
+        CallbackRoutePath callbackRoute,
         string previousButtonText = "Previous ⬅",
         string nextButtonText = "Next ➡",
         string pageParameterName = Defaults.PageParameterName,
@@ -49,7 +49,7 @@ public static class TelegramMessageBuilderExtensions
         var rowButtons = new List<InlineKeyboardButton>();
         if (result.HasPreviousPage)
         {
-            rowButtons.Add(route
+            rowButtons.Add(callbackRoute
                 .WithQueryParameter(pageParameterName, result.Page - 1)
                 .ToInlineKeyboardButton(previousButtonText));
         }
@@ -60,7 +60,7 @@ public static class TelegramMessageBuilderExtensions
         
         if (result.HasNextPage)
         {
-            rowButtons.Add(route
+            rowButtons.Add(callbackRoute
                 .WithQueryParameter(pageParameterName, result.Page + 1)
                 .ToInlineKeyboardButton(nextButtonText));
         }

@@ -15,12 +15,15 @@ namespace Laraue.Telegram.NET.Core.Routing.Attributes;
 [AttributeUsage(AttributeTargets.Method)]
 public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttribute
 {
-    private readonly string _pathPattern;
-
     /// <summary>
     /// Telegram update type.
     /// </summary>
     public UpdateType UpdateType { get; }
+    
+    /// <summary>
+    /// Controller route method type.
+    /// </summary>
+    public RouteMethod RouteMethod { get; }
     
     /// <summary>
     /// Pattern of path which will be tried to match.
@@ -31,11 +34,12 @@ public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttr
     /// Initializes a new instance of <see cref="TelegramBaseRouteWithPathAttribute"/>.
     /// </summary>
     /// <param name="updateType"></param>
+    /// <param name="routeMethod"></param>
     /// <param name="pathPattern"></param>
-    protected TelegramBaseRouteWithPathAttribute(UpdateType updateType, string pathPattern)
+    protected TelegramBaseRouteWithPathAttribute(UpdateType updateType, RouteMethod routeMethod, string pathPattern)
     {
-        _pathPattern = pathPattern;
         UpdateType = updateType;
+        RouteMethod = routeMethod;
         PathPattern = RouteRegexCreator.ForRoute(pathPattern);
     }
 
@@ -49,19 +53,25 @@ public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttr
             return false;
         }
 
-        var pathFromUpdate = GetPathFromUpdate(update);
-        if (pathFromUpdate is null)
+        var dataString = GetDataStringFromUpdate(update);
+        if (dataString is null)
         {
             return false;
         }
         
-        var match = PathPattern.Match(pathFromUpdate);
+        var routeMethod = TakeMethodBlock(dataString, out var pathString);
+        if (routeMethod != RouteMethod)
+        {
+            return false;
+        }
+        
+        var match = PathPattern.Match(pathString);
         if (!match.Success)
         {
             return false;
         }
         
-        var queryParameters = pathFromUpdate.ParseQueryParts();
+        var queryParameters = pathString.ParseQueryParts();
         var pathParameters = match.Groups
             .Cast<Group>()
             .Where(x => !int.TryParse(x.Name, out _))
@@ -76,5 +86,17 @@ public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttr
     /// </summary>
     /// <param name="update"></param>
     /// <returns></returns>
-    protected abstract string? GetPathFromUpdate(Update update);
+    protected abstract string? GetDataStringFromUpdate(Update update);
+
+    private static RouteMethod TakeMethodBlock(string dataString, out string pathString)
+    {
+        if (dataString[1] == ' ')
+        {
+            pathString = dataString[2..];
+            return Enum.Parse<RouteMethod>(dataString.AsSpan(0, 1));
+        }
+
+        pathString = dataString;
+        return RouteMethod.Get;
+    }
 }

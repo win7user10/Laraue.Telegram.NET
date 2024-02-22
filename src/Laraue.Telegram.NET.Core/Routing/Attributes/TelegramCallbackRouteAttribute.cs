@@ -12,14 +12,13 @@ public class TelegramCallbackRouteAttribute : TelegramBaseRouteWithPathAttribute
     /// <summary>
     /// This route will be matched when callback query data is matching to the passed pattern.
     /// </summary>
-    /// <param name="pathPattern"></param>
-    public TelegramCallbackRouteAttribute(string pathPattern)
-        : base(UpdateType.CallbackQuery, pathPattern)
+    public TelegramCallbackRouteAttribute(string pathPattern, RouteMethod routeMethod = RouteMethod.Get)
+        : base(UpdateType.CallbackQuery, routeMethod, pathPattern)
     {
     }
     
     /// <inheritdoc />
-    protected override string? GetPathFromUpdate(Update update)
+    protected override string? GetDataStringFromUpdate(Update update)
     {
         return update.CallbackQuery?.Data;
     }
