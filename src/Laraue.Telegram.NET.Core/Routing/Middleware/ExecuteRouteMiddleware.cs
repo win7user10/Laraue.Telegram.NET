@@ -1,35 +1,39 @@
-﻿using Laraue.Telegram.NET.Abstractions;
+﻿using System.Diagnostics;
+using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Core.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Laraue.Telegram.NET.Core.Routing.Middleware;
 
-internal sealed class ExecuteRouteMiddleware : ITelegramMiddleware
+internal sealed class ExecuteRouteMiddleware(
+    IEnumerable<IRoute> routes,
+    IServiceProvider serviceProvider,
+    TelegramRequestContext requestContext,
+    ILogger<ExecuteRouteMiddleware> logger) : ITelegramMiddleware
 {
-    private readonly IEnumerable<IRoute> _routes;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly TelegramRequestContext _requestContext;
-
-    public ExecuteRouteMiddleware(IEnumerable<IRoute> routes, IServiceProvider serviceProvider, TelegramRequestContext requestContext)
-    {
-        _routes = routes;
-        _serviceProvider = serviceProvider;
-        _requestContext = requestContext;
-    }
 
     public async Task InvokeAsync(Func<CancellationToken, Task> next, CancellationToken ct)
     {
-        foreach (var route in _routes)
+        var sw = new Stopwatch();
+        sw.Start();
+        
+        foreach (var route in routes)
         {
-            var result = await route.TryExecuteAsync(_serviceProvider, ct).ConfigureAwait(false);
+            var result = await route.TryExecuteAsync(serviceProvider, ct).ConfigureAwait(false);
             
             if (!result.IsExecuted)
             {
                 continue;
             }
 
-            _requestContext.SetExecutedRoute(new ExecutedRouteInfo("Route", route.ToString()));
+            var routeName = route.ToString();
+            requestContext.SetExecutedRoute(new ExecutedRouteInfo("Route", routeName));
+            logger.LogDebug("Route {Name} has been matched for {Time} ms", routeName, sw.ElapsedMilliseconds);
             
+            sw.Restart();
             await next(ct).ConfigureAwait(false);
+            logger.LogDebug("Route {Name} has been executed for {Time} ms", routeName, sw.ElapsedMilliseconds);
+            
             return;
         }
         
