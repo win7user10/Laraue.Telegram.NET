@@ -46,17 +46,39 @@ public sealed class TelegramRouter : ITelegramRouter
 
         _telegramRequestContext.Update = update;
         
-        ITelegramMiddleware? lastMiddleware = null;
+        var middlewares = new LinkedList<ITelegramMiddleware>();
         foreach (var middlewareType in _middlewareList.Items)
         {
-            var middleware = lastMiddleware == null
-                ? ActivatorUtilities.CreateInstance(_serviceProvider, middlewareType)
-                : ActivatorUtilities.CreateInstance(_serviceProvider, middlewareType, lastMiddleware);
-
-            lastMiddleware = (ITelegramMiddleware) middleware;
+            middlewares.AddFirst(
+                (ITelegramMiddleware) ActivatorUtilities.CreateInstance(_serviceProvider, middlewareType));
         }
 
-        await lastMiddleware!.InvokeAsync(cancellationToken);
+        Func<CancellationToken, Task> invokeDelegate = _ => Task.CompletedTask;
+        
+        var middlewareNode = middlewares.Last;
+        while (middlewareNode != null)
+        {
+            var middlewareRef = middlewareNode.Value;
+            var delegateRef = invokeDelegate.Invoke;
+            
+            invokeDelegate = async (ct) =>
+            {
+                var middlewareSw = new Stopwatch();
+
+                var middlewareName = middlewareRef.GetType();
+                _logger.LogDebug("Middleware {Name} is executing", middlewareName);
+                
+                await middlewareRef.InvokeAsync(delegateRef, ct).ConfigureAwait(false);
+                _logger.LogDebug(
+                    "Middleware {Name} executed for {Time} ms",
+                    middlewareName,
+                    middlewareSw.ElapsedMilliseconds);
+            };
+            
+            middlewareNode = middlewareNode.Previous;
+        }
+
+        await invokeDelegate(cancellationToken).ConfigureAwait(false);
         var executedRoute = _telegramRequestContext.GetExecutedRoute();
         
         if (executedRoute is not null)

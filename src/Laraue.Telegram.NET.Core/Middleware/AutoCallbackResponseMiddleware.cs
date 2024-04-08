@@ -11,7 +11,6 @@ namespace Laraue.Telegram.NET.Core.Middleware;
 /// </summary>
 public sealed class AutoCallbackResponseMiddleware : ITelegramMiddleware
 {
-    private readonly ITelegramMiddleware _next;
     private readonly TelegramRequestContext _requestContext;
     private readonly ITelegramBotClient _telegramBotClient;
     private readonly ILogger<AutoCallbackResponseMiddleware> _logger;
@@ -20,27 +19,25 @@ public sealed class AutoCallbackResponseMiddleware : ITelegramMiddleware
     /// Initializes a new instance of <see cref="AutoCallbackResponseMiddleware"/>.
     /// </summary>
     public AutoCallbackResponseMiddleware(
-        ITelegramMiddleware next,
         TelegramRequestContext requestContext,
         ITelegramBotClient telegramBotClient,
         ILogger<AutoCallbackResponseMiddleware> logger)
     {
-        _next = next;
         _requestContext = requestContext;
         _telegramBotClient = telegramBotClient;
         _logger = logger;
     }
 
     /// <inheritdoc />
-    public Task InvokeAsync(CancellationToken ct = default)
+    public Task InvokeAsync(Func<CancellationToken, Task> next, CancellationToken ct = default)
     {
         var callbackQueryId = _requestContext.Update.CallbackQuery?.Id;
-        return callbackQueryId is null ? _next.InvokeAsync(ct) : InvokeInternalAsync(callbackQueryId, ct);
+        return callbackQueryId is null ? next(ct) : InvokeInternalAsync(next, callbackQueryId, ct);
     }
 
-    private async Task InvokeInternalAsync(string callbackQueryId, CancellationToken ct)
+    private async Task InvokeInternalAsync(Func<CancellationToken, Task> next, string callbackQueryId, CancellationToken ct)
     {
-        await _next.InvokeAsync(ct);
+        await next(ct).ConfigureAwait(false);
 
         if (_requestContext.GetExecutedRoute() is null)
         {
@@ -51,9 +48,11 @@ public sealed class AutoCallbackResponseMiddleware : ITelegramMiddleware
         {
             _logger.LogDebug("Responding to the callback query {Id}", callbackQueryId);
                 
-            await _telegramBotClient.AnswerCallbackQueryAsync(
-                callbackQueryId,
-                cancellationToken: ct);
+            await _telegramBotClient
+                .AnswerCallbackQueryAsync(
+                    callbackQueryId,
+                    cancellationToken: ct)
+                .ConfigureAwait(false);
         }
         catch (ApiRequestException e)
         {

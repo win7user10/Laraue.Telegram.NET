@@ -16,11 +16,11 @@ internal sealed class ExecuteRouteMiddleware : ITelegramMiddleware
         _requestContext = requestContext;
     }
 
-    public async Task InvokeAsync(CancellationToken ct = default)
+    public async Task InvokeAsync(Func<CancellationToken, Task> next, CancellationToken ct)
     {
         foreach (var route in _routes)
         {
-            var result = await route.TryExecuteAsync(_serviceProvider, ct);
+            var result = await route.TryExecuteAsync(_serviceProvider, ct).ConfigureAwait(false);
             
             if (!result.IsExecuted)
             {
@@ -29,7 +29,10 @@ internal sealed class ExecuteRouteMiddleware : ITelegramMiddleware
 
             _requestContext.SetExecutedRoute(new ExecutedRouteInfo("Route", route.ToString()));
             
+            await next(ct).ConfigureAwait(false);
             return;
         }
+        
+        await next(ct).ConfigureAwait(false);
     }
 }

@@ -10,7 +10,6 @@ namespace Laraue.Telegram.NET.Authentication.Middleware;
 public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     where TKey : IEquatable<TKey>
 {
-    private readonly ITelegramMiddleware _next;
     private readonly IUserService<TKey> _userService;
     private readonly TelegramRequestContext<TKey> _telegramRequestContext;
     private readonly ILogger<AuthTelegramMiddleware<TKey>> _logger;
@@ -20,13 +19,11 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     private static readonly KeyedSemaphoreSlim<long> Semaphore = new (1);
 
     public AuthTelegramMiddleware(
-        ITelegramMiddleware next,
         IUserService<TKey> userService,
         TelegramRequestContext<TKey> telegramRequestContext,
         ILogger<AuthTelegramMiddleware<TKey>> logger,
         IUserRoleProvider userRoleProvider)
     {
-        _next = next;
         _userService = userService;
         _telegramRequestContext = telegramRequestContext;
         _logger = logger;
@@ -34,12 +31,12 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     }
     
     /// <inheritdoc />
-    public async Task InvokeAsync(CancellationToken ct)
+    public async Task InvokeAsync(Func<CancellationToken, Task> next, CancellationToken ct = default)
     {
         var user = _telegramRequestContext.Update.GetUser();
         if (user is null)
         {
-            await _next.InvokeAsync(ct);
+            await next(ct);
             return;
         }
         
@@ -65,6 +62,6 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
             systemId,
             string.Join(',', userGroups.Select(x => x.Name)));
         
-        await _next.InvokeAsync(ct);
+        await next(ct);
     }
 }

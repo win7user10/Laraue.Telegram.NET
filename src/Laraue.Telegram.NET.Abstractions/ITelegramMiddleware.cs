@@ -9,7 +9,8 @@ public interface ITelegramMiddleware
     /// <summary>
     /// Execute middleware logic.
     /// </summary>
+    /// <param name="next"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public Task InvokeAsync(CancellationToken ct = default);
+    public Task InvokeAsync(Func<CancellationToken, Task> next, CancellationToken ct = default);
 }

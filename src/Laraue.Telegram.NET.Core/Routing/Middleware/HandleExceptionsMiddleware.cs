@@ -12,41 +12,39 @@ namespace Laraue.Telegram.NET.Core.Routing.Middleware;
 /// </summary>
 public class HandleExceptionsMiddleware : ITelegramMiddleware
 {
-    private readonly ITelegramMiddleware _next;
     private readonly ITelegramBotClient _telegramBotClient;
     private readonly TelegramRequestContext _telegramRequestContext;
 
     /// <summary>
     /// Initializes a new instance of <see cref="HandleExceptionsMiddleware"/>.
     /// </summary>
-    /// <param name="next"></param>
     /// <param name="telegramBotClient"></param>
     /// <param name="telegramRequestContext"></param>
     public HandleExceptionsMiddleware(
-        ITelegramMiddleware next,
         ITelegramBotClient telegramBotClient,
         TelegramRequestContext telegramRequestContext)
     {
-        _next = next;
         _telegramBotClient = telegramBotClient;
         _telegramRequestContext = telegramRequestContext;
     }
 
     /// <inheritdoc />
-    public async Task InvokeAsync(CancellationToken ct)
+    public async Task InvokeAsync(Func<CancellationToken, Task> next, CancellationToken ct)
     {
         try
         {
-            await _next.InvokeAsync(ct);
+            await next(ct).ConfigureAwait(false);
         }
         catch (BadTelegramRequestException ex)
         {
             var userId = _telegramRequestContext.Update.GetUserId();
             
-            await _telegramBotClient.SendTextMessageAsync(
-                userId,
-                ex.Message,
-                cancellationToken: ct);
+            await _telegramBotClient
+                .SendTextMessageAsync(
+                    userId,
+                    ex.Message,
+                    cancellationToken: ct)
+                .ConfigureAwait(false);
         }
     }
 }

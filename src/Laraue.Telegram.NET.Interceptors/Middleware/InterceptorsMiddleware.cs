@@ -12,20 +12,17 @@ namespace Laraue.Telegram.NET.Interceptors.Middleware;
 public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
     where TKey : IEquatable<TKey>
 {
-    private readonly ITelegramMiddleware _next;
     private readonly IInterceptorState<TKey> _interceptorState;
     private readonly TelegramRequestContext<TKey> _requestContext;
     private readonly IEnumerable<IRequestInterceptor> _interceptors;
     private readonly ILogger<InterceptorsMiddleware<TKey>> _logger;
 
     public InterceptorsMiddleware(
-        ITelegramMiddleware next,
         IInterceptorState<TKey> interceptorState,
         TelegramRequestContext<TKey> requestContext,
         IEnumerable<IRequestInterceptor> interceptors,
         ILogger<InterceptorsMiddleware<TKey>> logger)
     {
-        _next = next;
         _interceptorState = interceptorState;
         _requestContext = requestContext;
         _interceptors = interceptors;
@@ -33,19 +30,19 @@ public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
     }
     
     /// <inheritdoc />
-    public async Task InvokeAsync(CancellationToken ct = default)
+    public async Task InvokeAsync(Func<CancellationToken, Task> next, CancellationToken ct = default)
     {
         var userId = _requestContext.UserId;
         if (userId is null)
         {
-            await _next.InvokeAsync(ct);
+            await next(ct);
             return;
         }
         
-        var interceptorId = await _interceptorState.GetAsync(userId);
+        var interceptorId = await _interceptorState.GetAsync(userId).ConfigureAwait(false);
         if (interceptorId is null)
         {
-            await _next.InvokeAsync(ct);
+            await next(ct);
             return;
         }
 
@@ -54,14 +51,14 @@ public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
         {
             _logger.LogWarning("Interceptor {Id} has not been found, use default routing mechanism", interceptorId);
             
-            await _next.InvokeAsync(ct);
+            await next(ct);
             return;
         }
         
-        var result = await interceptor.ExecuteAsync();
+        var result = await interceptor.ExecuteAsync().ConfigureAwait(false);
         if (result is ExecutionState.FullyExecuted or ExecutionState.Cancelled)
         {
-            await _interceptorState.ResetAsync(_requestContext.GetUserIdOrThrow());
+            await _interceptorState.ResetAsync(_requestContext.GetUserIdOrThrow()).ConfigureAwait(false);
         }
         
         _requestContext.SetExecutedRoute(new ExecutedRouteInfo("Interceptor", interceptor.ToString()));

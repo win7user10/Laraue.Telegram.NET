@@ -8,11 +8,11 @@ namespace Laraue.Telegram.NET.Localization;
 /// </summary>
 /// <param name="next"></param>
 /// <param name="provider"></param>
-public class LocalizationTelegramMiddleware(ITelegramMiddleware next, ITelegramCultureInfoProvider provider)
+public class LocalizationTelegramMiddleware(ITelegramCultureInfoProvider provider)
     : ITelegramMiddleware
 {
     /// <inheritdoc />
-    public async Task InvokeAsync(CancellationToken ct = default)
+    public async Task InvokeAsync(Func<CancellationToken, Task> next, CancellationToken ct = default)
     {
         var requestCulture = await provider
             .DetermineProviderCultureResultAsync(ct)
@@ -24,6 +24,6 @@ public class LocalizationTelegramMiddleware(ITelegramMiddleware next, ITelegramC
             CultureInfo.CurrentCulture = requestCulture.Culture;
         }
 
-        await next.InvokeAsync(ct).ConfigureAwait(false);
+        await next(ct).ConfigureAwait(false);
     }
 }
