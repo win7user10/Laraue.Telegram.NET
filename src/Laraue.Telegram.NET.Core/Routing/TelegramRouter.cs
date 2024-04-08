@@ -64,6 +64,7 @@ public sealed class TelegramRouter : ITelegramRouter
             invokeDelegate = async (ct) =>
             {
                 var middlewareSw = new Stopwatch();
+                middlewareSw.Start();
 
                 var middlewareName = middlewareRef.GetType();
                 _logger.LogDebug("Middleware {Name} is executing", middlewareName);
