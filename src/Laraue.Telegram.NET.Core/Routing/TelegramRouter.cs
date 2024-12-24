@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Core.Extensions;
 using Laraue.Telegram.NET.Core.Routing.Middleware;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Telegram.Bot.Types;
 
 namespace Laraue.Telegram.NET.Core.Routing;
@@ -94,7 +94,7 @@ public sealed class TelegramRouter : ITelegramRouter
             _logger.LogInformation(
                 "Request time {Time} ms, status: not found, payload: {Payload}",
                 sw.ElapsedMilliseconds,
-                JsonConvert.SerializeObject(update));
+                JsonSerializer.Serialize(update));
         }
     }
 }

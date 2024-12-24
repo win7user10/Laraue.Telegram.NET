@@ -40,7 +40,7 @@ public class HandleExceptionsMiddleware : ITelegramMiddleware
             var userId = _telegramRequestContext.Update.GetUserId();
             
             await _telegramBotClient
-                .SendTextMessageAsync(
+                .SendMessage(
                     userId,
                     ex.Message,
                     cancellationToken: ct)

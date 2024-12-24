@@ -49,7 +49,7 @@ public sealed class AutoCallbackResponseMiddleware : ITelegramMiddleware
             _logger.LogDebug("Responding to the callback query {Id}", callbackQueryId);
                 
             await _telegramBotClient
-                .AnswerCallbackQueryAsync(
+                .AnswerCallbackQuery(
                     callbackQueryId,
                     cancellationToken: ct)
                 .ConfigureAwait(false);

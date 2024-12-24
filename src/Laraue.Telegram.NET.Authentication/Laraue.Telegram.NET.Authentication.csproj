@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Description>Integration Laraue.Telegram.NET packacge with Micrososoft.Identity</Description>
@@ -13,9 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.3" />
-    <PackageReference Include="Laraue.Core.Exceptions" Version="8.0.2" />
-    <PackageReference Include="Laraue.Core.Threading" Version="8.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
+    <PackageReference Include="Laraue.Core.Exceptions" Version="9.0.1" />
+    <PackageReference Include="Laraue.Core.Threading" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>

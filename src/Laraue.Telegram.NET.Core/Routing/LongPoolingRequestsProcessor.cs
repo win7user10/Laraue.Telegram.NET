@@ -1,5 +1,5 @@
-﻿using Laraue.Telegram.NET.Abstractions;
-using Newtonsoft.Json;
+﻿using System.Text.Json;
+using Laraue.Telegram.NET.Abstractions;
 using Telegram.Bot.Types;
 
 namespace Laraue.Telegram.NET.Core.Routing;
@@ -34,8 +34,11 @@ public class LongPoolingRequestsProcessor : ILongPoolingRequestsProcessor
     /// <inheritdoc />
     public async ValueTask ProcessAsync(HttpResponseMessage request, CancellationToken cancellationToken)
     {
-        var body = await request.Content.ReadAsStringAsync(cancellationToken);
-        var update = JsonConvert.DeserializeObject<Update>(body);
+        await using var stream = await request.Content
+            .ReadAsStreamAsync(cancellationToken)
+            .ConfigureAwait(false);
+        
+        var update = JsonSerializer.Deserialize<Update>(stream);
         if (update is null)
         {
             return;

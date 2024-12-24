@@ -18,28 +18,32 @@ public static class TelegramBotClientExtensions
         this ITelegramBotClient botClient,
         ChatId chatId,
         TelegramMessageBuilder messageBuilder,
+        ParseMode parseMode = default,
+        ReplyParameters? replyParameters = default,
+        LinkPreviewOptions? linkPreviewOptions = default,
         int? messageThreadId = default,
-        ParseMode? parseMode = default,
         IEnumerable<MessageEntity>? entities = default,
-        bool? disableWebPagePreview = default,
-        bool? disableNotification = default,
-        bool? protectContent = default,
-        int? replyToMessageId = default,
-        bool? allowSendingWithoutReply = default,
+        bool disableNotification = default,
+        bool protectContent = default,
+        string? messageEffectId = default,
+        string? businessConnectionId = default,
+        bool allowPaidBroadcast = default,
         CancellationToken cancellationToken = default)
     {
-        return botClient.SendTextMessageAsync(
+        return botClient.SendMessage(
             chatId: chatId,
             text: messageBuilder.Text,
             messageThreadId: messageThreadId,
+            replyParameters: replyParameters,
+            linkPreviewOptions: linkPreviewOptions,
             parseMode: parseMode,
             entities: entities,
-            disableWebPagePreview: disableWebPagePreview,
             disableNotification: disableNotification,
             protectContent: protectContent,
-            replyToMessageId: replyToMessageId,
-            allowSendingWithoutReply: allowSendingWithoutReply,
             replyMarkup: messageBuilder.InlineKeyboard,
+            messageEffectId: messageEffectId,
+            businessConnectionId: businessConnectionId,
+            allowPaidBroadcast: allowPaidBroadcast,
             cancellationToken: cancellationToken);
     }
 
@@ -51,22 +55,24 @@ public static class TelegramBotClientExtensions
         ChatId chatId,
         int messageId,
         TelegramMessageBuilder messageBuilder,
-        ParseMode? parseMode = default,
+        ParseMode parseMode = ParseMode.None,
         IEnumerable<MessageEntity>? entities = default,
-        bool? disableWebPagePreview = default,
         bool throwOnMessageNotModified = false,
+        string? businessConnectionId = default,
+        LinkPreviewOptions? linkPreviewOptions = default,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            await botClient.EditMessageTextAsync(
+            await botClient.EditMessageText(
                 chatId: chatId,
                 messageId: messageId,
                 text: messageBuilder.Text,
                 parseMode: parseMode,
                 entities: entities,
-                disableWebPagePreview: disableWebPagePreview,
+                linkPreviewOptions: linkPreviewOptions,
                 replyMarkup: messageBuilder.InlineKeyboard,
+                businessConnectionId: businessConnectionId,
                 cancellationToken: cancellationToken);
         }
         catch (ApiRequestException e) when (
@@ -86,10 +92,11 @@ public static class TelegramBotClientExtensions
         this ITelegramBotClient botClient,
         TelegramMessageId messageId,
         TelegramMessageBuilder messageBuilder,
-        ParseMode? parseMode = default,
+        ParseMode parseMode = ParseMode.None,
         IEnumerable<MessageEntity>? entities = default,
-        bool? disableWebPagePreview = default,
         bool throwOnMessageNotModified = false,
+        string? businessConnectionId = default,
+        LinkPreviewOptions? linkPreviewOptions = default,
         CancellationToken cancellationToken = default)
     {
         return botClient.EditMessageTextAsync(
@@ -98,8 +105,9 @@ public static class TelegramBotClientExtensions
             messageBuilder: messageBuilder,
             parseMode: parseMode,
             entities: entities,
-            disableWebPagePreview: disableWebPagePreview,
+            linkPreviewOptions: linkPreviewOptions,
             throwOnMessageNotModified: throwOnMessageNotModified,
+            businessConnectionId: businessConnectionId,
             cancellationToken: cancellationToken);
     }
 }

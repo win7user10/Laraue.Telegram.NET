@@ -1,6 +1,6 @@
-﻿using Laraue.Telegram.NET.Abstractions;
+﻿using System.Text.Json;
+using Laraue.Telegram.NET.Abstractions;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
 using Telegram.Bot.Types;
 
 namespace Laraue.Telegram.NET.Core.Middleware;
@@ -14,17 +14,15 @@ internal sealed class MapRequestToTelegramCoreMiddleware : IMiddleware
         _telegramRouter = telegramRouter;
     }
         
-    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    public Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        using var sr = new StreamReader(context.Request.Body);
-        var body = await sr.ReadToEndAsync();
-            
-        var update = JsonConvert.DeserializeObject<Update>(body);
+        var update = JsonSerializer.Deserialize<Update>(context.Request.Body);
         if (update is null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        await _telegramRouter.RouteAsync(update, context.RequestAborted);
+        return _telegramRouter
+            .RouteAsync(update, context.RequestAborted);
     }
 }
