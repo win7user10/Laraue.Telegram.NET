@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Laraue.Telegram.NET.Abstractions;
+using Laraue.Telegram.NET.Core.Middleware;
 using Laraue.Telegram.NET.Core.Routing;
 using Laraue.Telegram.NET.Core.Routing.Attributes;
 using Laraue.Telegram.NET.Core.Routing.Middleware;
@@ -25,7 +26,7 @@ public static class ServiceCollectionExtensions
         TelegramBotClientOptions telegramBotClientOptions,
         Assembly[]? controllerAssemblies = null)
     {
-        serviceCollection.AddScoped<WebApplicationExtensions.MapRequestToTelegramCoreMiddleware>();
+        serviceCollection.AddScoped<MapRequestToTelegramCoreMiddleware>();
         
         serviceCollection
             .AddSingleton(telegramBotClientOptions)
@@ -33,13 +34,15 @@ public static class ServiceCollectionExtensions
             .AddScoped<ITelegramRouter, TelegramRouter>()
             .AddScoped<TelegramRequestContext>();
 
-        serviceCollection.AddTelegramControllers(controllerAssemblies ?? new []{ Assembly.GetCallingAssembly() });
+        serviceCollection.AddTelegramControllers(controllerAssemblies ?? [Assembly.GetCallingAssembly()]);
         serviceCollection.AddOptions<MiddlewareList>();
         serviceCollection.Configure<MiddlewareList>(opt =>
         {
             opt.AddToRoot<ExecuteRouteMiddleware>();
             opt.AddToTop<HandleExceptionsMiddleware>();
         });
+
+        serviceCollection.AddSingleton<ILongPoolingRequestsProcessor>();
 
         return serviceCollection;
     }

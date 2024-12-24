@@ -1,8 +1,8 @@
-﻿using Laraue.Telegram.NET.Abstractions;
+﻿using Laraue.Telegram.NET.Core.Middleware;
+using Laraue.Telegram.NET.Core.Routing;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using Telegram.Bot.Types;
+using Microsoft.Extensions.DependencyInjection;
+using Telegram.Bot;
 
 namespace Laraue.Telegram.NET.Core.Extensions;
 
@@ -22,28 +22,16 @@ public static class WebApplicationExtensions
             x => x.Request.Path == route,
             builder => builder.UseMiddleware<MapRequestToTelegramCoreMiddleware>());
     }
-
-    internal sealed class MapRequestToTelegramCoreMiddleware : IMiddleware
+    
+    /// <summary>
+    /// Use webhooks for telegram requests handling.
+    /// </summary>
+    /// <param name="applicationBuilder"></param>
+    public static void MapLongPoolingRequests(this IApplicationBuilder applicationBuilder)
     {
-        private readonly ITelegramRouter _telegramRouter;
+        var s = applicationBuilder.ApplicationServices.GetRequiredService<ILongPoolingRequestsProcessor>();
+        var b = applicationBuilder.ApplicationServices.GetRequiredService<ITelegramBotClient>();
 
-        public MapRequestToTelegramCoreMiddleware(ITelegramRouter telegramRouter)
-        {
-            _telegramRouter = telegramRouter;
-        }
-        
-        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
-        {
-            using var sr = new StreamReader(context.Request.Body);
-            var body = await sr.ReadToEndAsync();
-            
-            var update = JsonConvert.DeserializeObject<Update>(body);
-            if (update is null)
-            {
-                return;
-            }
-
-            await _telegramRouter.RouteAsync(update, context.RequestAborted);
-        }
+        b.OnApiResponseReceived += (_, args, token) => s.ProcessAsync(args.ResponseMessage, token);
     }
 }
