@@ -14,15 +14,16 @@ internal sealed class MapRequestToTelegramCoreMiddleware : IMiddleware
         _telegramRouter = telegramRouter;
     }
         
-    public Task InvokeAsync(HttpContext context, RequestDelegate next)
+    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        var update = JsonSerializer.Deserialize<Update>(context.Request.Body);
+        var update = await JsonSerializer.DeserializeAsync<Update>(context.Request.Body);
         if (update is null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
-        return _telegramRouter
-            .RouteAsync(update, context.RequestAborted);
+        await _telegramRouter
+            .RouteAsync(update, context.RequestAborted)
+            .ConfigureAwait(false);
     }
 }

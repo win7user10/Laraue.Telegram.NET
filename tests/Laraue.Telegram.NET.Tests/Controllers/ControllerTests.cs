@@ -19,10 +19,11 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
-using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Xunit;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Laraue.Telegram.NET.Tests.Controllers;
 
@@ -36,7 +37,7 @@ public class ControllerTests
         var hostBuilder = new WebHostBuilder()
             .ConfigureServices((c, s) =>
             {
-                s.AddTelegramCore(new TelegramBotClientOptions("a"))
+                s.AddTelegramCore(new TelegramBotClientOptions("5118223111:ARErD6_712sIDp_OV-UwDDRwemB1IwWW1sE"))
                     .AddScoped<TelegramRequestContext<string>>()
                     .AddScoped<TelegramRequestContext>(
                         sp => sp.GetRequiredService<TelegramRequestContext<string>>())
@@ -53,7 +54,7 @@ public class ControllerTests
                     .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
                     .AddScoped<IUserService<string>, MockedUserService>()
                     .AddScoped<IUserRoleProvider>(_ => new StaticUserRoleProvider(
-                        Options.Create(new RoleUsers { ["Protected.View"] = new[] { "JohnLennon" } })))
+                        Options.Create(new RoleUsers { ["Protected.View"] = ["JohnLennon"] })))
                     .AddScoped<IControllerProtector, UserShouldBeInGroupProtector<string>>()
                     .AddSingleton(_testChecker.Object);
             })
@@ -66,7 +67,7 @@ public class ControllerTests
     {
         var resp = await _testServer.CreateClient().PostAsync(
             "test",
-            new StringContent(JsonConvert.SerializeObject(update),
+            new StringContent(JsonSerializer.Serialize(update),
                 Encoding.UTF8,
                 "text/json"));
 
@@ -94,6 +95,7 @@ public class ControllerTests
                 Chat = new Chat
                 {
                     Id = 1,
+                    Type = ChatType.Private
                 }
             },
         });
@@ -166,6 +168,7 @@ public class ControllerTests
                 Chat = new Chat
                 {
                     Id = 1,
+                    Type = ChatType.Private
                 }
             },
         };
@@ -201,6 +204,7 @@ public class ControllerTests
                 Chat = new Chat
                 {
                     Id = 1,
+                    Type = ChatType.Private
                 }
             },
         });
@@ -235,7 +239,8 @@ public class ControllerTests
                 Chat = new Chat
                 {
                     Id = 1,
-                }
+                    Type = ChatType.Private
+                },
             },
         });
         

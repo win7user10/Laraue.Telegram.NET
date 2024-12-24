@@ -42,7 +42,7 @@ public static class ServiceCollectionExtensions
             opt.AddToTop<HandleExceptionsMiddleware>();
         });
 
-        serviceCollection.AddSingleton<ILongPoolingRequestsProcessor>();
+        serviceCollection.AddSingleton<ILongPoolingRequestsProcessor, LongPoolingRequestsProcessor>();
 
         return serviceCollection;
     }
