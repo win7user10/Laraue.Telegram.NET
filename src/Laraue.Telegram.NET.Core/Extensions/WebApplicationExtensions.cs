@@ -1,8 +1,5 @@
 ﻿using Laraue.Telegram.NET.Core.Middleware;
-using Laraue.Telegram.NET.Core.Routing;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Telegram.Bot;
 
 namespace Laraue.Telegram.NET.Core.Extensions;
 
@@ -21,17 +18,5 @@ public static class WebApplicationExtensions
         applicationBuilder.MapWhen(
             x => x.Request.Path == route,
             builder => builder.UseMiddleware<MapRequestToTelegramCoreMiddleware>());
-    }
-    
-    /// <summary>
-    /// Use webhooks for telegram requests handling.
-    /// </summary>
-    /// <param name="applicationBuilder"></param>
-    public static void MapLongPoolingRequests(this IApplicationBuilder applicationBuilder)
-    {
-        var s = applicationBuilder.ApplicationServices.GetRequiredService<ILongPoolingRequestsProcessor>();
-        var b = applicationBuilder.ApplicationServices.GetRequiredService<ITelegramBotClient>();
-
-        b.OnApiResponseReceived += (_, args, token) => s.ProcessAsync(args.ResponseMessage, token);
     }
 }

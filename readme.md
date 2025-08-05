@@ -29,12 +29,22 @@ public class MenuController : TelegramController
 Here _TelegramMessageRoute_ means that if the message with text "/settings" will be send by the telegram user, this method will be executed. Only message update will be handled in this case.
 To process callback queries can be used attribute _TelegramCallbackRouteAttribute_, any another request type can be handled by the attribute inherited from _TelegramBaseRouteAttribute_.
 
-To start using this and other controllers the library should be added with the following way
+To start using this and other controllers the library should be added with the following way 
+A. Using webhooks
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddTelegramCore(new TelegramBotClientOptions("5118263652:AAHiPDQ8kVcbs2WZWG4Z..."));
 var app = builder.Build();
 app.MapTelegramRequests("/api/telegram");
+app.Run();
+```
+
+B. Using long pooling
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddTelegramCore(new TelegramBotClientOptions("5118263652:AAHiPDQ8kVcbs2WZWG4Z..."));
+builder.Services.AddTelegramLongPoolingService();
+var app = builder.Build();
 app.Run();
 ```
 

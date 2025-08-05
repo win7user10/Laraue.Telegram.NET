@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Laraue.Telegram.NET.Abstractions;
+using Laraue.Telegram.NET.Core.LongPooling;
 using Laraue.Telegram.NET.Core.Middleware;
 using Laraue.Telegram.NET.Core.Routing;
 using Laraue.Telegram.NET.Core.Routing.Attributes;
@@ -41,8 +42,6 @@ public static class ServiceCollectionExtensions
             opt.AddToRoot<ExecuteRouteMiddleware>();
             opt.AddToTop<HandleExceptionsMiddleware>();
         });
-
-        serviceCollection.AddSingleton<ILongPoolingRequestsProcessor, LongPoolingRequestsProcessor>();
 
         return serviceCollection;
     }
@@ -89,5 +88,14 @@ public static class ServiceCollectionExtensions
                 serviceCollection.AddSingleton<IRoute>(new Route(routeAttribute.TryMatch, methodInfo));
             }
         }
+    }
+    
+    /// <summary>
+    /// Use webhooks for telegram requests handling.
+    /// </summary>
+    /// <param name="serviceCollection"></param>
+    public static IServiceCollection AddTelegramLongPoolingService(this IServiceCollection serviceCollection)
+    {
+        return serviceCollection.AddHostedService<LongPoolingTelegramBackgroundService>(); // IOffsetStorage
     }
 }
