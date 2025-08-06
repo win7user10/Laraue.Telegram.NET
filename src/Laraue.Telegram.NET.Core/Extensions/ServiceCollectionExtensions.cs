@@ -96,6 +96,20 @@ public static class ServiceCollectionExtensions
     /// <param name="serviceCollection"></param>
     public static IServiceCollection AddTelegramLongPoolingService(this IServiceCollection serviceCollection)
     {
-        return serviceCollection.AddHostedService<LongPoolingTelegramBackgroundService>(); // IOffsetStorage
+        return serviceCollection.AddTelegramLongPoolingService(new LongPoolingOptions());
+    }
+    
+    /// <summary>
+    /// Use webhooks for telegram requests handling.
+    /// </summary>
+    /// <param name="serviceCollection"></param>
+    /// <param name="longPoolingOptions"></param>
+    public static IServiceCollection AddTelegramLongPoolingService(
+        this IServiceCollection serviceCollection,
+        LongPoolingOptions longPoolingOptions)
+    {
+        return serviceCollection
+            .AddSingleton(longPoolingOptions)
+            .AddHostedService<LongPoolingTelegramBackgroundService>();
     }
 }
