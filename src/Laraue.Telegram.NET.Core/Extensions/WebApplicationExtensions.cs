@@ -27,16 +27,24 @@ public static class WebApplicationExtensions
     /// Sets telegram requests root path. The url will be loaded from the <see cref="TelegramNetOptions"/>.
     /// </summary>
     /// <param name="applicationBuilder"></param>
-    public static void MapTelegramRequests(this IApplicationBuilder applicationBuilder)
+    /// <param name="throwIfUrlIsNotSet"></param>
+    public static void MapTelegramRequests(
+        this IApplicationBuilder applicationBuilder,
+        bool throwIfUrlIsNotSet = false)
     {
         var options = applicationBuilder.ApplicationServices
             .GetRequiredService<IOptions<TelegramNetOptions>>().Value;
 
-        if (options.WebhookUrl == null)
+        var urlIsNotSet = string.IsNullOrWhiteSpace(options.WebhookUrl);
+        switch (urlIsNotSet)
         {
-            throw new InvalidOperationException("WebhookUrl is not configured");
+            case true when throwIfUrlIsNotSet:
+                throw new InvalidOperationException("Telegram webhook url is not set");
+            case true:
+                return;
+            default:
+                applicationBuilder.MapTelegramRequests(options.WebhookUrl!);
+                break;
         }
-        
-        applicationBuilder.MapTelegramRequests(options.WebhookUrl);
     }
 }
