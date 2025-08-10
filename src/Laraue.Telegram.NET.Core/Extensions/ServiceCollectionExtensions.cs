@@ -6,6 +6,7 @@ using Laraue.Telegram.NET.Core.Routing;
 using Laraue.Telegram.NET.Core.Routing.Attributes;
 using Laraue.Telegram.NET.Core.Routing.Middleware;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Telegram.Bot;
 
 namespace Laraue.Telegram.NET.Core.Extensions;
@@ -19,19 +20,35 @@ public static class ServiceCollectionExtensions
     /// Adds to the container telegram controllers.
     /// </summary>
     /// <param name="serviceCollection"></param>
-    /// <param name="telegramBotClientOptions"></param>
+    /// <param name="telegramNetOptions"></param>
     /// <param name="controllerAssemblies"></param>
     /// <returns></returns>
     public static IServiceCollection AddTelegramCore(
         this IServiceCollection serviceCollection,
-        TelegramBotClientOptions telegramBotClientOptions,
+        TelegramNetOptions telegramNetOptions,
+        Assembly[]? controllerAssemblies = null)
+    {
+        return serviceCollection
+            .AddSingleton(Options.Create(telegramNetOptions))
+            .AddTelegramCore(controllerAssemblies);
+    }
+    
+    /// <summary>
+    /// Adds to the container telegram controllers. Require options declaration explicitly.
+    /// </summary>
+    /// <param name="serviceCollection"></param>
+    /// <param name="controllerAssemblies"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddTelegramCore(
+        this IServiceCollection serviceCollection,
         Assembly[]? controllerAssemblies = null)
     {
         serviceCollection.AddScoped<MapRequestToTelegramCoreMiddleware>();
         
         serviceCollection
-            .AddSingleton(telegramBotClientOptions)
-            .AddSingleton<ITelegramBotClient, TelegramBotClient>()
+            .AddSingleton<ITelegramBotClient, TelegramBotClient>(s => 
+                new TelegramBotClient(
+                    new TelegramBotClientOptions(s.GetRequiredService<IOptions<TelegramNetOptions>>().Value.Token)))
             .AddScoped<ITelegramRouter, TelegramRouter>()
             .AddScoped<TelegramRequestContext>();
 
@@ -96,6 +113,6 @@ public static class ServiceCollectionExtensions
     /// <param name="serviceCollection"></param>
     public static IServiceCollection AddTelegramLongPoolingService(this IServiceCollection serviceCollection)
     {
-        return serviceCollection.AddHostedService<LongPoolingTelegramBackgroundService>(); // IOffsetStorage
+        return serviceCollection.AddHostedService<LongPoolingTelegramBackgroundService>();
     }
 }

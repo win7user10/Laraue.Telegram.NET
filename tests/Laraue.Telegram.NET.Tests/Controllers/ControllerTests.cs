@@ -7,6 +7,7 @@ using Laraue.Telegram.NET.Authentication.Attributes;
 using Laraue.Telegram.NET.Authentication.Middleware;
 using Laraue.Telegram.NET.Authentication.Protectors;
 using Laraue.Telegram.NET.Authentication.Services;
+using Laraue.Telegram.NET.Core;
 using Laraue.Telegram.NET.Core.Extensions;
 using Laraue.Telegram.NET.Core.Routing;
 using Laraue.Telegram.NET.Core.Routing.Attributes;
@@ -19,7 +20,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
-using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Xunit;
@@ -37,7 +37,9 @@ public class ControllerTests
         var hostBuilder = new WebHostBuilder()
             .ConfigureServices((c, s) =>
             {
-                s.AddTelegramCore(new TelegramBotClientOptions("5118223111:ARErD6_712sIDp_OV-UwDDRwemB1IwWW1sE"))
+                s.AddTelegramCore(
+                    new TelegramNetOptions { Token = "5118223111:ARErD6_712sIDp_OV-UwDDRwemB1IwWW1sE" },
+                    [Assembly.GetExecutingAssembly()])
                     .AddScoped<TelegramRequestContext<string>>()
                     .AddScoped<TelegramRequestContext>(
                         sp => sp.GetRequiredService<TelegramRequestContext<string>>())
