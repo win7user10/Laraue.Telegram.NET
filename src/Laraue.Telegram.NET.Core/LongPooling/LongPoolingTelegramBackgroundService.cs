@@ -1,6 +1,7 @@
 ﻿using Laraue.Telegram.NET.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 
@@ -14,26 +15,33 @@ public class LongPoolingTelegramBackgroundService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly ITelegramBotClient _telegramBotClient;
     private readonly IOptions<TelegramNetOptions> _options;
+    private readonly ILogger<LongPoolingTelegramBackgroundService> _logger;
 
     /// <inheritdoc cref="LongPoolingTelegramBackgroundService"/>.
     public LongPoolingTelegramBackgroundService(
         IServiceProvider serviceProvider,
         ITelegramBotClient telegramBotClient,
-        IOptions<TelegramNetOptions> options)
+        IOptions<TelegramNetOptions> options,
+        ILogger<LongPoolingTelegramBackgroundService> logger)
     {
         _serviceProvider = serviceProvider;
         _telegramBotClient = telegramBotClient;
         _options = options;
+        _logger = logger;
     }
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // Long pooling is not required.
-        if (_options.Value.WebhookUrl is not null)
+        if (!string.IsNullOrWhiteSpace(_options.Value.WebhookUrl))
         {
+            _logger.LogInformation("Telegram webhook url configured, long pooling is disabled");
+            
             return;
         }
+        
+        _logger.LogInformation("Telegram webhook url is not configured, long pooling is enabled");
         
         var currentOffset = 0;
         
