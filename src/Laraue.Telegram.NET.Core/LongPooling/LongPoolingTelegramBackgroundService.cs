@@ -1,30 +1,40 @@
 ﻿using Laraue.Telegram.NET.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Telegram.Bot;
 
 namespace Laraue.Telegram.NET.Core.LongPooling;
 
 /// <summary>
-/// Sercie thar receives updates from the tg and run their processing.
+/// Service thar receives updates from the tg and run their processing.
 /// </summary>
 public class LongPoolingTelegramBackgroundService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ITelegramBotClient _telegramBotClient;
+    private readonly IOptions<TelegramNetOptions> _options;
 
     /// <inheritdoc cref="LongPoolingTelegramBackgroundService"/>.
     public LongPoolingTelegramBackgroundService(
         IServiceProvider serviceProvider,
-        ITelegramBotClient telegramBotClient)
+        ITelegramBotClient telegramBotClient,
+        IOptions<TelegramNetOptions> options)
     {
         _serviceProvider = serviceProvider;
         _telegramBotClient = telegramBotClient;
+        _options = options;
     }
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // Long pooling is not required.
+        if (_options.Value.WebhookUrl is not null)
+        {
+            return;
+        }
+        
         var currentOffset = 0;
         
         while (!stoppingToken.IsCancellationRequested)
