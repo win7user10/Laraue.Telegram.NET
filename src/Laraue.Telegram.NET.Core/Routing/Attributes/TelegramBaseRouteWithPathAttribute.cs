@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using Laraue.Telegram.NET.Abstractions.Request;
 using Laraue.Telegram.NET.Core.Extensions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;

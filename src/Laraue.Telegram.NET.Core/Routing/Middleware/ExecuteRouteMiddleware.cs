@@ -1,7 +1,5 @@
-﻿using System.Diagnostics;
-using Laraue.Telegram.NET.Abstractions;
+﻿using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Core.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace Laraue.Telegram.NET.Core.Routing.Middleware;
 

@@ -1,5 +1,4 @@
 ﻿using Laraue.Telegram.NET.Core.Routing;
-using Laraue.Telegram.NET.DataAccess;
 using Xunit;
 
 namespace Laraue.Telegram.NET.Tests.Router;

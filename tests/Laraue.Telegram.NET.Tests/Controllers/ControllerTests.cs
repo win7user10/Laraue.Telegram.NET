@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Xunit;
@@ -69,7 +70,7 @@ public class ControllerTests
     {
         var resp = await _testServer.CreateClient().PostAsync(
             "test",
-            new StringContent(JsonSerializer.Serialize(update),
+            new StringContent(JsonSerializer.Serialize(update, JsonBotAPI.Options),
                 Encoding.UTF8,
                 "text/json"));
 

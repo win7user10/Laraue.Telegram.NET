@@ -1,6 +1,4 @@
-﻿using System.Web;
-
-namespace Laraue.Telegram.NET.Core.Extensions;
+﻿namespace Laraue.Telegram.NET.Core.Extensions;
 
 /// <summary>
 /// Extensions to work work with strings.

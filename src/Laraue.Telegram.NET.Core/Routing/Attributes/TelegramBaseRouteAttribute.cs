@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Laraue.Telegram.NET.Abstractions.Request;
 using Telegram.Bot.Types;
 
 namespace Laraue.Telegram.NET.Core.Routing.Attributes;

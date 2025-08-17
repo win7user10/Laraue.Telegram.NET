@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Laraue.Telegram.NET.Abstractions;
+﻿using Laraue.Telegram.NET.Abstractions;
 
 namespace Laraue.Telegram.NET.Core.Routing.Middleware;
 
