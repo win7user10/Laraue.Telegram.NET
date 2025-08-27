@@ -1,71 +1,48 @@
 ﻿using Laraue.Telegram.NET.Authentication.Models;
-using Laraue.Telegram.NET.Authentication.Utils;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 
 namespace Laraue.Telegram.NET.Authentication.Services;
 
 public class UserService<TUser, TKey> : IUserService<TKey>
-    where TUser : TelegramIdentityUser<TKey>, new()
+    where TUser : class, ITelegramUser<TKey>, new()
     where TKey : IEquatable<TKey>
 {
-    private readonly UserManager<TUser> _userManager;
-    private readonly IdentityOptions _identityOptions;
+    private readonly ITelegramUserQueryService<TUser, TKey> _telegramUserQueryService;
 
     public UserService(
-        UserManager<TUser> userManager,
-        IOptions<IdentityOptions> identityOptions)
+        ITelegramUserQueryService<TUser, TKey> telegramUserQueryService)
     {
-        _userManager = userManager;
-        _identityOptions = identityOptions.Value;
+        _telegramUserQueryService = telegramUserQueryService;
     }
     
     /// <inheritdoc />
     public async Task<LoginResponse<TKey>> LoginOrRegisterAsync(TelegramData telegramData)
     {
-        var userName = $"tg_{telegramData.Id}";
-        var user = await _userManager.FindByNameAsync(userName);
-
+        var user = await _telegramUserQueryService.FindAsync(telegramData.Id);
         if (user is not null)
         {
             return new LoginResponse<TKey>(user.Id);
         }
-
-        var password = RegistrationHelper.GenerateRandomPassword(
-            _identityOptions.Password);
         
-        var result = await CreateUserInternalAsync(
-            userName,
+        var userId = await CreateUserInternalAsync(
             telegramData.Id,
             telegramData.Username,
-            telegramData.LanguageCode,
-            password);
+            telegramData.LanguageCode);
         
-        if (!result.Succeeded)
-        {
-            throw new InvalidOperationException(result.Errors.ToString());
-        }
-        
-        user = await _userManager.FindByNameAsync(userName);
-        
-        return new LoginResponse<TKey>(user!.Id);
+        return new LoginResponse<TKey>(userId);
     }
 
-    private Task<IdentityResult> CreateUserInternalAsync(
-        string userName,
-        long? telegramId,
+    private Task<TKey> CreateUserInternalAsync(
+        long telegramId,
         string? telegramUserName,
-        string? telegramLanguageCode,
-        string password)
+        string? telegramLanguageCode)
     {
-        return _userManager.CreateAsync(
+        return _telegramUserQueryService.CreateAsync(
             new TUser
             {
-                UserName = userName,
                 TelegramId = telegramId,
                 TelegramUserName = telegramUserName,
                 CreatedAt = DateTime.UtcNow,
                 TelegramLanguageCode = telegramLanguageCode
-            }, password);
+            });
     }
 }

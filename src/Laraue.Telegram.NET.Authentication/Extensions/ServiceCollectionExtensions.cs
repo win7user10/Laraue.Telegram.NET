@@ -4,7 +4,6 @@ using Laraue.Telegram.NET.Authentication.Models;
 using Laraue.Telegram.NET.Authentication.Protectors;
 using Laraue.Telegram.NET.Authentication.Services;
 using Laraue.Telegram.NET.Core.Extensions;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,13 +21,15 @@ public static class ServiceCollectionExtensions
     /// <param name="serviceCollection"></param>
     /// <typeparam name="TUser"></typeparam>
     /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TTelegramUserQueryService"></typeparam>
     /// <returns></returns>
-    public static IdentityBuilder AddTelegramAuthentication<TUser, TKey>(
+    public static IdentityBuilder AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService>(
         this IServiceCollection serviceCollection)
-        where TUser : TelegramIdentityUser<TKey>, new()
+        where TUser : class, ITelegramUser<TKey>, new()
         where TKey : IEquatable<TKey>
+        where TTelegramUserQueryService : class, ITelegramUserQueryService<TUser, TKey> 
     {
-        return serviceCollection.AddTelegramAuthentication<TUser, TKey, TelegramRequestContext<TKey>>();
+        return serviceCollection.AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService, TelegramRequestContext<TKey>>();
     }
 
     /// <summary>
@@ -38,22 +39,17 @@ public static class ServiceCollectionExtensions
     /// <param name="serviceCollection"></param>
     /// <typeparam name="TUser"></typeparam>
     /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TTelegramUserQueryService"></typeparam>
     /// <typeparam name="TTelegramRequestContext"></typeparam>
     /// <returns></returns>
-    public static IdentityBuilder AddTelegramAuthentication<TUser, TKey, TTelegramRequestContext>(
+    public static IdentityBuilder AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService, TTelegramRequestContext>(
         this IServiceCollection serviceCollection)
-        where TUser : TelegramIdentityUser<TKey>, new()
+        where TUser : class, ITelegramUser<TKey>, new()
         where TKey : IEquatable<TKey>
         where TTelegramRequestContext : TelegramRequestContext<TKey>
+        where TTelegramUserQueryService : class, ITelegramUserQueryService<TUser, TKey>
     {
         serviceCollection.AddTelegramMiddleware<AuthTelegramMiddleware<TKey>>();
-        
-        serviceCollection.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        });
         
         serviceCollection.AddScoped<TTelegramRequestContext>();
 
@@ -66,6 +62,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddScoped<TelegramRequestContext>(
             sp => sp.GetRequiredService<TTelegramRequestContext>());
         
+        serviceCollection.AddScoped<ITelegramUserQueryService<TUser, TKey>, TTelegramUserQueryService>();
         serviceCollection.AddScoped<IUserService<TKey>, UserService<TUser, TKey>>();
 
         serviceCollection.UseUserRolesProvider<DefaultUserRoleProvider>();

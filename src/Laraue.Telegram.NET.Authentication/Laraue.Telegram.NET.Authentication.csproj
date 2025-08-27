@@ -13,7 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
     <PackageReference Include="Laraue.Core.Exceptions" Version="9.0.1" />
     <PackageReference Include="Laraue.Core.Threading" Version="9.0.0" />
   </ItemGroup>

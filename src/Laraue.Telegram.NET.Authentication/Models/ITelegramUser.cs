@@ -1,20 +1,24 @@
-﻿using Microsoft.AspNetCore.Identity;
-
-namespace Laraue.Telegram.NET.Authentication.Models;
+﻿namespace Laraue.Telegram.NET.Authentication.Models;
 
 /// <summary>
 /// Model for user that can be registered from telegram.
 /// </summary>
-public class TelegramIdentityUser : TelegramIdentityUser<string>
+public interface ITelegramUser : ITelegramUser<string>
 {
 }
 
-public class TelegramIdentityUser<TKey> : IdentityUser<TKey> where TKey : IEquatable<TKey>
+public interface ITelegramUser<TKey>
+    where TKey : IEquatable<TKey>
 {
+    /// <summary>
+    /// System user identifier.
+    /// </summary>
+    public TKey Id { get; init; }
+    
     /// <summary>
     /// Telegram identifier.
     /// </summary>
-    public long? TelegramId { get; init; }
+    public long TelegramId { get; init; }
 
     /// <summary>
     /// Telegram user name.
