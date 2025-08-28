@@ -4,7 +4,6 @@ using Laraue.Telegram.NET.Authentication.Models;
 using Laraue.Telegram.NET.Authentication.Protectors;
 using Laraue.Telegram.NET.Authentication.Services;
 using Laraue.Telegram.NET.Core.Extensions;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Laraue.Telegram.NET.Authentication.Extensions;
@@ -23,7 +22,7 @@ public static class ServiceCollectionExtensions
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TTelegramUserQueryService"></typeparam>
     /// <returns></returns>
-    public static IdentityBuilder AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService>(
+    public static IServiceCollection AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService>(
         this IServiceCollection serviceCollection)
         where TUser : class, ITelegramUser<TKey>, new()
         where TKey : IEquatable<TKey>
@@ -42,7 +41,7 @@ public static class ServiceCollectionExtensions
     /// <typeparam name="TTelegramUserQueryService"></typeparam>
     /// <typeparam name="TTelegramRequestContext"></typeparam>
     /// <returns></returns>
-    public static IdentityBuilder AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService, TTelegramRequestContext>(
+    public static IServiceCollection AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService, TTelegramRequestContext>(
         this IServiceCollection serviceCollection)
         where TUser : class, ITelegramUser<TKey>, new()
         where TKey : IEquatable<TKey>
@@ -66,18 +65,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddScoped<IUserService<TKey>, UserService<TUser, TKey>>();
 
         serviceCollection.UseUserRolesProvider<DefaultUserRoleProvider>();
-        serviceCollection.AddScoped<IControllerProtector, UserShouldBeInGroupProtector<TKey>>();
-        
-        return serviceCollection.AddIdentity<TUser, IdentityRole<TKey>>(
-            opt =>
-            {
-                opt.Password.RequireDigit = false;
-                opt.Password.RequiredLength = 1;
-                opt.Password.RequireLowercase = false;
-                opt.Password.RequireUppercase = false;
-                opt.Password.RequireNonAlphanumeric = false;
-                opt.Password.RequiredUniqueChars = 1;
-            });
+        return serviceCollection.AddScoped<IControllerProtector, UserShouldBeInGroupProtector<TKey>>();
     }
 
     /// <summary>

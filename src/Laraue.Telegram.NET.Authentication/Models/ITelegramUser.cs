@@ -1,12 +1,15 @@
-﻿namespace Laraue.Telegram.NET.Authentication.Models;
+﻿using System.ComponentModel.DataAnnotations;
 
-/// <summary>
-/// Model for user that can be registered from telegram.
-/// </summary>
+namespace Laraue.Telegram.NET.Authentication.Models;
+
+/// <inheritdoc />
 public interface ITelegramUser : ITelegramUser<string>
 {
 }
 
+/// <summary>
+/// Model for user that can be registered from telegram.
+/// </summary>
 public interface ITelegramUser<TKey>
     where TKey : IEquatable<TKey>
 {
@@ -23,11 +26,13 @@ public interface ITelegramUser<TKey>
     /// <summary>
     /// Telegram user name.
     /// </summary>
+    [MaxLength(32)]
     public string? TelegramUserName { get; init; }
 
     /// <summary>
     /// Telegram user language code, e.g "ru", "en" etc.
     /// </summary>
+    [MaxLength(2)]
     public string? TelegramLanguageCode { get; init; }
 
     /// <summary>
