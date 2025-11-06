@@ -17,7 +17,6 @@ public sealed class TelegramRouter : ITelegramRouter
     private readonly IServiceProvider _serviceProvider;
     private readonly TelegramRequestContext _telegramRequestContext;
     private readonly ILogger<TelegramRouter> _logger;
-
     
     /// <summary>
     /// Initializes a new instance of <see cref="TelegramRouter"/>.
@@ -79,21 +78,31 @@ public sealed class TelegramRouter : ITelegramRouter
             middlewareNode = middlewareNode.Previous;
         }
 
-        await invokeDelegate(cancellationToken).ConfigureAwait(false);
-        var executedRoute = _telegramRequestContext.GetExecutedRoute();
+        try
+        {
+            await invokeDelegate(cancellationToken).ConfigureAwait(false);
+            var executedRoute = _telegramRequestContext.GetExecutedRoute();
         
-        if (executedRoute is not null)
-        {
-            _logger.LogInformation(
-                "Request time {Time} ms, route: {RouteName} executed",
-                sw.ElapsedMilliseconds,
-                executedRoute);
+            if (executedRoute is not null)
+            {
+                _logger.LogInformation(
+                    "Request time {Time} ms, route: {RouteName} executed",
+                    sw.ElapsedMilliseconds,
+                    executedRoute);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Request time {Time} ms, status: not found, payload: {Payload}",
+                    sw.ElapsedMilliseconds,
+                    JsonSerializer.Serialize(update));
+            }
         }
-        else
+        catch (Exception e)
         {
-            _logger.LogInformation(
-                "Request time {Time} ms, status: not found, payload: {Payload}",
-                sw.ElapsedMilliseconds,
+            _logger.LogError(
+                e,
+                "Unhandled exception while handling telegram request {Data}",
                 JsonSerializer.Serialize(update));
         }
     }

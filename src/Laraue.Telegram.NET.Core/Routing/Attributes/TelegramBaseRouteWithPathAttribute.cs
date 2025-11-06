@@ -93,7 +93,10 @@ public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttr
         if (dataString.Length >= 2 && dataString[1] == ' ')
         {
             pathString = dataString[2..];
-            return Enum.Parse<RouteMethod>(dataString.AsSpan(0, 1));
+            if (Enum.TryParse<RouteMethod>(dataString.AsSpan(0, 1), out var routeMethod))
+            {
+                return routeMethod;
+            }
         }
 
         pathString = dataString;
