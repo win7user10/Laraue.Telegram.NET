@@ -1,16 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <Description>Library to build telegram bots using controller classes.</Description>
-    <RepositoryUrl>https://github.com/win7user10/Laraue.Telegram.NET</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <Authors>Belyanskiy Ilya</Authors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageTags>Telegram, telegram bot</PackageTags>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
 

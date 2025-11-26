@@ -3,6 +3,7 @@ using System.Text.Json;
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Core.Extensions;
 using Laraue.Telegram.NET.Core.Routing.Middleware;
+using Laraue.Telegram.NET.Core.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -93,9 +94,9 @@ public sealed class TelegramRouter : ITelegramRouter
             else
             {
                 _logger.LogInformation(
-                    "Request time {Time} ms, status: not found, payload: {Payload}",
+                    "Request time {Time} ms, status: no endpoint to execute, payload: {Payload}",
                     sw.ElapsedMilliseconds,
-                    JsonSerializer.Serialize(update));
+                    TelegramUpdateSerializer.Serialize(update));
             }
         }
         catch (Exception e)
@@ -103,7 +104,7 @@ public sealed class TelegramRouter : ITelegramRouter
             _logger.LogError(
                 e,
                 "Unhandled exception while handling telegram request {Data}",
-                JsonSerializer.Serialize(update));
+                TelegramUpdateSerializer.Serialize(update));
         }
     }
 }
