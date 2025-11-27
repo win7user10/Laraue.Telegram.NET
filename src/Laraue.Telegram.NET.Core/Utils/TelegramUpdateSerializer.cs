@@ -11,7 +11,7 @@ public static class TelegramUpdateSerializer
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
-        DefaultIgnoreCondition = JsonIgnoreCondition.Always,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
     };
     
     /// <summary>
