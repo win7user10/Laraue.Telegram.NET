@@ -10,7 +10,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Laraue.Core.DataAccess.EFCore" Version="$(LaraueCoreDataAccessEfCoreVersion)" />
+      <PackageReference Include="Laraue.Core.DataAccess.EFCore" Version="$(LaraueCoreDataAccessVersion)" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="$(MicrosoftEntityFrameworkCoreVersion)" />
     </ItemGroup>
 
