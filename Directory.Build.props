@@ -18,7 +18,7 @@
   <PropertyGroup>
     <LaraueCoreExceptionsVersion>[10.2.0, 11)</LaraueCoreExceptionsVersion>
     <LaraueCoreThreadingVersion>[10.0.0, 11)</LaraueCoreThreadingVersion>
-    <LaraueCoreDataAccessVersion>[10.3.0, 11)</LaraueCoreDataAccessVersion>
+    <LaraueCoreDataAccessVersion>[10.4.0, 11)</LaraueCoreDataAccessVersion>
     <MicrosoftEntityFrameworkCoreVersion>[9.0.0, 10)</MicrosoftEntityFrameworkCoreVersion>
     <TelegramBotVersion>[22.0.0, 23)</TelegramBotVersion>
   </PropertyGroup>
