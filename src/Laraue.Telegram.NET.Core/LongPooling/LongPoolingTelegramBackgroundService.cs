@@ -1,5 +1,4 @@
-﻿using Laraue.Telegram.NET.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -47,26 +46,30 @@ public class LongPoolingTelegramBackgroundService : BackgroundService
         
         while (!stoppingToken.IsCancellationRequested)
         {
-            const int batchSize = 10;
+            var batchSize = _options.Value.LongPoolingBatchSize
+                ?? throw new InvalidOperationException("LongPoolingBatchSize setup is required");
+
+            var longPoolingInterval = _options.Value.LongPoolingInterval
+                ?? throw new InvalidOperationException("LongPoolingInterval setup is required");
             
             var updates = await _telegramBotClient
                 .GetUpdates(currentOffset, batchSize, cancellationToken: stoppingToken)
                 .ConfigureAwait(false);
-            
-            foreach (var update in updates)
+
+            if (updates.Length > 0)
             {
                 await using var scope = _serviceProvider.CreateAsyncScope();
                 
-                var telegramRouter = scope.ServiceProvider.GetRequiredService<ITelegramRouter>();
-
-                await telegramRouter.RouteAsync(update, stoppingToken).ConfigureAwait(false);
-
-                currentOffset = update.Id + 1;
+                var updatesQueue = scope.ServiceProvider.GetRequiredService<ITelegramUpdatesQueue>();
+            
+                await updatesQueue.EnqueueAsync(updates, stoppingToken).ConfigureAwait(false);
+            
+                currentOffset = updates.Last().Id + 1;
             }
 
             if (updates.Length < batchSize)
             {
-                await Task.Delay(1000, stoppingToken).ConfigureAwait(false);
+                await Task.Delay(longPoolingInterval, stoppingToken).ConfigureAwait(false);
             }
         }
     }
