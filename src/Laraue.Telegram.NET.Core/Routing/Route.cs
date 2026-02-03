@@ -56,8 +56,6 @@ internal sealed class Route : IRoute
         else if (_controllerMethod.ReturnType == typeof(Task) || _controllerMethod.ReturnType == typeof(ValueTask))
         {
             await (dynamic) result;
-
-            return new RouteExecutionResult(true);
         }
 
         return new RouteExecutionResult(true);
@@ -113,7 +111,9 @@ internal sealed class Route : IRoute
         return parameters;
     }
 
-    private static bool TryGetAttribute<TAttribute>(ParameterInfo parameterInfo, [NotNullWhen(true)] out TAttribute? attribute)
+    private static bool TryGetAttribute<TAttribute>(
+        ParameterInfo parameterInfo,
+        [NotNullWhen(true)] out TAttribute? attribute)
         where TAttribute : Attribute
     {
         attribute = parameterInfo.GetCustomAttribute<TAttribute>();

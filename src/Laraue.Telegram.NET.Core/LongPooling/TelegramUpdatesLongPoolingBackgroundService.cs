@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Laraue.Telegram.NET.Core.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,19 +10,19 @@ namespace Laraue.Telegram.NET.Core.LongPooling;
 /// <summary>
 /// Service thar receives updates from the tg and run their processing.
 /// </summary>
-public class LongPoolingTelegramBackgroundService : BackgroundService
+public class TelegramUpdatesLongPoolingBackgroundService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ITelegramBotClient _telegramBotClient;
     private readonly IOptions<TelegramNetOptions> _options;
-    private readonly ILogger<LongPoolingTelegramBackgroundService> _logger;
+    private readonly ILogger<TelegramUpdatesLongPoolingBackgroundService> _logger;
 
-    /// <inheritdoc cref="LongPoolingTelegramBackgroundService"/>.
-    public LongPoolingTelegramBackgroundService(
+    /// <inheritdoc cref="TelegramUpdatesLongPoolingBackgroundService"/>.
+    public TelegramUpdatesLongPoolingBackgroundService(
         IServiceProvider serviceProvider,
         ITelegramBotClient telegramBotClient,
         IOptions<TelegramNetOptions> options,
-        ILogger<LongPoolingTelegramBackgroundService> logger)
+        ILogger<TelegramUpdatesLongPoolingBackgroundService> logger)
     {
         _serviceProvider = serviceProvider;
         _telegramBotClient = telegramBotClient;
@@ -60,9 +61,9 @@ public class LongPoolingTelegramBackgroundService : BackgroundService
             {
                 await using var scope = _serviceProvider.CreateAsyncScope();
                 
-                var updatesQueue = scope.ServiceProvider.GetRequiredService<ITelegramUpdatesQueue>();
+                var updatesQueue = scope.ServiceProvider.GetRequiredService<IUpdatesQueue>();
             
-                await updatesQueue.EnqueueAsync(updates, stoppingToken).ConfigureAwait(false);
+                await updatesQueue.AddAsync(updates, stoppingToken).ConfigureAwait(false);
             
                 currentOffset = updates.Last().Id + 1;
             }

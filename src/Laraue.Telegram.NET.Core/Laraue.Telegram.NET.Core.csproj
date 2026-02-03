@@ -11,4 +11,9 @@
     <ProjectReference Include="..\Laraue.Telegram.NET.Abstractions\Laraue.Telegram.NET.Abstractions.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <PackageReference Include="Laraue.Core.Threading" Version="$(LaraueCoreThreadingVersion)" />
+  </ItemGroup>
+
 </Project>

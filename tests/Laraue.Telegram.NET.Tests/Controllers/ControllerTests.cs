@@ -18,6 +18,7 @@ using Laraue.Telegram.NET.Localization.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Moq;
 using Telegram.Bot;
@@ -35,12 +36,14 @@ public class ControllerTests
     
     public ControllerTests()
     {
-        var hostBuilder = new WebHostBuilder()
-            .ConfigureServices((c, s) =>
+        var host = new HostBuilder()
+            .ConfigureServices((c, services) =>
             {
-                s.AddTelegramCore(
-                    new TelegramNetOptions { Token = "5118223111:ARErD6_712sIDp_OV-UwDDRwemB1IwWW1sE" },
-                    [Assembly.GetExecutingAssembly()])
+                services
+                    .AddTelegramCore(
+                        new TelegramNetOptions { Token = "5118223111:ARErD6_712sIDp_OV-UwDDRwemB1IwWW1sE" },
+                        [Assembly.GetExecutingAssembly()])
+                    .AddInMemoryUpdatesQueue()
                     .AddScoped<TelegramRequestContext<string>>()
                     .AddScoped<TelegramRequestContext>(
                         sp => sp.GetRequiredService<TelegramRequestContext<string>>())
@@ -61,9 +64,13 @@ public class ControllerTests
                     .AddScoped<IControllerProtector, UserShouldBeInGroupProtector<string>>()
                     .AddSingleton(_testChecker.Object);
             })
-            .Configure(a => a.MapTelegramRequests("/test"));
-        
-        _testServer = new TestServer(hostBuilder);
+            .ConfigureWebHost(webHostBuilder => webHostBuilder
+                .UseTestServer()
+                .Configure(b => b.MapTelegramRequests("/test")))
+            .Build();
+
+        _testServer = host.GetTestServer();
+        host.Start();
     }
 
     private async Task<string> SendRequestAsync(Update update)

@@ -1,4 +1,5 @@
-﻿using Telegram.Bot.Types;
+﻿using System.Diagnostics.CodeAnalysis;
+using Telegram.Bot.Types;
 
 namespace Laraue.Telegram.NET.Core.Extensions;
 
@@ -56,5 +57,11 @@ public static class UpdateExtensions
     public static long GetUserId(this Update update)
     {
         return update.GetUser().GetId();
+    }
+    
+    public static bool TryGetUserId(this Update update, [NotNullWhen(true)] out long? userId)
+    {
+        userId = update.GetUser()?.Id;
+        return userId != null;
     }
 }
