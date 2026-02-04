@@ -13,15 +13,29 @@ public class EfCoreUpdatesQueue(
 {
     public async Task AddAsync(IEnumerable<Update> updates, CancellationToken cancellationToken)
     {
-        var entities = updates
-            .Select(u => new DataAccess.Update
-            {
-                Id = u.Id,
-                Body = JsonSerializer.Serialize(u, JsonBotAPI.Options),
-            });
+        var updatesArray = updates.ToArray();
+        var updateIds = updatesArray.Select(u => u.Id);
+
+        var newUpdates = await dbContext.Updates
+            .Where(u => !updateIds.Contains(u.Id))
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (newUpdates.Length > 0)
+        {
+            var entities = newUpdates
+                .Select(u => new DataAccess.Update
+                {
+                    Id = u.Id,
+                    Body = JsonSerializer.Serialize(u, JsonBotAPI.Options),
+                });
         
-        dbContext.Updates.AddRange(entities);
-        await dbContext.SaveChangesAsync(cancellationToken);
+            dbContext.Updates.AddRange(entities);
+            
+            await dbContext
+                .SaveChangesAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
     }
 
     public Task SetProcessedAsync(Update update, CancellationToken cancellationToken)
@@ -39,7 +53,9 @@ public class EfCoreUpdatesQueue(
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         
-        await SetProcessedAsync(update, cancellationToken);
+        await 
+            SetProcessedAsync(update, cancellationToken)
+            .ConfigureAwait(false);
 
         var failedUpdate = new FailedUpdate
         {
@@ -50,7 +66,10 @@ public class EfCoreUpdatesQueue(
         };
 
         dbContext.FailedUpdates.Add(failedUpdate);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        
+        await dbContext
+            .SaveChangesAsync(cancellationToken)
+            .ConfigureAwait(false);
         
         await transaction.CommitAsync(cancellationToken);
     }

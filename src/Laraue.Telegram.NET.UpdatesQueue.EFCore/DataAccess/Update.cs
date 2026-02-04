@@ -5,7 +5,7 @@ public class Update
     /// <summary>
     /// Telegram update identifier.
     /// </summary>
-    public long Id { get; set; }
+    public int Id { get; set; }
 
     /// <summary>
     /// Serialized body to update.
