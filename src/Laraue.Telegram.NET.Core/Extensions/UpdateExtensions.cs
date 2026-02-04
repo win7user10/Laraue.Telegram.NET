@@ -8,17 +8,37 @@ namespace Laraue.Telegram.NET.Core.Extensions;
 /// </summary>
 public static class UpdateExtensions
 {
-    /// <summary>
-    /// Get user from the telegram <see cref="Update"/>.
-    /// </summary>
     /// <param name="update"></param>
-    /// <returns></returns>
-    public static User? GetUser(this Update update)
+    extension(Update update)
     {
-        return update.Message?.GetUser()
-            ?? update.CallbackQuery?.GetUser();
+        /// <summary>
+        /// Get user from the telegram <see cref="Update"/>.
+        /// </summary>
+        public User? GetUser()
+        {
+            return update.Message?.GetUser()
+                ?? update.CallbackQuery?.GetUser();
+        }
+        
+        /// <summary>
+        /// Get chat from the telegram <see cref="Update"/>.
+        /// </summary>
+        public long? TryGetChatId()
+        {
+            return update.Message?.Chat?.Id
+                ?? update.CallbackQuery?.Message?.Chat?.Id;
+        }
+        
+        /// <summary>
+        /// Get user id from the telegram <see cref="Update"/>.
+        /// </summary>
+        /// <returns></returns>
+        public long GetUserId()
+        {
+            return update.GetUser().GetId();
+        }
     }
-    
+
     /// <summary>
     /// Get user from the telegram <see cref="Message"/>.
     /// </summary>
@@ -47,21 +67,5 @@ public static class UpdateExtensions
     public static long GetId(this User? user)
     {
         return user?.Id ?? throw new InvalidOperationException();
-    }
-    
-    /// <summary>
-    /// Get user id from the telegram <see cref="Update"/>.
-    /// </summary>
-    /// <param name="update"></param>
-    /// <returns></returns>
-    public static long GetUserId(this Update update)
-    {
-        return update.GetUser().GetId();
-    }
-    
-    public static bool TryGetUserId(this Update update, [NotNullWhen(true)] out long? userId)
-    {
-        userId = update.GetUser()?.Id;
-        return userId != null;
     }
 }

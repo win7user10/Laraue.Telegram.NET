@@ -37,7 +37,7 @@ public class TelegramUpdatesService(
     ILogger<TelegramUpdatesService> logger)
     : ITelegramUpdatesService
 {
-    private static readonly KeyedSemaphoreSlim<long> RequestSemaphore = new (1);
+    private readonly KeyedSemaphoreSlim<long> _requestByChatIdSemaphore = new (1);
     
     public async Task<int> LoadNewUpdatesToQueueAsync(
         int offset,
@@ -96,15 +96,13 @@ public class TelegramUpdatesService(
         Update update,
         CancellationToken cancellationToken)
     {
-        IDisposable? userSemaphore = null;
+        var chatId = update.TryGetChatId();
+        chatId ??= 0;
         
-        // One user updates should be processed sequentially
-        if (update.TryGetUserId(out var userId))
-        {
-            userSemaphore = await RequestSemaphore
-                .WaitAsync(userId.Value, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        // Different chat messages can be processes in parallel.
+        using var requestSemaphore = await _requestByChatIdSemaphore
+            .WaitAsync(chatId.Value, cancellationToken)
+            .ConfigureAwait(false);
         
         await using var scope = serviceProvider.CreateAsyncScope();
         var telegramRouter = scope.ServiceProvider.GetRequiredService<ITelegramRouter>();
@@ -132,10 +130,6 @@ public class TelegramUpdatesService(
                 .ConfigureAwait(false);
             
             logger.LogError("Error while handling update {Id}, {Message}", update.Id, e.Message);
-        }
-        finally
-        {
-            userSemaphore?.Dispose();
         }
     }
 }

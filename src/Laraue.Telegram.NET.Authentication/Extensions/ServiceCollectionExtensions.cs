@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
             serviceCollection.AddTelegramMiddleware<AuthTelegramMiddleware<TKey>>();
         
             serviceCollection.AddScoped<TTelegramRequestContext>();
+            serviceCollection.AddSingleton<IUserSemaphore, UserSemaphore>();
 
             if (typeof(TTelegramRequestContext) != typeof(TelegramRequestContext<TKey>))
             {
