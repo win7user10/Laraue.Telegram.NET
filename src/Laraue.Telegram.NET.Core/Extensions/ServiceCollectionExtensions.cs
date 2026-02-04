@@ -126,7 +126,10 @@ public static class ServiceCollectionExtensions
         }
         
         /// <summary>
-        /// Store taken telegram requests that mean updates can be lost after application restart. 
+        /// Store taken telegram requests in memory queue.
+        /// It is recommended to use the method only for test purposes and take the real provider from the
+        /// 'Laraue.Telegram.NET.UpdatesQueue.EFCore' package for the production due to possible data loss
+        /// while application restarting.
         /// </summary>
         /// <returns></returns>
         public IServiceCollection AddInMemoryUpdatesQueue()

@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
 
 namespace Laraue.Telegram.NET.Core.Services;
 
-public class InMemoryUpdatesQueue(ILogger<InMemoryUpdatesQueue> logger)
+public class InMemoryUpdatesQueue
     : IUpdatesQueue
 {
     private readonly List<Update> _updates = [];
@@ -22,13 +21,13 @@ public class InMemoryUpdatesQueue(ILogger<InMemoryUpdatesQueue> logger)
         return Task.CompletedTask;
     }
 
-    public Task SetFailedAsync(Update update, string error, string? stackTrace, CancellationToken cancellationToken)
+    public Task SetFailedAsync(
+        Update update,
+        string error,
+        string? stackTrace,
+        CancellationToken cancellationToken)
     {
-        logger.LogError("{Error} {StackTrace}", error, stackTrace);
-        
-        SetProcessedAsync(update, cancellationToken);
-
-        return Task.CompletedTask;
+        return SetProcessedAsync(update, cancellationToken);
     }
 
     public Task<Update[]> GetAsync(int count, CancellationToken cancellationToken)

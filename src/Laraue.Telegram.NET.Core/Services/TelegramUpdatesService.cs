@@ -2,6 +2,7 @@
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Core.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -32,7 +33,8 @@ public interface ITelegramUpdatesService
 public class TelegramUpdatesService(
     ITelegramBotClient telegramBotClient,
     IUpdatesQueue updatesQueue,
-    IServiceProvider serviceProvider)
+    IServiceProvider serviceProvider,
+    ILogger<TelegramUpdatesService> logger)
     : ITelegramUpdatesService
 {
     private static readonly KeyedSemaphoreSlim<long> RequestSemaphore = new (1);
@@ -116,6 +118,8 @@ public class TelegramUpdatesService(
             await updatesQueue
                 .SetProcessedAsync(update, cancellationToken)
                 .ConfigureAwait(false);
+            
+            logger.LogDebug("Processed update {Id}", update.Id);
         }
         catch (Exception e)
         {
@@ -126,6 +130,8 @@ public class TelegramUpdatesService(
                     e.StackTrace,
                     cancellationToken)
                 .ConfigureAwait(false);
+            
+            logger.LogError("Error while handling update {Id}, {Message}", update.Id, e.Message);
         }
         finally
         {
