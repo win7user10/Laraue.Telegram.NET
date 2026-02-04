@@ -44,7 +44,7 @@ public class TelegramUpdatesLongPoolingBackgroundService : BackgroundService
         var longPoolingInterval = _options.Value.LongPoolingInterval
             ?? throw new InvalidOperationException($"{nameof(TelegramNetOptions.LongPoolingInterval)} setup is required");
         
-        var currentOffset = 0;
+        var currentOffset = await LoadLastOffsetAsync(stoppingToken);
         
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -59,5 +59,13 @@ public class TelegramUpdatesLongPoolingBackgroundService : BackgroundService
                 .Delay(longPoolingInterval, stoppingToken)
                 .ConfigureAwait(false);
         }
+    }
+
+    private async Task<int> LoadLastOffsetAsync(CancellationToken cancellationToken)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var updatesQueue = scope.ServiceProvider.GetRequiredService<IUpdatesQueue>();
+
+        return await updatesQueue.GetLastUpdateIdAsync(cancellationToken);
     }
 }

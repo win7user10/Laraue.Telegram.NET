@@ -14,21 +14,9 @@ public class EfCoreUpdatesQueue(
     public async Task AddAsync(IEnumerable<Update> updates, CancellationToken cancellationToken = default)
     {
         var updatesArray = updates.ToArray();
-        var updateIds = updatesArray.Select(u => u.Id);
-
-        var existsUpdateIds = await dbContext.Updates
-            .Where(u => updateIds.Contains(u.Id))
-            .Select(u => u.Id)
-            .ToArrayAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        var newUpdates = updatesArray
-            .ExceptBy(existsUpdateIds, u => u.Id)
-            .ToArray();
-        
-        if (newUpdates.Length > 0)
+        if (updatesArray.Length > 0)
         {
-            var entities = newUpdates
+            var entities = updatesArray
                 .Select(u => new DataAccess.Update
                 {
                     Id = u.Id,
@@ -89,5 +77,13 @@ public class EfCoreUpdatesQueue(
         return updates
             .Select(u => JsonSerializer.Deserialize<Update>(u.Body, JsonBotAPI.Options)!)
             .ToArray();
+    }
+
+    public Task<int> GetLastUpdateIdAsync(CancellationToken cancellationToken = default)
+    {
+        return dbContext.Updates
+            .Select(u => u.Id)
+            .DefaultIfEmpty()
+            .MaxAsync(cancellationToken);
     }
 }

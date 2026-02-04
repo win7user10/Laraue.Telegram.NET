@@ -8,23 +8,6 @@ namespace Laraue.Telegram.NET.Tests.UpdatesQueue;
 public class EfCoreUpdatesQueueTests : TestWithDatabase
 {
     [Fact]
-    public async Task DoubleAdd_ShouldSkipDuplicates_Always()
-    {
-        var updatesQueue = GetService();
-        
-        await updatesQueue.AddAsync(
-            [new Update { Id = 1, }],
-            TestContext.Current.CancellationToken);
-        
-        await updatesQueue.AddAsync(
-            [new Update { Id = 1, }],
-            TestContext.Current.CancellationToken);
-
-        var updates = await updatesQueue.GetAsync(2, TestContext.Current.CancellationToken);
-        Assert.Single(updates);
-    }
-
-    [Fact]
     public async Task SetProcessed_ShouldRemoveEntryFromTheQueue_Always()
     {
         var updatesQueue = GetService();
@@ -39,6 +22,26 @@ public class EfCoreUpdatesQueueTests : TestWithDatabase
         await updatesQueue.SetProcessedAsync(update, TestContext.Current.CancellationToken);
         updates = await updatesQueue.GetAsync(1, TestContext.Current.CancellationToken);
         Assert.Empty(updates);
+    }
+    
+    [Fact]
+    public async Task GetLastUpdateId_ShouldReturnHighestUpdateId_Always()
+    {
+        var updatesQueue = GetService();
+        
+        var updateId = await updatesQueue.GetLastUpdateIdAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(0, updateId);
+        
+        await updatesQueue.AddAsync(
+            [new Update { Id = 1, }],
+            TestContext.Current.CancellationToken);
+        
+        await updatesQueue.AddAsync(
+            [new Update { Id = 2, }],
+            TestContext.Current.CancellationToken);
+
+        updateId = await updatesQueue.GetLastUpdateIdAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(2, updateId);
     }
 
     private EfCoreUpdatesQueue GetService()

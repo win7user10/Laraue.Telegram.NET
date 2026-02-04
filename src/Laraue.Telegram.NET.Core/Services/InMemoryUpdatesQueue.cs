@@ -2,8 +2,7 @@
 
 namespace Laraue.Telegram.NET.Core.Services;
 
-public class InMemoryUpdatesQueue
-    : IUpdatesQueue
+public class InMemoryUpdatesQueue : IUpdatesQueue
 {
     private readonly List<Update> _updates = [];
     
@@ -33,5 +32,10 @@ public class InMemoryUpdatesQueue
     public Task<Update[]> GetAsync(int count, CancellationToken cancellationToken)
     {
         return Task.FromResult(_updates.Take(count).ToArray());
+    }
+
+    public Task<int> GetLastUpdateIdAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(_updates.Select(u => u.Id).DefaultIfEmpty().Max());
     }
 }

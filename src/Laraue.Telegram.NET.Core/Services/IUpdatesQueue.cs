@@ -21,4 +21,6 @@ public interface IUpdatesQueue
     Task<Update[]> GetAsync(
         int count,
         CancellationToken cancellationToken = default);
+    
+    Task<int> GetLastUpdateIdAsync(CancellationToken cancellationToken = default);
 }
