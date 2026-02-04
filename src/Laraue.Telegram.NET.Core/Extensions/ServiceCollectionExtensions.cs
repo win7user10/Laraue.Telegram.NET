@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using Laraue.Telegram.NET.Abstractions;
-using Laraue.Telegram.NET.Core.LongPooling;
 using Laraue.Telegram.NET.Core.Middleware;
 using Laraue.Telegram.NET.Core.Routing;
 using Laraue.Telegram.NET.Core.Routing.Attributes;
@@ -49,11 +48,17 @@ public static class ServiceCollectionExtensions
             serviceCollection
                 .AddSingleton<ITelegramBotClient, TelegramBotClient>(s => 
                     new TelegramBotClient(
-                        new TelegramBotClientOptions(s.GetRequiredService<IOptions<TelegramNetOptions>>().Value.Token)))
+                        new TelegramBotClientOptions(
+                            s.GetRequiredService<IOptions<TelegramNetOptions>>()
+                                .Value
+                                .Token)))
                 .AddScoped<ITelegramRouter, TelegramRouter>()
                 .AddScoped<TelegramRequestContext>();
 
-            serviceCollection.AddTelegramControllers(controllerAssemblies ?? [Assembly.GetCallingAssembly()]);
+            serviceCollection.AddTelegramControllers(
+                controllerAssemblies
+                ?? [Assembly.GetCallingAssembly()]);
+            
             serviceCollection.AddOptions<MiddlewareList>();
             serviceCollection.Configure<MiddlewareList>(opt =>
             {
@@ -84,25 +89,38 @@ public static class ServiceCollectionExtensions
         {
             var controllerTypes = controllerAssemblies
                 .SelectMany(x => x.GetTypes())
-                .Where(x => x is { IsClass: true, IsAbstract: false } && x.IsSubclassOf(typeof(TelegramController)));
+                .Where(x => x is
+                {
+                    IsClass: true,
+                    IsAbstract: false,
+                } && x.IsSubclassOf(typeof(TelegramController)));
         
             foreach (var controllerType in controllerTypes)
             {
                 serviceCollection.AddScoped(controllerType);
             
                 var methodInfos = controllerType
-                    .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                    .Where(x => x.GetCustomAttribute<TelegramBaseRouteAttribute>(true) != null);
+                    .GetMethods(
+                        BindingFlags.Public
+                        | BindingFlags.Instance
+                        | BindingFlags.DeclaredOnly)
+                    .Where(x => x
+                        .GetCustomAttribute<TelegramBaseRouteAttribute>(true) != null);
             
                 foreach (var methodInfo in methodInfos)
                 {
-                    var routeAttribute = methodInfo.GetCustomAttribute<TelegramBaseRouteAttribute>(true);
+                    var routeAttribute = methodInfo
+                        .GetCustomAttribute<TelegramBaseRouteAttribute>(true);
+                    
                     if (routeAttribute is null)
                     {
                         continue;
                     }
                 
-                    serviceCollection.AddSingleton<IRoute>(new Route(routeAttribute.TryMatch, methodInfo));
+                    serviceCollection.AddSingleton<IRoute>(
+                        new Route(
+                            routeAttribute.TryMatch,
+                            methodInfo));
                 }
             }
         }
@@ -114,7 +132,7 @@ public static class ServiceCollectionExtensions
         public IServiceCollection AddInMemoryUpdatesQueue()
         {
             return serviceCollection
-                .AddScoped<IUpdatesQueue, InMemoryUpdatesQueue>();
+                .AddSingleton<IUpdatesQueue, InMemoryUpdatesQueue>();
         }
 
         /// <summary>
@@ -124,6 +142,7 @@ public static class ServiceCollectionExtensions
         {
             return serviceCollection
                 .AddHostedService<TelegramQueueBackgroundService>()
+                .AddScoped<ITelegramUpdatesService, TelegramUpdatesService>()
                 .AddHostedService<TelegramUpdatesLongPoolingBackgroundService>();
         }
     }

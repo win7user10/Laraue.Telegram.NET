@@ -24,7 +24,7 @@ public class InMemoryUpdatesQueue(ILogger<InMemoryUpdatesQueue> logger)
 
     public Task SetFailedAsync(Update update, string error, string? stackTrace, CancellationToken cancellationToken)
     {
-        logger.LogError($"{error} {stackTrace}");
+        logger.LogError("{Error} {StackTrace}", error, stackTrace);
         
         SetProcessedAsync(update, cancellationToken);
 

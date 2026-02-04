@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using Laraue.Core.Threading;
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Authentication.Services;
 using Laraue.Telegram.NET.Core.Extensions;
@@ -16,7 +15,6 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     private readonly IUserRoleProvider _userRoleProvider;
 
     private static readonly ConcurrentDictionary<long, TKey> UserIdTelegramIdMap = new ();
-    private static readonly KeyedSemaphoreSlim<long> Semaphore = new (1);
 
     public AuthTelegramMiddleware(
         IUserService<TKey> userService,
@@ -39,8 +37,6 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
             await next(ct);
             return;
         }
-        
-        using var _ = await Semaphore.WaitAsync(user.Id, ct);
 
         if (!UserIdTelegramIdMap.TryGetValue(user.Id, out var systemId))
         {

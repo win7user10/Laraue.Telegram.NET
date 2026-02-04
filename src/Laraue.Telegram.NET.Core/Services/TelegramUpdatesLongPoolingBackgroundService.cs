@@ -1,11 +1,9 @@
-﻿using Laraue.Telegram.NET.Core.Services;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Telegram.Bot;
 
-namespace Laraue.Telegram.NET.Core.LongPooling;
+namespace Laraue.Telegram.NET.Core.Services;
 
 /// <summary>
 /// Service thar receives updates from the tg and run their processing.
@@ -13,19 +11,16 @@ namespace Laraue.Telegram.NET.Core.LongPooling;
 public class TelegramUpdatesLongPoolingBackgroundService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly ITelegramBotClient _telegramBotClient;
     private readonly IOptions<TelegramNetOptions> _options;
     private readonly ILogger<TelegramUpdatesLongPoolingBackgroundService> _logger;
 
     /// <inheritdoc cref="TelegramUpdatesLongPoolingBackgroundService"/>.
     public TelegramUpdatesLongPoolingBackgroundService(
         IServiceProvider serviceProvider,
-        ITelegramBotClient telegramBotClient,
         IOptions<TelegramNetOptions> options,
         ILogger<TelegramUpdatesLongPoolingBackgroundService> logger)
     {
         _serviceProvider = serviceProvider;
-        _telegramBotClient = telegramBotClient;
         _options = options;
         _logger = logger;
     }
@@ -43,35 +38,26 @@ public class TelegramUpdatesLongPoolingBackgroundService : BackgroundService
         
         _logger.LogInformation("Telegram webhook url is not configured, long pooling is enabled");
         
+        var batchSize = _options.Value.LongPoolingBatchSize
+            ?? throw new InvalidOperationException("LongPoolingBatchSize setup is required");
+
+        var longPoolingInterval = _options.Value.LongPoolingInterval
+            ?? throw new InvalidOperationException("LongPoolingInterval setup is required");
+        
         var currentOffset = 0;
         
         while (!stoppingToken.IsCancellationRequested)
         {
-            var batchSize = _options.Value.LongPoolingBatchSize
-                ?? throw new InvalidOperationException("LongPoolingBatchSize setup is required");
-
-            var longPoolingInterval = _options.Value.LongPoolingInterval
-                ?? throw new InvalidOperationException("LongPoolingInterval setup is required");
+            using var scope = _serviceProvider.CreateScope();
+            var telegramUpdatesService = scope.ServiceProvider.GetRequiredService<ITelegramUpdatesService>();
             
-            var updates = await _telegramBotClient
-                .GetUpdates(currentOffset, batchSize, cancellationToken: stoppingToken)
+            currentOffset = await telegramUpdatesService
+                .LoadNewUpdatesToQueueAsync(currentOffset, batchSize, stoppingToken)
                 .ConfigureAwait(false);
 
-            if (updates.Length > 0)
-            {
-                await using var scope = _serviceProvider.CreateAsyncScope();
-                
-                var updatesQueue = scope.ServiceProvider.GetRequiredService<IUpdatesQueue>();
-            
-                await updatesQueue.AddAsync(updates, stoppingToken).ConfigureAwait(false);
-            
-                currentOffset = updates.Last().Id + 1;
-            }
-
-            if (updates.Length < batchSize)
-            {
-                await Task.Delay(longPoolingInterval, stoppingToken).ConfigureAwait(false);
-            }
+            await Task
+                .Delay(longPoolingInterval, stoppingToken)
+                .ConfigureAwait(false);
         }
     }
 }
