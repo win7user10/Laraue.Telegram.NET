@@ -15,4 +15,24 @@ public class TelegramNetOptions
     /// otherwise long pooling mode only supported.
     /// </summary>
     public string? WebhookUrl { get; init; }
+    
+    /// <summary>
+    /// The count of messages to request when long pooling mode is used.
+    /// </summary>
+    public int? LongPoolingBatchSize { get; init; }
+    
+    /// <summary>
+    /// The interval between long pooling cycles.
+    /// </summary>
+    public int? LongPoolingInterval { get; init; }
+    
+    /// <summary>
+    /// Max telegram updates to load in memory queue from the storage.
+    /// </summary>
+    public int TelegramUpdatesInMemoryQueueMaxCount { get; init; }
+    
+    /// <summary>
+    /// The interval between loading updates from storage.
+    /// </summary>
+    public int TelegramUpdatesPoolInterval { get; init; }
 }

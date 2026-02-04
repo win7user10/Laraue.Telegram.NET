@@ -11,6 +11,7 @@ using Laraue.Telegram.NET.Core;
 using Laraue.Telegram.NET.Core.Extensions;
 using Laraue.Telegram.NET.Core.Routing;
 using Laraue.Telegram.NET.Core.Routing.Attributes;
+using Laraue.Telegram.NET.Core.Services;
 using Laraue.Telegram.NET.Interceptors.Extensions;
 using Laraue.Telegram.NET.Interceptors.Services;
 using Laraue.Telegram.NET.Localization;
@@ -18,6 +19,7 @@ using Laraue.Telegram.NET.Localization.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Moq;
 using Telegram.Bot;
@@ -28,6 +30,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Laraue.Telegram.NET.Tests.Controllers;
 
+[Collection("Integration")]
 public class ControllerTests
 {
     private readonly TestServer _testServer;
@@ -35,44 +38,64 @@ public class ControllerTests
     
     public ControllerTests()
     {
-        var hostBuilder = new WebHostBuilder()
-            .ConfigureServices((c, s) =>
-            {
-                s.AddTelegramCore(
-                    new TelegramNetOptions { Token = "5118223111:ARErD6_712sIDp_OV-UwDDRwemB1IwWW1sE" },
-                    [Assembly.GetExecutingAssembly()])
-                    .AddScoped<TelegramRequestContext<string>>()
-                    .AddScoped<TelegramRequestContext>(
-                        sp => sp.GetRequiredService<TelegramRequestContext<string>>())
-                    .AddTelegramRequestLocalization()
-                    .Configure<TelegramRequestLocalizationOptions>(opt =>
-                    {
-                        opt.DefaultLanguage = "en";
-                        opt.AvailableLanguages = ["en", "ru"];
-                    })
-                    .AddTelegramRequestInterceptors<InMemoryInterceptorState, string>(new[]
-                    {
-                        Assembly.GetExecutingAssembly(),
-                    }, ServiceLifetime.Singleton)
-                    .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
-                    .AddScoped<IUserService<string>, MockedUserService>()
-                    .AddScoped<IUserRoleProvider>(_ => new StaticUserRoleProvider(
-                        Options.Create(new RoleUsers { ["Protected.View"] = ["JohnLennon"] })))
-                    .AddScoped<IControllerProtector, UserShouldBeInGroupProtector<string>>()
-                    .AddSingleton(_testChecker.Object);
-            })
-            .Configure(a => a.MapTelegramRequests("/test"));
-        
-        _testServer = new TestServer(hostBuilder);
+        var host = new HostBuilder()
+            .ConfigureWebHost(webHostBuilder => webHostBuilder
+                .UseTestServer()
+                .ConfigureServices(services =>
+                {
+                    services
+                        .AddTelegramCore(
+                            new TelegramNetOptions
+                            {
+                                Token = "5118223111:ARErD6_712sIDp_OV-UwDDRwemB1IwWW1sE",
+                                TelegramUpdatesPoolInterval = 10,
+                                TelegramUpdatesInMemoryQueueMaxCount = 10,
+                            },
+                            [Assembly.GetExecutingAssembly()])
+                        .AddInMemoryUpdatesQueue()
+                        .AddScoped<TelegramRequestContext<string>>()
+                        .AddScoped<TelegramRequestContext>(
+                            sp => sp.GetRequiredService<TelegramRequestContext<string>>())
+                        .AddTelegramRequestLocalization()
+                        .Configure<TelegramRequestLocalizationOptions>(opt =>
+                        {
+                            opt.DefaultLanguage = "en";
+                            opt.AvailableLanguages = ["en", "ru"];
+                        })
+                        .AddTelegramRequestInterceptors<InMemoryInterceptorState, string>(
+                            [Assembly.GetExecutingAssembly()],
+                            ServiceLifetime.Singleton)
+                        .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
+                        .AddSingleton<IUserSemaphore, UserSemaphore>()
+                        .AddScoped<IUserService<string>, MockedUserService>()
+                        .AddScoped<IUserRoleProvider>(_ => new StaticUserRoleProvider(
+                            Options.Create(new RoleUsers
+                            {
+                                ["Protected.View"] = ["JohnLennon"]
+                            })))
+                        .AddScoped<IControllerProtector, UserShouldBeInGroupProtector<string>>()
+                        .AddSingleton(_testChecker.Object);
+                })
+                .Configure(b => b.MapTelegramRequests("/test")))
+            .Build();
+
+        _testServer = host.GetTestServer();
+        host.Start();
     }
 
     private async Task<string> SendRequestAsync(Update update)
     {
-        var resp = await _testServer.CreateClient().PostAsync(
-            "test",
-            new StringContent(JsonSerializer.Serialize(update, JsonBotAPI.Options),
-                Encoding.UTF8,
-                "text/json"));
+        var client = _testServer.CreateClient();
+        
+        var resp = await client
+            .PostAsync(
+                "test",
+                new StringContent(JsonSerializer.Serialize(update, JsonBotAPI.Options),
+                    Encoding.UTF8,
+                    "text/json"));
+
+        var updatesService = _testServer.Services.GetRequiredService<ITelegramUpdatesService>();
+        await updatesService.ProcessQueueUpdatesAsync(batchSize: int.MaxValue);
 
         resp.EnsureSuccessStatusCode();
 
@@ -148,7 +171,7 @@ public class ControllerTests
                 ChatInstance = "123",
             },
         });
-        
+
         _testChecker.Verify(x => x.Call("post: 12"));
     }
     

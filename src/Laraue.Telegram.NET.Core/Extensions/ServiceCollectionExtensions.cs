@@ -1,10 +1,10 @@
 ﻿using System.Reflection;
 using Laraue.Telegram.NET.Abstractions;
-using Laraue.Telegram.NET.Core.LongPooling;
 using Laraue.Telegram.NET.Core.Middleware;
 using Laraue.Telegram.NET.Core.Routing;
 using Laraue.Telegram.NET.Core.Routing.Attributes;
 using Laraue.Telegram.NET.Core.Routing.Middleware;
+using Laraue.Telegram.NET.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
@@ -16,104 +16,129 @@ namespace Laraue.Telegram.NET.Core.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds to the container telegram controllers.
-    /// </summary>
     /// <param name="serviceCollection"></param>
-    /// <param name="telegramNetOptions"></param>
-    /// <param name="controllerAssemblies"></param>
-    /// <returns></returns>
-    public static IServiceCollection AddTelegramCore(
-        this IServiceCollection serviceCollection,
-        TelegramNetOptions telegramNetOptions,
-        Assembly[]? controllerAssemblies = null)
+    extension(IServiceCollection serviceCollection)
     {
-        return serviceCollection
-            .AddSingleton(Options.Create(telegramNetOptions))
-            .AddTelegramCore(controllerAssemblies);
-    }
-    
-    /// <summary>
-    /// Adds to the container telegram controllers. Require options declaration explicitly.
-    /// </summary>
-    /// <param name="serviceCollection"></param>
-    /// <param name="controllerAssemblies"></param>
-    /// <returns></returns>
-    public static IServiceCollection AddTelegramCore(
-        this IServiceCollection serviceCollection,
-        Assembly[]? controllerAssemblies = null)
-    {
-        serviceCollection.AddScoped<MapRequestToTelegramCoreMiddleware>();
-        serviceCollection.AddTelegramLongPoolingService();
+        /// <summary>
+        /// Adds to the container telegram controllers.
+        /// </summary>
+        /// <param name="telegramNetOptions"></param>
+        /// <param name="controllerAssemblies"></param>
+        /// <returns></returns>
+        public IServiceCollection AddTelegramCore(
+            TelegramNetOptions telegramNetOptions,
+            Assembly[]? controllerAssemblies = null)
+        {
+            return serviceCollection
+                .AddSingleton(Options.Create(telegramNetOptions))
+                .AddTelegramCore(controllerAssemblies);
+        }
+
+        /// <summary>
+        /// Adds to the container telegram controllers. Require options declaration explicitly.
+        /// </summary>
+        /// <param name="controllerAssemblies"></param>
+        /// <returns></returns>
+        public IServiceCollection AddTelegramCore(
+            Assembly[]? controllerAssemblies = null)
+        {
+            serviceCollection
+                .AddScoped<MapRequestToTelegramCoreMiddleware>()
+                .AddScoped<ITelegramUpdatesService, TelegramUpdatesService>()
+                .AddHostedService<TelegramUpdatesLongPoolingBackgroundService>()
+                .AddHostedService<TelegramQueueBackgroundService>();
         
-        serviceCollection
-            .AddSingleton<ITelegramBotClient, TelegramBotClient>(s => 
-                new TelegramBotClient(
-                    new TelegramBotClientOptions(s.GetRequiredService<IOptions<TelegramNetOptions>>().Value.Token)))
-            .AddScoped<ITelegramRouter, TelegramRouter>()
-            .AddScoped<TelegramRequestContext>();
+            serviceCollection
+                .AddSingleton<ITelegramBotClient, TelegramBotClient>(s => 
+                    new TelegramBotClient(
+                        new TelegramBotClientOptions(
+                            s.GetRequiredService<IOptions<TelegramNetOptions>>()
+                                .Value
+                                .Token)))
+                .AddScoped<ITelegramRouter, TelegramRouter>()
+                .AddScoped<TelegramRequestContext>();
 
-        serviceCollection.AddTelegramControllers(controllerAssemblies ?? [Assembly.GetCallingAssembly()]);
-        serviceCollection.AddOptions<MiddlewareList>();
-        serviceCollection.Configure<MiddlewareList>(opt =>
-        {
-            opt.AddToRoot<ExecuteRouteMiddleware>();
-            opt.AddToTop<HandleExceptionsMiddleware>();
-        });
-
-        return serviceCollection;
-    }
-
-    /// <summary>
-    /// Allows to add a custom middleware to the telegram request pipeline.
-    /// </summary>
-    /// <param name="serviceCollection"></param>
-    /// <typeparam name="TMiddleware"></typeparam>
-    /// <returns></returns>
-    public static IServiceCollection AddTelegramMiddleware<TMiddleware>(this IServiceCollection serviceCollection)
-        where TMiddleware : class, ITelegramMiddleware
-    {
-        serviceCollection.Configure<MiddlewareList>(middlewareList =>
-        {
-            middlewareList.Add<TMiddleware>();
-        });
-
-        return serviceCollection;
-    }
-
-    private static void AddTelegramControllers(this IServiceCollection serviceCollection, IEnumerable<Assembly> controllerAssemblies)
-    {
-        var controllerTypes = controllerAssemblies
-            .SelectMany(x => x.GetTypes())
-            .Where(x => x is { IsClass: true, IsAbstract: false } && x.IsSubclassOf(typeof(TelegramController)));
-        
-        foreach (var controllerType in controllerTypes)
-        {
-            serviceCollection.AddScoped(controllerType);
+            serviceCollection.AddTelegramControllers(
+                controllerAssemblies
+                ?? [Assembly.GetCallingAssembly()]);
             
-            var methodInfos = controllerType
-                .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .Where(x => x.GetCustomAttribute<TelegramBaseRouteAttribute>(true) != null);
-            
-            foreach (var methodInfo in methodInfos)
+            serviceCollection.AddOptions<MiddlewareList>();
+            serviceCollection.Configure<MiddlewareList>(opt =>
             {
-                var routeAttribute = methodInfo.GetCustomAttribute<TelegramBaseRouteAttribute>(true);
-                if (routeAttribute is null)
+                opt.AddToRoot<ExecuteRouteMiddleware>();
+                opt.AddToTop<HandleExceptionsMiddleware>();
+            });
+
+            return serviceCollection;
+        }
+
+        /// <summary>
+        /// Allows to add a custom middleware to the telegram request pipeline.
+        /// </summary>
+        /// <typeparam name="TMiddleware"></typeparam>
+        /// <returns></returns>
+        public IServiceCollection AddTelegramMiddleware<TMiddleware>()
+            where TMiddleware : class, ITelegramMiddleware
+        {
+            serviceCollection.Configure<MiddlewareList>(middlewareList =>
+            {
+                middlewareList.Add<TMiddleware>();
+            });
+
+            return serviceCollection;
+        }
+
+        private void AddTelegramControllers(IEnumerable<Assembly> controllerAssemblies)
+        {
+            var controllerTypes = controllerAssemblies
+                .SelectMany(x => x.GetTypes())
+                .Where(x => x is
                 {
-                    continue;
-                }
+                    IsClass: true,
+                    IsAbstract: false,
+                } && x.IsSubclassOf(typeof(TelegramController)));
+        
+            foreach (var controllerType in controllerTypes)
+            {
+                serviceCollection.AddScoped(controllerType);
+            
+                var methodInfos = controllerType
+                    .GetMethods(
+                        BindingFlags.Public
+                        | BindingFlags.Instance
+                        | BindingFlags.DeclaredOnly)
+                    .Where(x => x
+                        .GetCustomAttribute<TelegramBaseRouteAttribute>(true) != null);
+            
+                foreach (var methodInfo in methodInfos)
+                {
+                    var routeAttribute = methodInfo
+                        .GetCustomAttribute<TelegramBaseRouteAttribute>(true);
+                    
+                    if (routeAttribute is null)
+                    {
+                        continue;
+                    }
                 
-                serviceCollection.AddSingleton<IRoute>(new Route(routeAttribute.TryMatch, methodInfo));
+                    serviceCollection.AddSingleton<IRoute>(
+                        new Route(
+                            routeAttribute.TryMatch,
+                            methodInfo));
+                }
             }
         }
-    }
-    
-    /// <summary>
-    /// Use webhooks for telegram requests handling.
-    /// </summary>
-    /// <param name="serviceCollection"></param>
-    private static IServiceCollection AddTelegramLongPoolingService(this IServiceCollection serviceCollection)
-    {
-        return serviceCollection.AddHostedService<LongPoolingTelegramBackgroundService>();
+        
+        /// <summary>
+        /// Store taken telegram requests in memory queue.
+        /// It is recommended to use the method only for test purposes and take the real provider from the
+        /// 'Laraue.Telegram.NET.UpdatesQueue.EFCore' package for the production due to possible data loss
+        /// while application restarting.
+        /// </summary>
+        /// <returns></returns>
+        public IServiceCollection AddInMemoryUpdatesQueue()
+        {
+            return serviceCollection
+                .AddSingleton<IUpdatesQueue, InMemoryUpdatesQueue>();
+        }
     }
 }

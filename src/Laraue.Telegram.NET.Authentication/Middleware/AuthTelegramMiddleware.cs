@@ -1,9 +1,9 @@
 ﻿using System.Collections.Concurrent;
-using Laraue.Core.Threading;
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Authentication.Services;
 using Laraue.Telegram.NET.Core.Extensions;
 using Microsoft.Extensions.Logging;
+using Telegram.Bot.Types;
 
 namespace Laraue.Telegram.NET.Authentication.Middleware;
 
@@ -14,20 +14,22 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     private readonly TelegramRequestContext<TKey> _telegramRequestContext;
     private readonly ILogger<AuthTelegramMiddleware<TKey>> _logger;
     private readonly IUserRoleProvider _userRoleProvider;
+    private readonly IUserSemaphore _userSemaphore;
 
     private static readonly ConcurrentDictionary<long, TKey> UserIdTelegramIdMap = new ();
-    private static readonly KeyedSemaphoreSlim<long> Semaphore = new (1);
 
     public AuthTelegramMiddleware(
         IUserService<TKey> userService,
         TelegramRequestContext<TKey> telegramRequestContext,
         ILogger<AuthTelegramMiddleware<TKey>> logger,
-        IUserRoleProvider userRoleProvider)
+        IUserRoleProvider userRoleProvider,
+        IUserSemaphore userSemaphore)
     {
         _userService = userService;
         _telegramRequestContext = telegramRequestContext;
         _logger = logger;
         _userRoleProvider = userRoleProvider;
+        _userSemaphore = userSemaphore;
     }
     
     /// <inheritdoc />
@@ -40,18 +42,7 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
             return;
         }
         
-        using var _ = await Semaphore.WaitAsync(user.Id, ct);
-
-        if (!UserIdTelegramIdMap.TryGetValue(user.Id, out var systemId))
-        {
-            var result = await _userService.LoginOrRegisterAsync(
-                new TelegramData(user.Id, user.Username, user.LanguageCode));
-            
-            UserIdTelegramIdMap.TryAdd(user.Id, result.UserId);
-            systemId = result.UserId;
-        }
-        
-        _telegramRequestContext.UserId = systemId;
+        _telegramRequestContext.UserId = await GetOrCreateSystemUserIdAsync(user, ct);
 
         var userGroups = await _userRoleProvider.GetUserGroupsAsync(user);
         _telegramRequestContext.Groups = userGroups.Select(x => x.Name).ToArray();
@@ -59,9 +50,25 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
         _logger.LogInformation(
             "Auth as: telegram id: {TelegramId}, system id: {SystemId}, groups: [{Groups}]",
             user.Id,
-            systemId,
+            _telegramRequestContext.UserId,
             string.Join(',', userGroups.Select(x => x.Name)));
         
         await next(ct);
+    }
+
+    private async Task<TKey> GetOrCreateSystemUserIdAsync(User user, CancellationToken cancellationToken)
+    {
+        using var registrationSemaphore = await _userSemaphore.WaitAsync(user.Id, cancellationToken);
+
+        if (UserIdTelegramIdMap.TryGetValue(user.Id, out var systemId))
+        {
+            return systemId;
+        }
+        
+        var result = await _userService.LoginOrRegisterAsync(
+            new TelegramData(user.Id, user.Username, user.LanguageCode));
+        
+        UserIdTelegramIdMap.TryAdd(user.Id, result.UserId);
+        return result.UserId;
     }
 }

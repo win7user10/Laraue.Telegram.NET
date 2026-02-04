@@ -9,29 +9,31 @@ public static class TelegramRequestContextExtensions
 {
     private const string ExecutedRouteParameter = "ExecutedRoute";
 
-    /// <summary>
-    /// Returns executed route if it was executed in the request pipeline.
-    /// </summary>
     /// <param name="requestContext"></param>
-    /// <returns></returns>
-    public static ExecutedRouteInfo? GetExecutedRoute(this TelegramRequestContext requestContext)
+    extension(TelegramRequestContext requestContext)
     {
-        if (requestContext.Data.TryGetValue(ExecutedRouteParameter, out var localRoute))
+        /// <summary>
+        /// Returns executed route if it was executed in the request pipeline.
+        /// </summary>
+        /// <returns></returns>
+        public ExecutedRouteInfo? GetExecutedRoute()
         {
-            return localRoute as ExecutedRouteInfo;
+            if (requestContext.Data.TryGetValue(ExecutedRouteParameter, out var localRoute))
+            {
+                return localRoute as ExecutedRouteInfo;
+            }
+
+            return null;
         }
 
-        return null;
-    }
-    
-    /// <summary>
-    /// Sets executed route in the request pipeline.
-    /// </summary>
-    /// <param name="requestContext"></param>
-    /// <param name="route"></param>
-    public static void SetExecutedRoute(this TelegramRequestContext requestContext, ExecutedRouteInfo route)
-    {
-        requestContext.Data[ExecutedRouteParameter] = route;
+        /// <summary>
+        /// Sets executed route in the request pipeline.
+        /// </summary>
+        /// <param name="route"></param>
+        public void SetExecutedRoute(ExecutedRouteInfo route)
+        {
+            requestContext.Data[ExecutedRouteParameter] = route;
+        }
     }
 }
 

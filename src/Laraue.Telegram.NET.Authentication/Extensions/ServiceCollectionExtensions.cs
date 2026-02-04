@@ -13,67 +13,68 @@ namespace Laraue.Telegram.NET.Authentication.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Add authentication middleware with <see cref="TelegramRequestContext{TKey}"/>
-    /// to the container and configure identity.
-    /// </summary>
     /// <param name="serviceCollection"></param>
-    /// <typeparam name="TUser"></typeparam>
-    /// <typeparam name="TKey"></typeparam>
-    /// <typeparam name="TTelegramUserQueryService"></typeparam>
-    /// <returns></returns>
-    public static IServiceCollection AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService>(
-        this IServiceCollection serviceCollection)
-        where TUser : class, ITelegramUser<TKey>, new()
-        where TKey : IEquatable<TKey>
-        where TTelegramUserQueryService : class, ITelegramUserQueryService<TUser, TKey> 
+    extension(IServiceCollection serviceCollection)
     {
-        return serviceCollection.AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService, TelegramRequestContext<TKey>>();
-    }
-
-    /// <summary>
-    /// Add authentication middleware and the passed <see cref="TTelegramRequestContext"/>
-    /// to the container and configure identity.
-    /// </summary>
-    /// <param name="serviceCollection"></param>
-    /// <typeparam name="TUser"></typeparam>
-    /// <typeparam name="TKey"></typeparam>
-    /// <typeparam name="TTelegramUserQueryService"></typeparam>
-    /// <typeparam name="TTelegramRequestContext"></typeparam>
-    /// <returns></returns>
-    public static IServiceCollection AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService, TTelegramRequestContext>(
-        this IServiceCollection serviceCollection)
-        where TUser : class, ITelegramUser<TKey>, new()
-        where TKey : IEquatable<TKey>
-        where TTelegramRequestContext : TelegramRequestContext<TKey>
-        where TTelegramUserQueryService : class, ITelegramUserQueryService<TUser, TKey>
-    {
-        serviceCollection.AddTelegramMiddleware<AuthTelegramMiddleware<TKey>>();
-        
-        serviceCollection.AddScoped<TTelegramRequestContext>();
-
-        if (typeof(TTelegramRequestContext) != typeof(TelegramRequestContext<TKey>))
+        /// <summary>
+        /// Add authentication middleware with <see cref="TelegramRequestContext{TKey}"/>
+        /// to the container and configure identity.
+        /// </summary>
+        /// <typeparam name="TUser"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TTelegramUserQueryService"></typeparam>
+        /// <returns></returns>
+        public IServiceCollection AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService>()
+            where TUser : class, ITelegramUser<TKey>, new()
+            where TKey : IEquatable<TKey>
+            where TTelegramUserQueryService : class, ITelegramUserQueryService<TUser, TKey> 
         {
-            serviceCollection.AddScoped<TelegramRequestContext<TKey>>(
-                sp => sp.GetRequiredService<TTelegramRequestContext>());
+            return serviceCollection.AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService, TelegramRequestContext<TKey>>();
         }
-        
-        serviceCollection.AddScoped<TelegramRequestContext>(
-            sp => sp.GetRequiredService<TTelegramRequestContext>());
-        
-        serviceCollection.AddScoped<ITelegramUserQueryService<TUser, TKey>, TTelegramUserQueryService>();
-        serviceCollection.AddScoped<IUserService<TKey>, UserService<TUser, TKey>>();
 
-        serviceCollection.UseUserRolesProvider<DefaultUserRoleProvider>();
-        return serviceCollection.AddScoped<IControllerProtector, UserShouldBeInGroupProtector<TKey>>();
-    }
+        /// <summary>
+        /// Add authentication middleware and the passed <see cref="TTelegramRequestContext"/>
+        /// to the container and configure identity.
+        /// </summary>
+        /// <typeparam name="TUser"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TTelegramUserQueryService"></typeparam>
+        /// <typeparam name="TTelegramRequestContext"></typeparam>
+        /// <returns></returns>
+        public IServiceCollection AddTelegramAuthentication<TUser, TKey, TTelegramUserQueryService, TTelegramRequestContext>()
+            where TUser : class, ITelegramUser<TKey>, new()
+            where TKey : IEquatable<TKey>
+            where TTelegramRequestContext : TelegramRequestContext<TKey>
+            where TTelegramUserQueryService : class, ITelegramUserQueryService<TUser, TKey>
+        {
+            serviceCollection.AddTelegramMiddleware<AuthTelegramMiddleware<TKey>>();
+        
+            serviceCollection.AddScoped<TTelegramRequestContext>();
+            serviceCollection.AddSingleton<IUserSemaphore, UserSemaphore>();
 
-    /// <summary>
-    /// Start use role provider for the user.
-    /// </summary>
-    public static IServiceCollection UseUserRolesProvider<TUserGroupProvider>(this IServiceCollection services)
-        where TUserGroupProvider : class, IUserRoleProvider
-    {
-        return services.AddScoped<IUserRoleProvider, TUserGroupProvider>();
+            if (typeof(TTelegramRequestContext) != typeof(TelegramRequestContext<TKey>))
+            {
+                serviceCollection.AddScoped<TelegramRequestContext<TKey>>(
+                    sp => sp.GetRequiredService<TTelegramRequestContext>());
+            }
+        
+            serviceCollection.AddScoped<TelegramRequestContext>(
+                sp => sp.GetRequiredService<TTelegramRequestContext>());
+        
+            serviceCollection.AddScoped<ITelegramUserQueryService<TUser, TKey>, TTelegramUserQueryService>();
+            serviceCollection.AddScoped<IUserService<TKey>, UserService<TUser, TKey>>();
+
+            serviceCollection.UseUserRolesProvider<DefaultUserRoleProvider>();
+            return serviceCollection.AddScoped<IControllerProtector, UserShouldBeInGroupProtector<TKey>>();
+        }
+
+        /// <summary>
+        /// Start use role provider for the user.
+        /// </summary>
+        public IServiceCollection UseUserRolesProvider<TUserGroupProvider>()
+            where TUserGroupProvider : class, IUserRoleProvider
+        {
+            return serviceCollection.AddScoped<IUserRoleProvider, TUserGroupProvider>();
+        }
     }
 }

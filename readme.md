@@ -1,13 +1,14 @@
 # Laraue.Telegram.NET
 
-This library contains infrastructure code for fast telegram bots building.
+This library contains infrastructure code to write testable telegram bots for one to one conversations.
 The library use https://github.com/TelegramBots/Telegram.Bot package inside to communicate with Telegram.
 
 ## Laraue.Telegram.NET.Core
 
 [![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Core)](https://www.nuget.org/packages/Laraue.Telegram.NET.Core)
 
-The basic idea of the library is to register all possible telegram routes in classes inherited _TelegramController_.
+The basic idea of the library is to register all possible telegram routes in classes
+inherited from _TelegramController_.
 
 ```csharp
 public class MenuController : TelegramController
@@ -19,22 +20,30 @@ public class MenuController : TelegramController
         _service = service;
     }
     
-    [TelegramMessageRoute("/start")]
+    [TelegramMessageRoute("/start")] // When the user will send the '/start' message
     public Task ShowMenuAsync(TelegramRequestContext requestContext)
     {
-        return _service.HandleStartAsync(requestContext.Update.Message!);
+        return _service.HandleStartAsync(requestContext.Update.Message!); // execute this code
     }
 ```
 
-Here _TelegramMessageRoute_ means that if the message with text "/settings" will be send by the telegram user, this method will be executed. Only message update will be handled in this case.
-To process callback queries can be used attribute _TelegramCallbackRouteAttribute_, any another request type can be handled by the attribute inherited from _TelegramBaseRouteAttribute_.
+To process callback queries can be used attribute _TelegramCallbackRouteAttribute_,
+any request type can be handled by implementing the attribute inherited from _TelegramBaseRouteAttribute_.
 
-To start using this and other controllers the library should be added with the following way  
+To start using this and other controllers, the library should be added with the following way:
 
 A. Using webhooks
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddTelegramCore(new TelegramBotClientOptions("5118263652:AAHiPDQ8kVcbs2WZWG4Z..."));
+
+builder.Services.AddOptions<TelegramNetOptions>();
+builder.Services.Configure<TelegramNetOptions>(builder.Configuration.GetSection("Telegram"));
+
+builder
+    .Services
+    .AddTelegramCore(new TelegramBotClientOptions("5118263652:AAHiPDQ8kVcbs2WZWG4Z..."))
+    .AddInMemoryUpdatesQueue();
+
 var app = builder.Build();
 app.MapTelegramRequests("/api/telegram");
 app.Run();
@@ -43,15 +52,31 @@ app.Run();
 B. Using long pooling
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddTelegramCore(new TelegramBotClientOptions("5118263652:AAHiPDQ8kVcbs2WZWG4Z..."));
-builder.Services.AddTelegramLongPoolingService();
+
+builder.Services.AddOptions<TelegramNetOptions>();
+builder.Services.Configure<TelegramNetOptions>(builder.Configuration.GetSection("Telegram"));
+
+builder
+    .Services
+    .AddTelegramCore(new TelegramBotClientOptions("5118263652:AAHiPDQ8kVcbs2WZWG4Z..."))
+    .AddInMemoryUpdatesQueue();
+
 var app = builder.Build();
 app.Run();
 ```
 
+The library takes the decision what way to use based on the property `WebhookUrl` in the app settings.
+When the setting is set, the application considers Webhook mode is used, otherwise long pooling mode
+is active.
+
 The token in the TelegramBotClientOptions can be taken via @BotFather bot in the Telegram.
 _MapTelegramRequests_ method setup the address which will listen callbacks from the telegram.
 This address should be set also on the telegram side by calling the next url:
+
+**Note**: The AddInMemoryUpdatesQueue call adds to the container InMemory queue to store telegram updates.
+It is not recommended due to possible updates loss. The better way is to use 
+`AddEfCoreUpdatesQueue<MyDbContext>` from the package `Laraue.Telegram.NET.UpdatesQueue.EFCore`
+to store all updates queue in the database or implementing custom `IUpdatesQueue`.
 ```
 https://api.telegram.org/bot5118263652:AAHiPDQ8kVcbs2WZWG4Z.../setWebhook?url=https://your.host/api/telegram
 ```

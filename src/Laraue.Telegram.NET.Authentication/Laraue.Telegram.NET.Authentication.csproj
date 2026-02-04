@@ -1,13 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>Integration Laraue.Telegram.NET packacge with Micrososoft.Identity</Description>
+    <Description>The package to integrate Laraue.Telegram.NET with Micrososoft.Identity</Description>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Laraue.Core.Exceptions" Version="$(LaraueCoreExceptionsVersion)" />
-    <PackageReference Include="Laraue.Core.Threading" Version="$(LaraueCoreThreadingVersion)" />
   </ItemGroup>
 
   <ItemGroup>
