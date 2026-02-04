@@ -22,6 +22,18 @@ public class TelegramQueueBackgroundService : BackgroundService
         var batchSize = _options.Value.TelegramUpdatesInMemoryQueueMaxCount;
         var waitInterval = _options.Value.TelegramUpdatesPoolInterval;
 
+        if (batchSize <= 0)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(TelegramNetOptions.TelegramUpdatesInMemoryQueueMaxCount)} setup is required");
+        }
+        
+        if (waitInterval <= 0)
+        {
+            throw new InvalidOperationException(
+                $"{nameof(TelegramNetOptions.TelegramUpdatesPoolInterval)} setup is required");
+        }
+
         while (!stoppingToken.IsCancellationRequested)
         {
             await using var scope = _serviceProvider.CreateAsyncScope();

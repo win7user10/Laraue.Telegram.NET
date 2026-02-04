@@ -39,10 +39,10 @@ public class TelegramUpdatesLongPoolingBackgroundService : BackgroundService
         _logger.LogInformation("Telegram webhook url is not configured, long pooling is enabled");
         
         var batchSize = _options.Value.LongPoolingBatchSize
-            ?? throw new InvalidOperationException("LongPoolingBatchSize setup is required");
+            ?? throw new InvalidOperationException($"{nameof(TelegramNetOptions.LongPoolingBatchSize)} setup is required");
 
         var longPoolingInterval = _options.Value.LongPoolingInterval
-            ?? throw new InvalidOperationException("LongPoolingInterval setup is required");
+            ?? throw new InvalidOperationException($"{nameof(TelegramNetOptions.LongPoolingInterval)} setup is required");
         
         var currentOffset = 0;
         

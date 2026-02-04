@@ -42,8 +42,11 @@ public static class ServiceCollectionExtensions
         public IServiceCollection AddTelegramCore(
             Assembly[]? controllerAssemblies = null)
         {
-            serviceCollection.AddScoped<MapRequestToTelegramCoreMiddleware>();
-            serviceCollection.AddTelegramLongPoolingService();
+            serviceCollection
+                .AddScoped<MapRequestToTelegramCoreMiddleware>()
+                .AddScoped<ITelegramUpdatesService, TelegramUpdatesService>()
+                .AddHostedService<TelegramUpdatesLongPoolingBackgroundService>()
+                .AddHostedService<TelegramQueueBackgroundService>();
         
             serviceCollection
                 .AddSingleton<ITelegramBotClient, TelegramBotClient>(s => 
@@ -136,17 +139,6 @@ public static class ServiceCollectionExtensions
         {
             return serviceCollection
                 .AddSingleton<IUpdatesQueue, InMemoryUpdatesQueue>();
-        }
-
-        /// <summary>
-        /// Use webhooks for telegram requests handling.
-        /// </summary>
-        private IServiceCollection AddTelegramLongPoolingService()
-        {
-            return serviceCollection
-                .AddHostedService<TelegramQueueBackgroundService>()
-                .AddScoped<ITelegramUpdatesService, TelegramUpdatesService>()
-                .AddHostedService<TelegramUpdatesLongPoolingBackgroundService>();
         }
     }
 }

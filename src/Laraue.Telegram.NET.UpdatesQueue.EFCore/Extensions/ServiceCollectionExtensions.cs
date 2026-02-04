@@ -11,9 +11,11 @@ public static class ServiceCollectionExtensions
         /// Store taken telegram requests to queue using EF Core. 
         /// </summary>
         /// <returns></returns>
-        public IServiceCollection AddEfCoreUpdatesQueue()
+        public IServiceCollection AddEfCoreUpdatesQueue<TDbContext>()
+            where TDbContext : class, IUpdatesQueueDbContext
         {
             return serviceCollection
+                .AddScoped<IUpdatesQueueDbContext, TDbContext>()
                 .AddScoped<IUpdatesQueue, EfCoreUpdatesQueue>();
         }
     }
