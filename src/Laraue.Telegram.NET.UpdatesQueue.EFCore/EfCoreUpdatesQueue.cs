@@ -16,11 +16,16 @@ public class EfCoreUpdatesQueue(
         var updatesArray = updates.ToArray();
         var updateIds = updatesArray.Select(u => u.Id);
 
-        var newUpdates = await dbContext.Updates
-            .Where(u => !updateIds.Contains(u.Id))
+        var existsUpdateIds = await dbContext.Updates
+            .Where(u => updateIds.Contains(u.Id))
+            .Select(u => u.Id)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
 
+        var newUpdates = updatesArray
+            .ExceptBy(existsUpdateIds, u => u.Id)
+            .ToArray();
+        
         if (newUpdates.Length > 0)
         {
             var entities = newUpdates
