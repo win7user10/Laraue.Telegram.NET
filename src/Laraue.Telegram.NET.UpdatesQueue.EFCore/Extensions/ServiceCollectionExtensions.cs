@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
         public IServiceCollection AddEfCoreUpdatesQueue()
         {
             return serviceCollection
-                .AddSingleton<IUpdatesQueue, EfCoreUpdatesQueue>();
+                .AddScoped<IUpdatesQueue, EfCoreUpdatesQueue>();
         }
     }
 }
