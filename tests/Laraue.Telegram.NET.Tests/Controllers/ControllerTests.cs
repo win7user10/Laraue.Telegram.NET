@@ -66,6 +66,7 @@ public class ControllerTests
                             [Assembly.GetExecutingAssembly()],
                             ServiceLifetime.Singleton)
                         .AddTelegramMiddleware<AuthTelegramMiddleware<string>>()
+                        .AddSingleton<IUserSemaphore, UserSemaphore>()
                         .AddScoped<IUserService<string>, MockedUserService>()
                         .AddScoped<IUserRoleProvider>(_ => new StaticUserRoleProvider(
                             Options.Create(new RoleUsers
