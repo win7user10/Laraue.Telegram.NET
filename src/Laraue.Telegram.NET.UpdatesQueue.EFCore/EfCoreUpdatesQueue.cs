@@ -11,7 +11,7 @@ public class EfCoreUpdatesQueue(
     IUpdatesQueueDbContext dbContext)
     : IUpdatesQueue
 {
-    public async Task AddAsync(IEnumerable<Update> updates, CancellationToken cancellationToken)
+    public async Task AddAsync(IEnumerable<Update> updates, CancellationToken cancellationToken = default)
     {
         var updatesArray = updates.ToArray();
         var updateIds = updatesArray.Select(u => u.Id);
@@ -43,7 +43,7 @@ public class EfCoreUpdatesQueue(
         }
     }
 
-    public Task SetProcessedAsync(Update update, CancellationToken cancellationToken)
+    public Task SetProcessedAsync(Update update, CancellationToken cancellationToken = default)
     {
         return dbContext.Updates
             .Where(u => u.Id == update.Id)
@@ -54,7 +54,7 @@ public class EfCoreUpdatesQueue(
         Update update,
         string error,
         string? stackTrace,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         
@@ -79,7 +79,7 @@ public class EfCoreUpdatesQueue(
         await transaction.CommitAsync(cancellationToken);
     }
 
-    public async Task<Update[]> GetAsync(int count, CancellationToken cancellationToken)
+    public async Task<Update[]> GetAsync(int count, CancellationToken cancellationToken = default)
     {
         var updates = await dbContext.Updates
             .OrderBy(u => u.Id)

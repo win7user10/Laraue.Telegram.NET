@@ -10,6 +10,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,6 +19,7 @@
     <ProjectReference Include="..\..\src\Laraue.Telegram.NET.DataAccess\Laraue.Telegram.NET.DataAccess.csproj" />
     <ProjectReference Include="..\..\src\Laraue.Telegram.NET.Interceptors\Laraue.Telegram.NET.Interceptors.csproj" />
     <ProjectReference Include="..\..\src\Laraue.Telegram.NET.Localization\Laraue.Telegram.NET.Localization.csproj" />
+    <ProjectReference Include="..\..\src\Laraue.Telegram.NET.UpdatesQueue.EFCore\Laraue.Telegram.NET.UpdatesQueue.EFCore.csproj" />
   </ItemGroup>
 
 </Project>

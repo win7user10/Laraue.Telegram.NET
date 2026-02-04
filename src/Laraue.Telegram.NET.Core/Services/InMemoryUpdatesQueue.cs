@@ -25,7 +25,7 @@ public class InMemoryUpdatesQueue
         Update update,
         string error,
         string? stackTrace,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         return SetProcessedAsync(update, cancellationToken);
     }
