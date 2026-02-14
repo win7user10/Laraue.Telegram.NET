@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using Laraue.Telegram.NET.Abstractions;
+﻿using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Authentication.Services;
 using Laraue.Telegram.NET.Core.Extensions;
 using Microsoft.Extensions.Logging;
@@ -15,21 +14,22 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     private readonly ILogger<AuthTelegramMiddleware<TKey>> _logger;
     private readonly IUserRoleProvider _userRoleProvider;
     private readonly IUserSemaphore _userSemaphore;
-
-    private static readonly ConcurrentDictionary<long, TKey> UserIdTelegramIdMap = new ();
+    private readonly IUserIdByTelegramIdCache<TKey> _userIdByTelegramIdCache;
 
     public AuthTelegramMiddleware(
         IUserService<TKey> userService,
         TelegramRequestContext<TKey> telegramRequestContext,
         ILogger<AuthTelegramMiddleware<TKey>> logger,
         IUserRoleProvider userRoleProvider,
-        IUserSemaphore userSemaphore)
+        IUserSemaphore userSemaphore,
+        IUserIdByTelegramIdCache<TKey> userIdByTelegramIdCache)
     {
         _userService = userService;
         _telegramRequestContext = telegramRequestContext;
         _logger = logger;
         _userRoleProvider = userRoleProvider;
         _userSemaphore = userSemaphore;
+        _userIdByTelegramIdCache = userIdByTelegramIdCache;
     }
     
     /// <inheritdoc />
@@ -60,7 +60,8 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     {
         using var registrationSemaphore = await _userSemaphore.WaitAsync(user.Id, cancellationToken);
 
-        if (UserIdTelegramIdMap.TryGetValue(user.Id, out var systemId))
+        var systemId = await _userIdByTelegramIdCache.TryGetValueAsync(user.Id);
+        if (systemId is not null)
         {
             return systemId;
         }
@@ -68,7 +69,7 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
         var result = await _userService.LoginOrRegisterAsync(
             new TelegramData(user.Id, user.Username, user.LanguageCode));
         
-        UserIdTelegramIdMap.TryAdd(user.Id, result.UserId);
+        await _userIdByTelegramIdCache.TryAddAsync(user.Id, result.UserId);
         return result.UserId;
     }
 }

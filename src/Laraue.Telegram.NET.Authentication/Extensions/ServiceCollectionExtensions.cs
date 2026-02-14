@@ -51,6 +51,7 @@ public static class ServiceCollectionExtensions
         
             serviceCollection.AddScoped<TTelegramRequestContext>();
             serviceCollection.AddSingleton<IUserSemaphore, UserSemaphore>();
+            serviceCollection.AddSingleton<IUserIdByTelegramIdCache<TKey>, InMemoryUserIdByTelegramIdCache<TKey>>();
 
             if (typeof(TTelegramRequestContext) != typeof(TelegramRequestContext<TKey>))
             {
