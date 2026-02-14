@@ -60,10 +60,9 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
     {
         using var registrationSemaphore = await _userSemaphore.WaitAsync(user.Id, cancellationToken);
 
-        var systemId = await _userIdByTelegramIdCache.TryGetValueAsync(user.Id);
-        if (systemId is not null)
+        if (await _userIdByTelegramIdCache.TryGetValueAsync(user.Id, out var systemId))
         {
-            return systemId;
+            return systemId!;
         }
         
         var result = await _userService.LoginOrRegisterAsync(

@@ -1,8 +1,10 @@
-﻿namespace Laraue.Telegram.NET.Authentication.Services;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Laraue.Telegram.NET.Authentication.Services;
 
 public interface IUserIdByTelegramIdCache<TUserId> where TUserId : IEquatable<TUserId>
 {
-    Task<TUserId?> TryGetValueAsync(long telegramId);
+    Task<bool> TryGetValueAsync(long telegramId, [NotNullWhen(true)] out TUserId? userId);
 
     Task TryAddAsync(long telegramId, TUserId userId);
 }
