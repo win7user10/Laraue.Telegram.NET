@@ -79,31 +79,21 @@ public sealed class TelegramRouter : ITelegramRouter
             middlewareNode = middlewareNode.Previous;
         }
 
-        try
-        {
-            await invokeDelegate(cancellationToken).ConfigureAwait(false);
-            var executedRoute = _telegramRequestContext.GetExecutedRoute();
+        await invokeDelegate(cancellationToken).ConfigureAwait(false);
+        var executedRoute = _telegramRequestContext.GetExecutedRoute();
         
-            if (executedRoute is not null)
-            {
-                _logger.LogInformation(
-                    "Request time {Time} ms, route: {RouteName} executed",
-                    sw.ElapsedMilliseconds,
-                    executedRoute);
-            }
-            else
-            {
-                _logger.LogInformation(
-                    "Request time {Time} ms, status: no endpoint to execute, payload: {Payload}",
-                    sw.ElapsedMilliseconds,
-                    TelegramUpdateSerializer.Serialize(update));
-            }
-        }
-        catch (Exception e)
+        if (executedRoute is not null)
         {
-            _logger.LogError(
-                e,
-                "Unhandled exception while handling telegram request {Data}",
+            _logger.LogInformation(
+                "Request time {Time} ms, route: {RouteName} executed",
+                sw.ElapsedMilliseconds,
+                executedRoute);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Request time {Time} ms, status: no endpoint to execute, payload: {Payload}",
+                sw.ElapsedMilliseconds,
                 TelegramUpdateSerializer.Serialize(update));
         }
     }
