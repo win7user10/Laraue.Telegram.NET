@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
+using Laraue.Core.Exceptions.Web;
 using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Core.Extensions;
 using Laraue.Telegram.NET.Core.Routing.Middleware;
@@ -91,9 +92,8 @@ public sealed class TelegramRouter : ITelegramRouter
         }
         else
         {
-            _logger.LogInformation(
-                "Request time {Time} ms, status: no endpoint to execute, payload: {Payload}",
-                sw.ElapsedMilliseconds,
+            throw new RouteNotFoundException(
+                sw.ElapsedMilliseconds, 
                 TelegramUpdateSerializer.Serialize(update));
         }
     }

@@ -43,6 +43,7 @@ public static class ServiceCollectionExtensions
             Assembly[]? controllerAssemblies = null)
         {
             serviceCollection
+                .AddSingleton<IExceptionHandler, RouteNotFoundExceptionHandler>() // as default just log route not found errors
                 .AddScoped<MapRequestToTelegramCoreMiddleware>()
                 .AddScoped<ITelegramUpdatesService, TelegramUpdatesService>()
                 .AddHostedService<TelegramUpdatesLongPoolingBackgroundService>()

@@ -34,7 +34,8 @@ public class TelegramUpdatesService(
     ITelegramBotClient telegramBotClient,
     IUpdatesQueue updatesQueue,
     IServiceProvider serviceProvider,
-    ILogger<TelegramUpdatesService> logger)
+    ILogger<TelegramUpdatesService> logger,
+    IEnumerable<IExceptionHandler> exceptionHandlers)
     : ITelegramUpdatesService
 {
     private readonly KeyedSemaphoreSlim<long> _requestByChatIdSemaphore = new (1);
@@ -121,6 +122,16 @@ public class TelegramUpdatesService(
         }
         catch (Exception e)
         {
+            foreach (var handler in exceptionHandlers)
+                if (await handler.TryHandleAsync(e, cancellationToken))
+                {
+                    await updatesQueue
+                        .SetProcessedAsync(update, cancellationToken)
+                        .ConfigureAwait(false);
+                    
+                    return;
+                }
+            
             await updatesQueue
                 .SetFailedAsync(
                     update,
