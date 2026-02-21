@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Description>Integration testing package for Laraue.Telegram.NET.</Description>
+        <IsPackable>true</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Laraue.Telegram.NET.Authentication\Laraue.Telegram.NET.Authentication.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="$(MicrosoftTestHostVersion)" />
+      <PackageReference Include="Moq" Version="$(MoqVersion)" />
+      <PackageReference Include="xunit.v3.assert" Version="$(XUnitAssertVersion)" />
+    </ItemGroup>
+
+</Project>

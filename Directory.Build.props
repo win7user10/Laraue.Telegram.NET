@@ -22,4 +22,10 @@
     <MicrosoftEntityFrameworkCoreVersion>[10.0.0, 11)</MicrosoftEntityFrameworkCoreVersion>
     <TelegramBotVersion>[22.7.0, 23)</TelegramBotVersion>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <MicrosoftTestHostVersion>[10.0.0, 11)</MicrosoftTestHostVersion>
+    <XUnitAssertVersion>[3.2.0, 4)</XUnitAssertVersion>
+    <MoqVersion>[4.20.0, 5)</MoqVersion>
+  </PropertyGroup>
 </Project>
