@@ -6,6 +6,7 @@ The library use https://github.com/TelegramBots/Telegram.Bot package inside to c
 ## Laraue.Telegram.NET.Core
 
 [![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Core)](https://www.nuget.org/packages/Laraue.Telegram.NET.Core)
+[![latest version](https://img.shields.io/nuget/dt/Laraue.Telegram.NET.Core)](https://www.nuget.org/packages/Laraue.Telegram.NET.Core)
 
 The basic idea of the library is to register all possible telegram routes in classes
 inherited from _TelegramController_.
@@ -84,6 +85,7 @@ https://api.telegram.org/bot5118263652:AAHiPDQ8kVcbs2WZWG4Z.../setWebhook?url=ht
 ## Laraue.Telegram.NET.Authentication
 
 [![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Authentication)](https://www.nuget.org/packages/Laraue.Telegram.NET.Authentication)
+[![latest version](https://img.shields.io/nuget/dt/Laraue.Telegram.NET.Authentication)](https://www.nuget.org/packages/Laraue.Telegram.NET.Authentication)
 
 As soon as each request is usually associated with the specific user, it is convenient to
 have information about system user in the request instead of manual finding
@@ -182,10 +184,10 @@ services.AddTelegramMiddleware<LogExceptionsMiddleware>();
 ```
 **Note** - middlewares executes in the order they were added.
 
-
 ## Laraue.Telegram.NET.Interceptors
 
 [![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Interceptors)](https://www.nuget.org/packages/Laraue.Telegram.NET.Interceptors)
+[![latest version](https://img.shields.io/nuget/dt/Laraue.Telegram.NET.Interceptors)](https://www.nuget.org/packages/Laraue.Telegram.NET.Interceptors)
 
 The main case of the library is sometimes something from the user should be asked,
 and next his answer should be considered as answer to this question.
@@ -287,4 +289,89 @@ public class TestController : TelegramController
         });
     }
 }
+```
+
+## Laraue.Telegram.NET.Testing
+[![latest version](https://img.shields.io/nuget/v/Laraue.Telegram.NET.Testing)](https://www.nuget.org/packages/Laraue.Telegram.NET.Testing)
+[![latest version](https://img.shields.io/nuget/dt/Laraue.Telegram.NET.Testing)](https://www.nuget.org/packages/Laraue.Telegram.NET.Testing)
+
+The package allows to write integration tests for host built with Telegram.NET library.
+
+### Usage
+Create the class of Test Host implementing `TelegramTestHost` or `TelegramTestHost<TUserKey>` from the package.
+```csharp
+public class AppTelegramTestHost(IServiceCollection serviceCollection)
+    : TelegramTestHost<Guid>(serviceCollection)
+{
+    protected override void BeforeFirstRequest()
+    {
+        // Do something before test server starts, migration run for example
+        // When tests use real DB here can be it clearing
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        // Do something when the host is no more used
+    }
+}
+```
+My own recomendation for the next step is to create the base test class that have a method to run the host.
+`XUnit` example:
+```csharp
+public class IntegrationTest
+{
+    protected static AppTelegramTestHost GetTelegramTestHost()
+    {
+        var builder = WebApplication.CreateBuilder();
+
+        builder.Configuration.AddJsonFile("appsettings.json");
+        builder.AddApplicationServices();
+        
+        return new AppTelegramTestHost(appServices);
+    }
+}
+```
+Test infrastructure is ready. The test example:
+```csharp
+public class StartControllerTests : IntegrationTest
+{
+    [Fact]
+    public async Task Start_ShouldSendWelcome_Always()
+    {
+        // Run the host from the base class
+        using var telegramTestHost = GetTelegramTestHost();
+    
+        // Emulate new message in chat
+        await telegramTestHost.SendUpdateAsync(new Update
+        {
+            Message = new Message
+            {
+                Text = "/start",
+                From = DefaultUser, // Can be determined in base class to avoid repeating
+            }
+        });
+        
+        // Ensure only one message was sent back to Telegram
+        var request = telegramTestHost
+            .Requests()
+            .Single<EditMessageTextRequest>();
+   
+        // Check the message text 
+        request.CheckMessage("Hello, user");
+        
+        // Check the buttons in the message
+        request.CheckButtonsSequentially(buttons => 
+            buttons
+                .HasButtonsRow(
+                    new ButtonAssert("Menu", "menu")));
+    }
+}
+```
+More complex asserts can be made with the services requested from the Test Host container:
+```csharp
+using var telegramTestHost = GetTelegramTestHost();
+using var scope = telegramTestHost.CreateScope();
+var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+
+Assert.Single(dbContext.Users);
 ```
