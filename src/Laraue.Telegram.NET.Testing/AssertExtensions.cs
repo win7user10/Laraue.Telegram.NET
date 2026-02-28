@@ -92,8 +92,13 @@ public static class AssertExtensions
 
             
             if (!asserts.SequenceEqual(assertItems))
+            {
+                var assertsString = string.Join(",", asserts);
+                var actualString = string.Join(",", assertItems);
+                
                 throw new TelegramNetAssertException(
-                    $"Assert for button row #{row + 1} failed.{Environment.NewLine}Excepted:{asserts}{Environment.NewLine}Actual:{assertItems}");
+                    $"Assert for button row #{row + 1} failed.{Environment.NewLine} Excepted:[{assertsString}]{Environment.NewLine}Actual:[{actualString}]");
+            }
         }
 
         private IEnumerable<InlineKeyboardButton>[] GetButtons()
