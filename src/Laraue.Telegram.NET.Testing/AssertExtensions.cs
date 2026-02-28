@@ -87,17 +87,13 @@ public static class AssertExtensions
             var assertItems = realRow
                 .Select(r => new ButtonAssert(
                     r.Text,
-                    r.CallbackData));
+                    r.CallbackData))
+                .ToArray();
 
-            try
-            {
-                AssertEqual(asserts, assertItems);
-            }
-            catch (Exception e)
-            {
+            
+            if (!asserts.SequenceEqual(assertItems))
                 throw new TelegramNetAssertException(
-                    $"Assert for button row #{row + 1} failed.{Environment.NewLine}{e.Message}");
-            }
+                    $"Assert for button row #{row + 1} failed.{Environment.NewLine}Excepted:{asserts}{Environment.NewLine}Actual:{assertItems}");
         }
 
         private IEnumerable<InlineKeyboardButton>[] GetButtons()
