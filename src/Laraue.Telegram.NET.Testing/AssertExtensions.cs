@@ -1,8 +1,6 @@
 ﻿using System.Text;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types.ReplyMarkups;
-using Xunit;
-using Xunit.Sdk;
 
 namespace Laraue.Telegram.NET.Testing;
 
@@ -15,7 +13,7 @@ public static class AssertExtensions
         /// </summary>
         public void CheckMessage(string expected)
         {
-            Assert.Equal(expected, request.Text);
+            AssertEqual(expected, request.Text);
         }
 
         /// <summary>
@@ -23,7 +21,7 @@ public static class AssertExtensions
         /// </summary>
         public void HasButtonsRowsCount(int exceptedRowsCount)
         {
-            Assert.Equal(exceptedRowsCount, GetButtons(request).Length);
+            AssertEqual(exceptedRowsCount, GetButtons(request).Length);
         }
 
         /// <summary>
@@ -73,13 +71,8 @@ public static class AssertExtensions
                         .Append(']');
                 }
 
-                var ex = CollectionException.ForMismatchedItemCount(
-                    realButtons.Length,
-                    assertsCount,
-                    sb.ToString());
-
                 throw new TelegramNetAssertException(
-                    $"Not all items of collection checked. Investigate unchecked items below.{Environment.NewLine}{ex.Message}");
+                    $"Not all items of collection checked. Investigate unchecked items below.{Environment.NewLine}{sb}");
             }
         }
 
@@ -88,7 +81,7 @@ public static class AssertExtensions
             IEnumerable<InlineKeyboardButton>[] realButtons,
             params ButtonAssert[] asserts)
         {
-            Assert.True(realButtons.Length >= row);
+            AssertTrue(realButtons.Length >= row);
             
             var realRow = realButtons[row];
             var assertItems = realRow
@@ -98,7 +91,7 @@ public static class AssertExtensions
 
             try
             {
-                Assert.Equal(asserts, assertItems);
+                AssertEqual(asserts, assertItems);
             }
             catch (Exception e)
             {
@@ -113,6 +106,25 @@ public static class AssertExtensions
                 .ReplyMarkup
                 ?.InlineKeyboard.ToArray() ?? [];
         }
+    }
+
+    private static void AssertEqual<T>(T? excepted, T? actual)
+    {
+        if (excepted is null && actual is null)
+            return;
+        
+        if (excepted is null && actual is not null || excepted is not null && actual is null)
+            throw new TelegramNetAssertException($"Excepted value {excepted} is not equal to {actual}");
+        
+        var isEqual = excepted!.Equals(actual);
+        if (!isEqual)
+            throw new TelegramNetAssertException($"Excepted value {excepted} is not equal to {actual}");
+    }
+    
+    private static void AssertTrue(bool excepted)
+    {
+        if (!excepted)
+            throw new TelegramNetAssertException($"Assertion failed");
     }
 }
 

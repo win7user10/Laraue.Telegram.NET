@@ -1,5 +1,4 @@
 ﻿using Telegram.Bot.Requests.Abstractions;
-using Xunit;
 
 namespace Laraue.Telegram.NET.Testing;
 
@@ -19,7 +18,9 @@ public class TelegramRequests(List<IRequest> requests)
     public T Single<T>() where T : class, IRequest
     {
         var item = Single();
-        return Assert.IsType<T>(item);
+        return item as T
+            ?? throw new TelegramNetAssertException(
+                $"Excepted request of type {typeof(T).FullName}, but received {item.GetType().FullName}");
     }
         
     /// <summary>
@@ -28,6 +29,12 @@ public class TelegramRequests(List<IRequest> requests)
     /// <returns></returns>
     public IRequest Single()
     {
-        return Assert.Single(Source);
+        return Source.Count switch
+        {
+            > 1 => throw new TelegramNetAssertException(
+                $"Request collection contains more than one item ({Source.Count})"),
+            0 => throw new TelegramNetAssertException($"Request collection contains zero items"),
+            _ => Source[0]
+        };
     }
 }

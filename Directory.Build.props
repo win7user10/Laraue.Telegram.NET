@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <LangVersion>Latest</LangVersion>
-    <Copyright>Ilya Belyanskiy 2023</Copyright>
+    <Copyright>Ilya Belyanskiy 2026</Copyright>
     <Authors>Belyanskiy Ilya</Authors>
     <PackageProjectUrl>https://github.com/win7user10/Laraue.Telegram.NET</PackageProjectUrl>
     <!-- Designate all projects as non-package projects by default -->
@@ -25,7 +25,5 @@
 
   <PropertyGroup>
     <MicrosoftTestHostVersion>[10.0.0, 11)</MicrosoftTestHostVersion>
-    <XUnitAssertVersion>[3.2.0, 4)</XUnitAssertVersion>
-    <MoqVersion>[4.20.0, 5)</MoqVersion>
   </PropertyGroup>
 </Project>

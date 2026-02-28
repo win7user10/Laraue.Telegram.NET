@@ -1,8 +1,8 @@
 ﻿using Laraue.Telegram.NET.Abstractions;
 using Laraue.Telegram.NET.Authentication.Services;
+using Laraue.Telegram.NET.Testing.Mocks;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
@@ -21,21 +21,17 @@ public abstract class TelegramTestHost : IDisposable
 
     public TelegramTestHost(IServiceCollection serviceCollection)
     {
-        var botClient = new Mock<ITelegramBotClient>();
-
-        botClient
-            .Setup(c => c
-                .SendRequest(
-                    It.IsAny<IRequest<It.IsAnyType>>(),
-                    It.IsAny<CancellationToken>()))
-            .Callback((object request, CancellationToken cancellationToken) =>
-            {
-                _requests.Add((IRequest)request);
-            });
+        var botClient = new TelegramBotClientMock();
         
         var services = serviceCollection
-            .AddSingleton(botClient.Object)
+            .AddSingleton<ITelegramBotClient>(botClient)
             .BuildServiceProvider();
+
+        botClient.OnMakingApiRequest += (_, args, _) =>
+        {
+            _requests.Add(args.Request);
+            return ValueTask.CompletedTask;
+        };
         
         TestServer = new TestServer(services);
         
@@ -87,7 +83,7 @@ public abstract class TelegramTestHost<TUserKey> : TelegramTestHost
 {
     protected TelegramTestHost(IServiceCollection serviceCollection)
         : base(serviceCollection
-            .AddSingleton(new Mock<IUserIdByTelegramIdCache<TUserKey>>().Object))
+            .AddSingleton<IUserIdByTelegramIdCache<TUserKey>, MockUserIdByTelegramIdCache<TUserKey>>())
     {
     }
 }

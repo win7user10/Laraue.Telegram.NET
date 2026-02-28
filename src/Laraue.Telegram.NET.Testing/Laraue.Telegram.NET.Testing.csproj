@@ -11,8 +11,6 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="$(MicrosoftTestHostVersion)" />
-      <PackageReference Include="Moq" Version="$(MoqVersion)" />
-      <PackageReference Include="xunit.v3.assert" Version="$(XUnitAssertVersion)" />
     </ItemGroup>
 
 </Project>
