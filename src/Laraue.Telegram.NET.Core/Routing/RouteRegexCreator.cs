@@ -16,6 +16,6 @@ public static class RouteRegexCreator
     {
         var regex = Regex.Replace(path, "{(\\w+)}", "(?<$1>(\\w+))");
         
-        return new Regex($"^{regex}(\\?.*)?$", RegexOptions.Compiled);
+        return new Regex($"^{regex}(\\?.*)?$", RegexOptions.Compiled | RegexOptions.Multiline);
     }
 }

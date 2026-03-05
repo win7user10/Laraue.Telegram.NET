@@ -11,6 +11,7 @@ public class RouteRegexCreatorTests
     [InlineData("groups/{group1}/{group2}", "groups/abc/asd")]
     [InlineData("groups/{group1}/{group2}", "groups/1/2")]
     [InlineData("/start", "/start")]
+    [InlineData(".*", "aasklsadka;ldkl;k\nasd")]
     public void SuitableRoute_ShouldBeMatched(string pathPattern, string route)
     {
         var regex = RouteRegexCreator.ForRoute(pathPattern);

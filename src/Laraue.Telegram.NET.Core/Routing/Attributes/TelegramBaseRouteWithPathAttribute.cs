@@ -22,12 +22,12 @@ public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttr
     /// <summary>
     /// Controller route method type.
     /// </summary>
-    public RouteMethod RouteMethod { get; }
+    private RouteMethod RouteMethod { get; }
     
     /// <summary>
     /// Pattern of path which will be tried to match.
     /// </summary>
-    public Regex PathPattern { get; }
+    private Regex? PathPattern { get; }
 
     /// <summary>
     /// Initializes a new instance of <see cref="TelegramBaseRouteWithPathAttribute"/>.
@@ -35,11 +35,12 @@ public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttr
     /// <param name="updateType"></param>
     /// <param name="routeMethod"></param>
     /// <param name="pathPattern"></param>
-    protected TelegramBaseRouteWithPathAttribute(UpdateType updateType, RouteMethod routeMethod, string pathPattern)
+    protected TelegramBaseRouteWithPathAttribute(UpdateType updateType, RouteMethod routeMethod, string? pathPattern)
     {
         UpdateType = updateType;
         RouteMethod = routeMethod;
-        PathPattern = RouteRegexCreator.ForRoute(pathPattern);
+        if (pathPattern is not null)
+            PathPattern = RouteRegexCreator.ForRoute(pathPattern);
     }
 
     /// <inheritdoc />
@@ -63,18 +64,23 @@ public abstract class TelegramBaseRouteWithPathAttribute : TelegramBaseRouteAttr
         {
             return false;
         }
-        
-        var match = PathPattern.Match(pathString);
-        if (!match.Success)
+
+        Match? match = null;
+        if (PathPattern is not null)
         {
-            return false;
+            match = PathPattern.Match(pathString);
+            if (!match.Success)
+            {
+                return false;
+            }
         }
         
         var queryParameters = pathString.ParseQueryParts();
-        var pathParameters = match.Groups
+        var pathParameters = match?.Groups
             .Cast<Group>()
             .Where(x => !int.TryParse(x.Name, out _))
-            .ToDictionary(x => x.Name, x => x.Value);
+            .ToDictionary(x => x.Name, x => x.Value)
+            ?? new Dictionary<string, string>();
 
         requestParameters = new RequestParameters(pathParameters, queryParameters);
         return true;
