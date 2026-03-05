@@ -1,7 +1,9 @@
-﻿namespace Laraue.Telegram.NET.Core.Routing;
+﻿using Telegram.Bot.Types;
 
-public class RouteNotFoundException(long elapsedMilliseconds, object payload) : Exception
+namespace Laraue.Telegram.NET.Core.Routing;
+
+public class RouteNotFoundException(long elapsedMilliseconds, Update payload) : Exception
 {
     public long ElapsedMilliseconds { get; } = elapsedMilliseconds;
-    public object Payload { get; } = payload;
+    public Update Payload { get; } = payload;
 }

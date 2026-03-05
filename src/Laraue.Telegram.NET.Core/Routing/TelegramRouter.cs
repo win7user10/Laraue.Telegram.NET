@@ -94,7 +94,7 @@ public sealed class TelegramRouter : ITelegramRouter
         {
             throw new RouteNotFoundException(
                 sw.ElapsedMilliseconds, 
-                TelegramUpdateSerializer.Serialize(update));
+                update);
         }
     }
 }
