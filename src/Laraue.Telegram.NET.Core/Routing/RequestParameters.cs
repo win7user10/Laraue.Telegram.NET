@@ -127,11 +127,11 @@ public class RequestParameters
     private static object? GetParameter(IReadOnlyDictionary<string, string> dictionary, string parameterName, Type valueType)
     {
         if (!dictionary.TryGetValue(parameterName, out var value))
-        {
             return null;
-        }
-        
-        return JsonSerializer.Deserialize(value, valueType, Defaults.JsonOptions);
+
+        return valueType == typeof(string)
+            ? value
+            : JsonSerializer.Deserialize(value, valueType, Defaults.JsonOptions);
     }
     
     private sealed class PropertyCache

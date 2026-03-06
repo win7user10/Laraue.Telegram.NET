@@ -5,7 +5,7 @@ namespace Laraue.Telegram.NET.Core.Routing;
 /// <summary>
 /// Helper class to create regexes for path matching.
 /// </summary>
-public static class RouteRegexCreator
+public static partial class RouteRegexCreator
 {
     /// <summary>
     /// Return the regex based on the passed string pattern.
@@ -14,8 +14,16 @@ public static class RouteRegexCreator
     /// <returns></returns>
     public static Regex ForRoute(string path)
     {
-        var regex = Regex.Replace(path, "{(\\w+)}", "(?<$1>(\\w+))");
+        var replacedGreedyParameters = ReplaceGreedyParametersRegex().Replace(path, "(?<$1>(.*))");
         
-        return new Regex($"^{regex}(\\?.*)?$", RegexOptions.Compiled | RegexOptions.Multiline);
+        var replacedParameters = ReplaceParametersRegex().Replace(replacedGreedyParameters, "(?<$1>(\\w+))");
+        
+        return new Regex($"^{replacedParameters}(\\?.*)?$", RegexOptions.Compiled | RegexOptions.Multiline);
     }
+
+    [GeneratedRegex(@"{(\w+)}\*")]
+    private static partial Regex ReplaceGreedyParametersRegex();
+    
+    [GeneratedRegex("{(\\w+)}")]
+    private static partial Regex ReplaceParametersRegex();
 }
