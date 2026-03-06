@@ -86,13 +86,15 @@ public class RequestParameters
                 {
                     x.Name,
                     QueryAttribute = x.GetCustomAttribute<FromQueryAttribute>(),
+                    x.PropertyType,
                 })
                 .ToDictionary(
                     x => x.Name,
                     x => new PropertyCache
                     {
                         BindRequired = x.QueryAttribute?.BindRequired ?? false,
-                        PropertyName = x.QueryAttribute?.PropertyName
+                        PropertyName = x.QueryAttribute?.PropertyName,
+                        PropertyType = x.PropertyType,
                     },
                     StringComparer.OrdinalIgnoreCase);
 
@@ -114,7 +116,11 @@ public class RequestParameters
             }
             
             w.WritePropertyName(property.Key);
-            w.WriteRawValue(queryParameter);
+
+            if (property.Value.PropertyType == typeof(string))
+                w.WriteStringValue(queryParameter);
+            else
+                w.WriteRawValue(queryParameter);
         }
         
         w.WriteEndObject();
@@ -137,7 +143,7 @@ public class RequestParameters
     private sealed class PropertyCache
     {
         public bool BindRequired { get; set; }
-
         public string? PropertyName { get; set; }
+        public required Type PropertyType { get; set; }
     }
 }

@@ -31,7 +31,7 @@ public class CallbackRoutePathTests
         var pathBuilder = new CallbackRoutePath("/route");
         pathBuilder.WithQueryParameter("from", "Alex");
         
-        Assert.Equal($"/route?from=\"Alex\"", pathBuilder.ToString());
+        Assert.Equal($"/route?from=Alex", pathBuilder.ToString());
     }
     
     [Fact]

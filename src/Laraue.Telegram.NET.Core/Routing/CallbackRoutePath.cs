@@ -111,7 +111,9 @@ public sealed class CallbackRoutePath
         foreach (var queryParameter in _queryParameters.Value.Keys)
         {
             var value = _queryParameters.Value[queryParameter];
-            var jsonValue = JsonSerializer.Serialize(value, Defaults.JsonOptions);
+            var jsonValue = value is string
+                ? value
+                : JsonSerializer.Serialize(value, Defaults.JsonOptions);
             
             sb.Append(queryParameter)
                 .Append('=')

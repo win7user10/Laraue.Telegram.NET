@@ -20,11 +20,15 @@ internal sealed class Route : IRoute
 
     public delegate bool TryMatch(Update update, [NotNullWhen(true)] out RequestParameters? requestParameters);
     
-    public ValueTask<RouteExecutionResult> TryExecuteAsync(IServiceProvider requestProvider, CancellationToken ct = default)
+    public ValueTask<RouteExecutionResult> TryExecuteAsync(
+        IServiceProvider requestProvider,
+        CancellationToken ct = default)
     {
-        return _tryMatchDelegate(requestProvider.GetRequiredService<TelegramRequestContext>().Update, out var requestParameters)
-            ? ExecuteAsync(requestProvider, requestParameters, ct)
-            : ValueTask.FromResult(new RouteExecutionResult(false));
+        var update = requestProvider.GetRequiredService<TelegramRequestContext>().Update;
+        if (!_tryMatchDelegate(update, out var requestParameters))
+            return ValueTask.FromResult(new RouteExecutionResult(false));
+        
+        return ExecuteAsync(requestProvider, requestParameters, ct);
     }
 
     private async ValueTask<RouteExecutionResult> ExecuteAsync(
@@ -37,10 +41,16 @@ internal sealed class Route : IRoute
         {
             return new RouteExecutionResult(false);
         }
+
+        var methodParameters = GetRouteParameters(
+            serviceProvider,
+            _controllerMethod,
+            requestParameters,
+            ct);
         
         var result = _controllerMethod.Invoke(
             serviceProvider.GetRequiredService(_controllerMethod.DeclaringType!),
-            GetRouteParameters(serviceProvider, _controllerMethod, requestParameters, ct));
+            methodParameters);
 
         if (result is null)
         {

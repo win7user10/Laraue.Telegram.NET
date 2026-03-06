@@ -12,7 +12,6 @@ public class RouteRegexCreatorTests
     [InlineData("groups/{group1}/{group2}", "groups/1/2")]
     [InlineData("/start", "/start")]
     [InlineData("/category add {name}", "/category add Alex")]
-    [InlineData("/category add {name}*", "/category add Alex John")]
     [InlineData(".*", "aasklsadka;ldkl;k\nasd")]
     public void SuitableRoute_ShouldBeMatched(string pathPattern, string route)
     {

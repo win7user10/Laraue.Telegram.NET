@@ -144,7 +144,8 @@ public class ControllerTests
                     Id = 123,
                     IsBot = false,
                 },
-                Data = new CallbackRoutePath("callback/12").WithQueryParameter("name", "Alex"),
+                Data = new CallbackRoutePath("callback/12")
+                    .WithQueryParameter("name", "Alex"),
                 Id = "123",
                 ChatInstance = "123",
             },
@@ -354,7 +355,8 @@ public class ControllerTests
         protected override Task ValidateAsync(
             TelegramRequestContext<string> requestContext,
             InterceptResult<MessageResponseAwaiterModel> interceptResult,
-            MessageResponseAwaiterParameters? interceptorContext)
+            MessageResponseAwaiterParameters? interceptorContext,
+            CancellationToken cancellationToken = default)
         {
             interceptResult.SetResult(new MessageResponseAwaiterModel("awaited"));
 
@@ -364,7 +366,8 @@ public class ControllerTests
         protected override Task<ExecutionState> ExecuteRouteAsync(
             TelegramRequestContext<string> requestContext,
             MessageResponseAwaiterModel model,
-            MessageResponseAwaiterParameters? interceptorContext)
+            MessageResponseAwaiterParameters? interceptorContext,
+            CancellationToken cancellationToken = default)
         {
             _testChecker.Call("intercepted");
             
@@ -389,14 +392,19 @@ public class ControllerTests
         {
         }
 
-        public override Task<string?> GetAsync(string userId)
+        public override Task<string?> GetAsync(
+            string userId,
+            CancellationToken cancellationToken = default)
         {
             return Task.FromResult(_interceptors.TryGetValue(userId, out var value)
                 ? value.Item1
                 : default);
         }
 
-        protected override Task<TContext?> GetInterceptorContextInternalAsync<TContext>(string userId) where TContext : class
+        protected override Task<TContext?> GetInterceptorContextInternalAsync<TContext>(
+            string userId,
+            CancellationToken cancellationToken = default)
+            where TContext : class
         {
             _interceptors.TryGetValue(userId, out var value);
 
@@ -405,14 +413,20 @@ public class ControllerTests
             return (Task.FromResult(e));
         }
 
-        protected override Task SetInterceptorAsync<TContext>(string userId, string id, TContext context)
+        protected override Task SetInterceptorAsync<TContext>(
+            string userId,
+            string id,
+            TContext context,
+            CancellationToken cancellationToken = default)
         {
             _interceptors[userId] = (id, context);
             
             return Task.CompletedTask;
         }
 
-        public override Task ResetAsync(string userId)
+        public override Task ResetAsync(
+            string userId,
+            CancellationToken cancellationToken = default)
         {
             _interceptors.Remove(userId);
             

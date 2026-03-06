@@ -21,31 +21,39 @@ public sealed class EFCoreInterceptorState<TUserKey> : BaseInterceptorState<TUse
     }
 
     /// <inheritdoc />
-    public override async Task<string?> GetAsync(TUserKey userId)
+    public override Task<string?> GetAsync(
+        TUserKey userId,
+        CancellationToken cancellationToken = default)
     {
-        return await _dbContext.InterceptorState
+        return _dbContext.InterceptorState
             .Where(x => x.UserId.Equals(userId))
             .Select(x => x.ActiveInterceptor)
-            .FirstOrDefaultAsync()
-            .ConfigureAwait(false);
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     /// <inheritdoc />
-    protected override async Task<TContext?> GetInterceptorContextInternalAsync<TContext>(TUserKey userId) where TContext : class
+    protected override async Task<TContext?> GetInterceptorContextInternalAsync<TContext>(
+        TUserKey userId,
+        CancellationToken cancellationToken = default)
+        where TContext : class
     {
         var data = await _dbContext.InterceptorState
             .Where(x => x.UserId.Equals(userId))
             .Select(x => x.InterceptorContext)
-            .FirstOrDefaultAsync()
+            .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
         return data is null ? null : JsonSerializer.Deserialize<TContext>(data);
     }
 
     /// <inheritdoc />
-    protected override async Task SetInterceptorAsync<TContext>(TUserKey userId, string id, TContext context)
+    protected override Task SetInterceptorAsync<TContext>(
+        TUserKey userId,
+        string id,
+        TContext context,
+        CancellationToken cancellationToken = default)
     {
-        var model = new InterceptorStateModel<TUserKey>()
+        var model = new InterceptorStateModel<TUserKey>
         {
             ActiveInterceptor = id,
             UserId = userId,
@@ -54,15 +62,16 @@ public sealed class EFCoreInterceptorState<TUserKey> : BaseInterceptorState<TUse
 
         _dbContext.InterceptorState.Add(model);
 
-        await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+        return _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     /// <inheritdoc />
-    public override async Task ResetAsync(TUserKey userId)
+    public override Task ResetAsync(
+        TUserKey userId,
+        CancellationToken cancellationToken = default)
     {
-        await _dbContext.InterceptorState
+        return _dbContext.InterceptorState
             .Where(x => x.UserId.Equals(userId))
-            .ExecuteDeleteAsync()
-            .ConfigureAwait(false);
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }

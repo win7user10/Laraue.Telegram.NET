@@ -25,7 +25,7 @@ public class RequestParametersTests
     [Fact]
     public void StringParameter_ShouldBeParsedCorrectly()
     {
-        var value = TestParameter<string>("\"Alex\"");
+        var value = TestParameter<string>("Alex");
         
         Assert.Equal("Alex", value);
     }
@@ -62,7 +62,7 @@ public class RequestParametersTests
             queryParameters: new Dictionary<string, string>
             {
                 ["enumValue"] = "1",
-                ["s"] = "\"Alex\"",
+                ["s"] = "Alex",
                 ["intValue"] = "1"
             });
         

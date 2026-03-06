@@ -39,7 +39,10 @@ public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
             return;
         }
         
-        var interceptorId = await _interceptorState.GetAsync(userId).ConfigureAwait(false);
+        var interceptorId = await _interceptorState
+            .GetAsync(userId, ct)
+            .ConfigureAwait(false);
+        
         if (interceptorId is null)
         {
             await next(ct);
@@ -55,10 +58,13 @@ public class InterceptorsMiddleware<TKey> : ITelegramMiddleware
             return;
         }
         
-        var result = await interceptor.ExecuteAsync().ConfigureAwait(false);
+        var result = await interceptor.ExecuteAsync(ct).ConfigureAwait(false);
         if (result is ExecutionState.FullyExecuted or ExecutionState.Cancelled)
         {
-            await _interceptorState.ResetAsync(_requestContext.GetUserIdOrThrow()).ConfigureAwait(false);
+            await _interceptorState.ResetAsync(
+                _requestContext.GetUserIdOrThrow(),
+                ct)
+                .ConfigureAwait(false);
         }
         
         _requestContext.SetExecutedRoute(new ExecutedRouteInfo("Interceptor", interceptor.ToString()));

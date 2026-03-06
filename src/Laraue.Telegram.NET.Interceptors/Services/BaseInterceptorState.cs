@@ -13,10 +13,14 @@ public abstract class BaseInterceptorState<TKey> : IInterceptorState<TKey>
     }
 
     /// <inheritdoc />
-    public abstract Task<string?> GetAsync(TKey userId);
+    public abstract Task<string?> GetAsync(
+        TKey userId,
+        CancellationToken cancellationToken = default);
 
     /// <inheritdoc />
-    public Task<TContext?> GetInterceptorContextAsync<TContext>(TKey userId)
+    public Task<TContext?> GetInterceptorContextAsync<TContext>(
+        TKey userId,
+        CancellationToken cancellationToken = default)
         where TContext : class
     {
         return typeof(TContext) == typeof(EmptyContext)
@@ -27,54 +31,68 @@ public abstract class BaseInterceptorState<TKey> : IInterceptorState<TKey>
     /// <summary>
     /// Get interceptor context from the storage.
     /// </summary>
-    /// <param name="userId"></param>
-    /// <typeparam name="TContext"></typeparam>
     /// <returns></returns>
-    protected abstract Task<TContext?> GetInterceptorContextInternalAsync<TContext>(TKey userId)
+    protected abstract Task<TContext?> GetInterceptorContextInternalAsync<TContext>(
+        TKey userId,
+        CancellationToken cancellationToken = default)
         where TContext : class;
 
     /// <inheritdoc />
-    public Task SetAsync<TInterceptor, TInterceptorContext>(TKey userId, TInterceptorContext data)
+    public Task SetAsync<TInterceptor, TInterceptorContext>(
+        TKey userId,
+        TInterceptorContext data,
+        CancellationToken cancellationToken = default)
         where TInterceptor : IRequestInterceptor<TInterceptorContext>
         where TInterceptorContext : class
     {
         var interceptor = _serviceProvider.GetRequiredService<TInterceptor>();
 
-        return SetAsync(interceptor, userId, data);
+        return SetAsync(interceptor, userId, data, cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task SetAsync<TInterceptorContext>(
         IRequestInterceptor<TInterceptorContext> interceptor,
         TKey userId,
-        TInterceptorContext data) where TInterceptorContext : class
+        TInterceptorContext data,
+        CancellationToken cancellationToken = default)
+        where TInterceptorContext : class
     {
-        await interceptor.BeforeInterceptorSetAsync(data).ConfigureAwait(false);
+        await interceptor.BeforeInterceptorSetAsync(data, cancellationToken).ConfigureAwait(false);
         
-        await SetInterceptorAsync(userId, interceptor.Id, data).ConfigureAwait(false);
+        await SetInterceptorAsync(userId, interceptor.Id, data, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public Task SetAsync<TInterceptor>(TKey userId) where TInterceptor : IRequestInterceptor<EmptyContext>
+    public Task SetAsync<TInterceptor>(
+        TKey userId,
+        CancellationToken cancellationToken = default)
+        where TInterceptor : IRequestInterceptor<EmptyContext>
     {
-        return SetAsync<TInterceptor, EmptyContext>(userId, EmptyContext.Value);
+        return SetAsync<TInterceptor, EmptyContext>(userId, EmptyContext.Value, cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task SetAsync(IRequestInterceptor<EmptyContext> interceptor, TKey userId)
+    public Task SetAsync(
+        IRequestInterceptor<EmptyContext> interceptor,
+        TKey userId,
+        CancellationToken cancellationToken = default)
     {
-        return SetAsync(interceptor, userId, EmptyContext.Value);
+        return SetAsync(interceptor, userId, EmptyContext.Value, cancellationToken);
     }
 
     /// <summary>
     /// Describes how to save a string identifier of the current question to the storage.
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="id"></param>
-    /// <param name="context"></param>
     /// <returns></returns>
-    protected abstract Task SetInterceptorAsync<TContext>(TKey userId, string id, TContext context);
+    protected abstract Task SetInterceptorAsync<TContext>(
+        TKey userId,
+        string id,
+        TContext context,
+        CancellationToken cancellationToken = default);
 
     /// <inheritdoc />
-    public abstract Task ResetAsync(TKey userId);
+    public abstract Task ResetAsync(
+        TKey userId,
+        CancellationToken cancellationToken = default);
 }

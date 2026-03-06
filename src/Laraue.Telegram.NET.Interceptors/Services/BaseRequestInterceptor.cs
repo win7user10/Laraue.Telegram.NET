@@ -32,43 +32,48 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
     public abstract string Id { get; }
 
     /// <inheritdoc />
-    public async Task<ExecutionState> ExecuteAsync()
+    public async Task<ExecutionState> ExecuteAsync(
+        CancellationToken cancellationToken = default)
     {
         var interceptResult = new InterceptResult<TInput>();
 
         var context = await _interceptorState
-            .GetInterceptorContextAsync<TContext>(_requestContext.GetUserIdOrThrow())
+            .GetInterceptorContextAsync<TContext>(
+                _requestContext.GetUserIdOrThrow(),
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (context is null)
-        {
             throw new InvalidOperationException("Interceptor context hasn't been loaded");
-        }
 
-        await ValidateAsync(_requestContext, interceptResult, context)
+        await ValidateAsync(
+                _requestContext,
+                interceptResult,
+                context,
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (interceptResult.IsCancelled)
-        {
             return ExecutionState.Cancelled;
-        }
         
         if (interceptResult.Error is not null)
-        {
             throw new BadTelegramRequestException(interceptResult.Error);
-        }
         
         if (!interceptResult.IsResultSet)
-        {
             throw new InvalidOperationException("Model should be bind if validation finished successfully.");
-        }
 
-        return await ExecuteRouteAsync(_requestContext, interceptResult.Model!, context)
+        return await ExecuteRouteAsync(
+                _requestContext,
+                interceptResult.Model!,
+                context,
+                cancellationToken)
             .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public virtual Task BeforeInterceptorSetAsync(TContext context)
+    public virtual Task BeforeInterceptorSetAsync(
+        TContext context,
+        CancellationToken cancellationToken = default)
     {
         return Task.CompletedTask;
     }
@@ -78,25 +83,21 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
     /// If any error occured, <see cref="InterceptResult{TResult}"/> should had an error.
     /// If errors are not occured <see cref="InterceptResult{TResult}.Model"/> in the results should be bind.
     /// </summary>
-    /// <param name="requestContext">Current telegram request context.</param>
-    /// <param name="interceptResult">Validation result.</param>
-    /// <param name="interceptorContext">Context for the interceptor.</param>
     protected abstract Task ValidateAsync(
         TelegramRequestContext<TUserKey> requestContext,
         InterceptResult<TInput> interceptResult,
-        TContext interceptorContext);
+        TContext interceptorContext,
+        CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Execute the awaiter body if validation has been passed successfully.
     /// </summary>
-    /// <param name="requestContext">Current telegram request context.</param>
-    /// <param name="model">Validated model.</param>
-    /// <param name="interceptorContext">Context data set for the interceptor.</param>
     /// <returns></returns>
     protected abstract Task<ExecutionState> ExecuteRouteAsync(
         TelegramRequestContext<TUserKey> requestContext,
         TInput model,
-        TContext interceptorContext);
+        TContext interceptorContext,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -104,11 +105,14 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput, TContext> : IRequ
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TInput"></typeparam>
-public abstract class BaseRequestInterceptor<TUserKey, TInput> : BaseRequestInterceptor<TUserKey, TInput, EmptyContext>
+public abstract class BaseRequestInterceptor<TUserKey, TInput> 
+    : BaseRequestInterceptor<TUserKey, TInput, EmptyContext>
     where TUserKey : IEquatable<TUserKey>
 {
     /// <inheritdoc />
-    protected BaseRequestInterceptor(TelegramRequestContext<TUserKey> requestContext, IInterceptorState<TUserKey> interceptorState)
+    protected BaseRequestInterceptor(
+        TelegramRequestContext<TUserKey> requestContext,
+        IInterceptorState<TUserKey> interceptorState)
         : base(requestContext, interceptorState)
     {
     }
@@ -119,10 +123,8 @@ public abstract class BaseRequestInterceptor<TUserKey, TInput> : BaseRequestInte
 /// </summary>
 public sealed class EmptyContext
 {
-    private static readonly EmptyContext Instance = new ();
-
     /// <summary>
     /// Context singleton value.
     /// </summary>
-    public static EmptyContext Value => Instance;
+    public static EmptyContext Value { get; } = new ();
 }

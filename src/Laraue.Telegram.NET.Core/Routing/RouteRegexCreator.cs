@@ -14,9 +14,11 @@ public static partial class RouteRegexCreator
     /// <returns></returns>
     public static Regex ForRoute(string path)
     {
-        var replacedGreedyParameters = ReplaceGreedyParametersRegex().Replace(path, "(?<$1>(.*))");
+        var replacedGreedyParameters = ReplaceGreedyParametersRegex()
+            .Replace(path, "(?<$1>(.*))");
         
-        var replacedParameters = ReplaceParametersRegex().Replace(replacedGreedyParameters, "(?<$1>(\\w+))");
+        var replacedParameters = ReplaceParametersRegex()
+            .Replace(replacedGreedyParameters, "(?<$1>(\\w+))");
         
         return new Regex($"^{replacedParameters}(\\?.*)?$", RegexOptions.Compiled | RegexOptions.Multiline);
     }

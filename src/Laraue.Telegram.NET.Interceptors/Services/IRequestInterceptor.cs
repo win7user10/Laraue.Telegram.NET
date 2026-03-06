@@ -14,7 +14,7 @@ public interface IRequestInterceptor
     /// Run the interceptor.
     /// </summary>
     /// <returns></returns>
-    Task<ExecutionState> ExecuteAsync();
+    Task<ExecutionState> ExecuteAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -53,5 +53,7 @@ public interface IRequestInterceptor<in TInterceptorContext> : IRequestIntercept
     /// Some kind of logic before interceptor will be set. E.g. ask user a question.
     /// </summary>
     /// <returns></returns>
-    Task BeforeInterceptorSetAsync(TInterceptorContext context);
+    Task BeforeInterceptorSetAsync(
+        TInterceptorContext context,
+        CancellationToken cancellationToken = default);
 }
