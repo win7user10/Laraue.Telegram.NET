@@ -140,7 +140,7 @@ public class TelegramUpdatesService(
                     cancellationToken)
                 .ConfigureAwait(false);
             
-            logger.LogError("Error while handling update {Id}, {Message}", update.Id, e.Message);
+            logger.LogError(e, "Error while handling update {Id}, {Message}", update.Id, e.Message);
         }
     }
 }
