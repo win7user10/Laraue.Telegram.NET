@@ -17,7 +17,7 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddTelegramRequestEfCoreInterceptors<TUserKey, TDbContext>(
         this IServiceCollection serviceCollection,
-        IEnumerable<Assembly> interceptorAssemblies)
+        IEnumerable<Assembly>? interceptorAssemblies = null)
         where TUserKey : IEquatable<TUserKey>
         where TDbContext : class, IInterceptorsDbContext<TUserKey>
     {

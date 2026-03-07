@@ -216,7 +216,7 @@ Add the functionality to container. Interceptors are depending on _Laraue.Telegr
 and _Laraue.Telegram.NET.Authentication_ packages and should be registered in such order.
 ```csharp
 services.AddTelegramCore(new TelegramBotClientOptions(builder.Configuration["Telegram:Token"]!))
-    .AddTelegramRequestEfCoreInterceptors<InterceptorState>()
+    .AddTelegramRequestEfCoreInterceptors()
     .AddTelegramAuthentication<User, Guid>()
 ```
 **Note** - there is already implemented IInterceptorState with storing state in the DB via EFCore in the package
@@ -283,10 +283,12 @@ public class TestController : TelegramController
             context.Update.GetUserId(),
             "What is your age?");
             
-        await _questionState.SetAsync<UpdateAgeInterceptor>(context.UserId, new UpdateAgeInterceptor
-        {
-            UserId = context.UserId
-        });
+        await _questionState.SetAsync<UpdateAgeInterceptor, UpdateAgeInterceptorContext>(
+            context.UserId,
+            new UpdateAgeInterceptorContext
+            {
+                UserId = context.UserId
+            });
     }
 }
 ```
