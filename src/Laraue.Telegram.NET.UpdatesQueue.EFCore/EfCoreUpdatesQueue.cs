@@ -16,7 +16,17 @@ public class EfCoreUpdatesQueue(
         var updatesArray = updates.ToArray();
         if (updatesArray.Length > 0)
         {
+            var allIds = updatesArray
+                .Select(u => u.Id)
+                .ToArray();
+
+            var alreadyExistIds = await dbContext.Updates
+                .Where(u => ((IEnumerable<int>)allIds).Contains(u.Id))
+                .Select(x => x.Id)
+                .ToArrayAsync(cancellationToken);
+            
             var entities = updatesArray
+                .ExceptBy(alreadyExistIds, u => u.Id)
                 .Select(u => new DataAccess.Update
                 {
                     Id = u.Id,
