@@ -39,13 +39,13 @@ public interface ITelegramUser<TKey>
     /// Telegram last name.
     /// </summary>
     [MaxLength(64)]
-    public string? LastName { get; init; }
+    public string? TelegramLastName { get; init; }
     
     /// <summary>
     /// Telegram first name.
     /// </summary>
     [MaxLength(64)]
-    public string? FirstName { get; init; }
+    public string? TelegramFirstName { get; init; }
 
     /// <summary>
     /// When the user first time wrote to the telegram bot (in UTC).

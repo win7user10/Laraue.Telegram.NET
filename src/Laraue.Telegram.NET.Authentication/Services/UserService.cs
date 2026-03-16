@@ -38,8 +38,8 @@ public class UserService<TUser, TKey> : IUserService<TKey>
                 TelegramUserName = telegramData.Username,
                 CreatedAt = DateTime.UtcNow,
                 TelegramLanguageCode = telegramData.LanguageCode,
-                FirstName = telegramData.FirstName,
-                LastName = telegramData.LastName
+                TelegramFirstName = telegramData.FirstName,
+                TelegramLastName = telegramData.LastName
             });
     }
 }
