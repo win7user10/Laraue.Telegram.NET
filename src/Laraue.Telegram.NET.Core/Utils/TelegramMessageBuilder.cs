@@ -124,4 +124,7 @@ public sealed class TelegramMessageBuilder
     /// Returns Keyboard with text buttons.
     /// </summary>
     public ReplyKeyboardMarkup ReplyKeyboard => new (KeyboardButtons) { ResizeKeyboard = true };
+    
+    // TODO - keyboard markup should selectively took the correct board.
+    // TODO - ForceReplyMarkup support
 }

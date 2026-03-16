@@ -23,26 +23,23 @@ public class UserService<TUser, TKey> : IUserService<TKey>
             return new LoginResponse<TKey>(user.Id);
         }
         
-        var userId = await CreateUserInternalAsync(
-            telegramData.Id,
-            telegramData.Username,
-            telegramData.LanguageCode);
+        var userId = await CreateUserInternalAsync(telegramData);
         
         return new LoginResponse<TKey>(userId);
     }
 
     private Task<TKey> CreateUserInternalAsync(
-        long telegramId,
-        string? telegramUserName,
-        string? telegramLanguageCode)
+        TelegramData telegramData)
     {
         return _telegramUserQueryService.CreateAsync(
             new TUser
             {
-                TelegramId = telegramId,
-                TelegramUserName = telegramUserName,
+                TelegramId = telegramData.Id,
+                TelegramUserName = telegramData.Username,
                 CreatedAt = DateTime.UtcNow,
-                TelegramLanguageCode = telegramLanguageCode
+                TelegramLanguageCode = telegramData.LanguageCode,
+                FirstName = telegramData.FirstName,
+                LastName = telegramData.LastName
             });
     }
 }

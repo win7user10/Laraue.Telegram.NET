@@ -66,7 +66,12 @@ public class AuthTelegramMiddleware<TKey> : ITelegramMiddleware
         }
         
         var result = await _userService.LoginOrRegisterAsync(
-            new TelegramData(user.Id, user.Username, user.LanguageCode));
+            new TelegramData(
+                user.Id,
+                user.Username,
+                user.LanguageCode,
+                user.FirstName,
+                user.LastName));
         
         await _userIdByTelegramIdCache.TryAddAsync(user.Id, result.UserId);
         return result.UserId;
