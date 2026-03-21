@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Telegram.Bot.Exceptions;
 
 namespace Laraue.Telegram.NET.Core.Services;
 
@@ -50,14 +51,23 @@ public class TelegramUpdatesLongPoolingBackgroundService : BackgroundService
         {
             using var scope = _serviceProvider.CreateScope();
             var telegramUpdatesService = scope.ServiceProvider.GetRequiredService<ITelegramUpdatesService>();
-            
-            currentOffset = await telegramUpdatesService
-                .LoadNewUpdatesToQueueAsync(currentOffset, batchSize, stoppingToken)
-                .ConfigureAwait(false);
 
-            await Task
-                .Delay(longPoolingInterval, stoppingToken)
-                .ConfigureAwait(false);
+            try
+            {
+                currentOffset = await telegramUpdatesService
+                    .LoadNewUpdatesToQueueAsync(currentOffset, batchSize, stoppingToken)
+                    .ConfigureAwait(false);
+            }
+            catch (RequestException e)
+            {
+                _logger.LogError(e, "Error while requesting messages from telegram.");
+            }
+            finally
+            {
+                await Task
+                    .Delay(longPoolingInterval, stoppingToken)
+                    .ConfigureAwait(false);
+            }
         }
     }
 
