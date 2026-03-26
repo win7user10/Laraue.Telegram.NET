@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
 
 namespace Laraue.Telegram.NET.Core.Extensions;
 
@@ -17,6 +16,7 @@ public static class UpdateExtensions
         public User? GetUser()
         {
             return update.Message?.GetUser()
+                ?? update.EditedMessage?.GetUser()
                 ?? update.CallbackQuery?.GetUser();
         }
         
@@ -25,8 +25,9 @@ public static class UpdateExtensions
         /// </summary>
         public long? TryGetChatId()
         {
-            return update.Message?.Chat?.Id
-                ?? update.CallbackQuery?.Message?.Chat?.Id;
+            return update.Message?.Chat.Id
+                ?? update.EditedMessage?.Chat.Id
+                ?? update.CallbackQuery?.Message?.Chat.Id;
         }
         
         /// <summary>
