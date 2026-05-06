@@ -16,39 +16,39 @@ public interface ITelegramUser<TKey>
     /// <summary>
     /// System user identifier.
     /// </summary>
-    public TKey Id { get; init; }
+    public TKey Id { get; set; }
     
     /// <summary>
     /// Telegram identifier.
     /// </summary>
-    public long TelegramId { get; init; }
+    public long TelegramId { get; set; }
 
     /// <summary>
     /// Telegram user name.
     /// </summary>
     [MaxLength(32)]
-    public string? TelegramUserName { get; init; }
+    public string? TelegramUserName { get; set; }
 
     /// <summary>
     /// Telegram user language code, e.g "ru", "en" etc.
     /// </summary>
     [MaxLength(2)]
-    public string? TelegramLanguageCode { get; init; }
+    public string? TelegramLanguageCode { get; set; }
     
     /// <summary>
     /// Telegram last name.
     /// </summary>
     [MaxLength(64)]
-    public string? TelegramLastName { get; init; }
+    public string? TelegramLastName { get; set; }
     
     /// <summary>
     /// Telegram first name.
     /// </summary>
     [MaxLength(64)]
-    public string? TelegramFirstName { get; init; }
+    public string? TelegramFirstName { get; set; }
 
     /// <summary>
     /// When the user first time wrote to the telegram bot (in UTC).
     /// </summary>
-    public DateTime CreatedAt { get; init; }
+    public DateTime CreatedAt { get; set; }
 }
