@@ -14,14 +14,12 @@ public interface ITelegramUserQueryService<TUser, TUserKey>
     /// <summary>
     /// Find info about user by its telegram id. Returns null if user is not found.
     /// </summary>
-    /// <param name="telegramId"></param>
     /// <returns></returns>
-    Task<TUser?> FindAsync(long telegramId);
+    Task<TUser?> FindAsync(long telegramId, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Creates the new user.
     /// </summary>
-    /// <param name="user"></param>
     /// <returns>Identifier of the created user.</returns>
-    Task<TUserKey> CreateAsync(TUser user);
+    Task<TUserKey> CreateAsync(TUser user, CancellationToken cancellationToken = default);
 }

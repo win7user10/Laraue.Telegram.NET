@@ -8,7 +8,9 @@ public interface IUserService<TKey> where TKey : IEquatable<TKey>
     /// <summary>
     /// Should return system id for the telegram user.
     /// </summary>
-    Task<LoginResponse<TKey>> LoginOrRegisterAsync(TelegramData loginData);
+    Task<LoginResponse<TKey>> LoginOrRegisterAsync(
+        TelegramData loginData,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>

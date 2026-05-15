@@ -436,7 +436,9 @@ public class ControllerTests
 
     public sealed class MockedUserService : IUserService<string>
     {
-        public Task<LoginResponse<string>> LoginOrRegisterAsync(TelegramData loginData)
+        public Task<LoginResponse<string>> LoginOrRegisterAsync(
+            TelegramData loginData,
+            CancellationToken cancellationToken = default)
         {
             return Task.FromResult(new LoginResponse<string>("123"));
         }

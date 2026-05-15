@@ -15,21 +15,21 @@ public class UserService<TUser, TKey> : IUserService<TKey>
     }
     
     /// <inheritdoc />
-    public async Task<LoginResponse<TKey>> LoginOrRegisterAsync(TelegramData telegramData)
+    public async Task<LoginResponse<TKey>> LoginOrRegisterAsync(
+        TelegramData telegramData,
+        CancellationToken cancellationToken = default)
     {
-        var user = await _telegramUserQueryService.FindAsync(telegramData.Id);
+        var user = await _telegramUserQueryService.FindAsync(telegramData.Id, cancellationToken);
         if (user is not null)
-        {
             return new LoginResponse<TKey>(user.Id);
-        }
         
-        var userId = await CreateUserInternalAsync(telegramData);
-        
+        var userId = await CreateUserInternalAsync(telegramData, cancellationToken);
         return new LoginResponse<TKey>(userId);
     }
 
     private Task<TKey> CreateUserInternalAsync(
-        TelegramData telegramData)
+        TelegramData telegramData,
+        CancellationToken cancellationToken = default)
     {
         return _telegramUserQueryService.CreateAsync(
             new TUser
@@ -40,6 +40,7 @@ public class UserService<TUser, TKey> : IUserService<TKey>
                 TelegramLanguageCode = telegramData.LanguageCode,
                 TelegramFirstName = telegramData.FirstName,
                 TelegramLastName = telegramData.LastName
-            });
+            },
+            cancellationToken);
     }
 }
