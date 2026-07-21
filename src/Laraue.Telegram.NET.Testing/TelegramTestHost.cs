@@ -103,4 +103,11 @@ public abstract class TelegramTestHost<TUserKey> : TelegramTestHost
             .AddSingleton<IUserIdByTelegramIdCache<TUserKey>, MockUserIdByTelegramIdCache<TUserKey>>())
     {
     }
+    
+    protected TelegramTestHost(IServiceCollection serviceCollection, ITelegramBotClient botClientMock)
+        : base(serviceCollection
+            .AddSingleton<IUserIdByTelegramIdCache<TUserKey>, MockUserIdByTelegramIdCache<TUserKey>>(),
+            botClientMock)
+    {
+    }
 }
