@@ -19,15 +19,32 @@ public abstract class TelegramTestHost : IDisposable
     protected readonly TestServer TestServer;
     private readonly List<IRequest> _requests = [];
 
+    /// <summary>
+    /// Initialize test host with default <see cref="TelegramBotClientMock"/>.
+    /// </summary>
     public TelegramTestHost(IServiceCollection serviceCollection)
+        : this(serviceCollection, new TelegramBotClientMock())
     {
-        var botClient = new TelegramBotClientMock();
-        
+    }
+    
+    /// <summary>
+    /// Initialize test host with custom <see cref="ITelegramBotClient"/> mock.
+    /// </summary>
+    public TelegramTestHost(IServiceCollection serviceCollection, ITelegramBotClient botClientMock)
+        : this(serviceCollection, new TelegramBotClientMock(botClientMock))
+    {
+    }
+    
+    /// <summary>
+    /// Initialize test host with the passed <see cref="TelegramBotClientMock"/> mock.
+    /// </summary>
+    public TelegramTestHost(IServiceCollection serviceCollection, TelegramBotClientMock testTelegramClient)
+    {
         var services = serviceCollection
-            .AddSingleton<ITelegramBotClient>(botClient)
+            .AddSingleton<ITelegramBotClient>(testTelegramClient)
             .BuildServiceProvider();
 
-        botClient.OnMakingApiRequest += (_, args, _) =>
+        testTelegramClient.OnMakingApiRequest += (_, args, _) =>
         {
             _requests.Add(args.Request);
             return ValueTask.CompletedTask;
