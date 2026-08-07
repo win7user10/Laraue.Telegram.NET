@@ -17,7 +17,8 @@ public static class UpdateExtensions
         {
             return update.Message?.GetUser()
                 ?? update.EditedMessage?.GetUser()
-                ?? update.CallbackQuery?.GetUser();
+                ?? update.CallbackQuery?.GetUser()
+                ?? update.InlineQuery?.GetUser();
         }
         
         /// <summary>
@@ -33,7 +34,6 @@ public static class UpdateExtensions
         /// <summary>
         /// Get user id from the telegram <see cref="Update"/>.
         /// </summary>
-        /// <returns></returns>
         public long GetUserId()
         {
             return update.GetUser().GetId();
@@ -43,8 +43,6 @@ public static class UpdateExtensions
     /// <summary>
     /// Get user from the telegram <see cref="Message"/>.
     /// </summary>
-    /// <param name="message"></param>
-    /// <returns></returns>
     public static User? GetUser(this Message message)
     {
         return message.From;
@@ -53,18 +51,22 @@ public static class UpdateExtensions
     /// <summary>
     /// Get user from the telegram <see cref="CallbackQuery"/>.
     /// </summary>
-    /// <param name="callbackQuery"></param>
-    /// <returns></returns>
     public static User? GetUser(this CallbackQuery callbackQuery)
     {
         return callbackQuery.From;
     }
     
     /// <summary>
+    /// Get user from the telegram <see cref="InlineQuery"/>.
+    /// </summary>
+    public static User? GetUser(this InlineQuery inlineQuery)
+    {
+        return inlineQuery.From;
+    }
+    
+    /// <summary>
     /// Get user id from the telegram <see cref="User"/>.
     /// </summary>
-    /// <param name="user"></param>
-    /// <returns></returns>
     public static long GetId(this User? user)
     {
         return user?.Id ?? throw new InvalidOperationException();
