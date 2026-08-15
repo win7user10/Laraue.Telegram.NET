@@ -64,4 +64,24 @@ public class CallbackRoutePathTests
         Assert.Equal("/route?p=10", pathBuilder.ToString());
         Assert.Equal("/route?p=10&x=12", builder2.ToString());
     }
+    
+    [Fact]
+    public void PathParameter_ShouldBeAddedCorrectly()
+    {
+        var pathBuilder = new CallbackRoutePath("/route/{id}");
+        pathBuilder.WithPathParameter("id", "123");
+        
+        Assert.Equal("/route/123", pathBuilder.ToString());
+    }
+    
+    [Fact]
+    public void PathParameter_ShouldThrow_WhenNotExist()
+    {
+        var pathBuilder = new CallbackRoutePath("/route/{id}");
+        
+        var ex = Assert.Throws<ArgumentException>(() => pathBuilder.WithPathParameter("userId", "123"));
+        
+        Assert.Equal("parameterName", ex.ParamName);
+        Assert.Equal("Placeholder '{userId}' was not found in the route (Parameter 'parameterName')", ex.Message);
+    }
 }

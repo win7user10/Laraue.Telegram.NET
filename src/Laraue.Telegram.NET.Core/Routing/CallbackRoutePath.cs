@@ -10,7 +10,7 @@ namespace Laraue.Telegram.NET.Core.Routing;
 /// </summary>
 public sealed class CallbackRoutePath
 {
-    private readonly string _routePattern;
+    private string _routePattern;
     private readonly RouteMethod _routeMethod;
     private readonly Lazy<Dictionary<string, object>> _queryParameters = new (() => new Dictionary<string, object>());
     private bool _isFreeze;
@@ -67,6 +67,25 @@ public sealed class CallbackRoutePath
         }
 
         builder._queryParameters.Value[parameterName] = value;
+
+        return builder;
+    }
+    
+    /// <summary>
+    /// Fill path parameter like {id} with the specified value.
+    /// </summary>
+    /// <param name="parameterName"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public CallbackRoutePath WithPathParameter(string parameterName, string value)
+    {
+        var builder = _isFreeze ? GetCopy() : this;
+        
+        var newPattern = builder._routePattern.Replace("{" + parameterName + "}", value);
+        if (newPattern == builder._routePattern)
+            throw new ArgumentException($"Placeholder '{{{parameterName}}}' was not found in the route", nameof(parameterName));
+
+        builder._routePattern = newPattern;
 
         return builder;
     }

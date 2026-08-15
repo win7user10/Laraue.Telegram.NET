@@ -1,5 +1,6 @@
 ﻿using Laraue.Telegram.NET.Core.Routing.Attributes;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Xunit;
 
 namespace Laraue.Telegram.NET.Tests.Router;
@@ -15,7 +16,11 @@ public class TelegramMessageRouteAttributeTests
         {
             Message = new Message
             {
-                Text = "/category add Alex John"
+                Text = "/category add Alex John",
+                Chat = new Chat
+                {
+                    Type = ChatType.Private,
+                }
             }
         }, out var parameters));
         

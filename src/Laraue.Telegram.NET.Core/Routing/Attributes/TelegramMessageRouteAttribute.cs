@@ -38,7 +38,20 @@ public class TelegramMessageRouteAttribute : TelegramBaseRouteWithPathAttribute
 
     public override bool TryMatch(Update update, [NotNullWhen(true)] out RequestParameters? requestParameters)
     {
-        if (update.Message is not null && _allowedChatTypes.Contains(update.Message.Chat.Type))
+        if (update.Message is null)
+        {
+            requestParameters = null;
+            return false;
+        }
+
+        if (update.Message.Chat is null)
+        {
+            throw new ArgumentNullException(
+                nameof(update.Message.Chat),
+                "Chat parameter should always be provided by Telegram.");
+        }
+        
+        if (_allowedChatTypes.Contains(update.Message.Chat.Type))
             return base.TryMatch(update, out requestParameters);
         
         requestParameters = null;
